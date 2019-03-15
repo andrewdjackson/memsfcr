@@ -238,6 +238,7 @@ bool mems_move_iac(mems_info* info, uint8_t desired_pos);
 bool mems_test_actuator(mems_info* info, actuator_cmd cmd, uint8_t* data);
 bool mems_clear_faults(mems_info* info);
 bool mems_heartbeat(mems_info* info);
+int find_command(char* command);
 
 librosco_version mems_get_lib_version();
 

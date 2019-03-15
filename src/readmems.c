@@ -112,14 +112,14 @@ char* current_date(void)
     return buffer;
 }
 
-bool read_config(readmems_config* config)
+int read_config(readmems_config* config)
 {
     FILE* file = fopen("readmems.cfg", "r"); /* should check the result */
     char line[256];
     char* key;
     char* value;
     char* search = "=";
-    bool config_applied = false;
+    int cmd_idx = -1;
     int len;
 
     if (file) {
@@ -149,12 +149,12 @@ bool read_config(readmems_config* config)
             }
         }
 
-        config_applied = true;
+        cmd_idx = find_command(config->command);
     }
 
     fclose(file);
 
-    return config_applied;
+    return cmd_idx;
 }
 
 int find_command(char* command)
@@ -289,7 +289,6 @@ bool interactive_mode(mems_info* info, uint8_t* response_buffer)
 int main(int argc, char** argv)
 {
     bool success = false;
-    bool config_applied = false;
     int cmd_idx = 0;
     mems_data data;
     mems_data_frame_80 frame80;
@@ -317,7 +316,7 @@ int main(int argc, char** argv)
 
     // read the config file for defaults
     readmems_config config;
-    config_applied = read_config(&config);
+    cmd_idx = read_config(&config);
 
     if (argc > 1) {
         // process the command line arguments
@@ -337,7 +336,7 @@ int main(int argc, char** argv)
         config.output = open_file(&fp);
     }
 
-    printf("Using config:\nport: %s\ncommand: %s\noutput: %s\nloop: %s\n", config.port, config.command, config.output, config.loop);
+    printf("Using config:\nport: %s\ncommand: %s (%d)\noutput: %s\nloop: %s\n", config.port, config.command, cmd_idx, config.output, config.loop);
 
     mems_init(&info);
 

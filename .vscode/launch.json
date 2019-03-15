@@ -1,0 +1,28 @@
+{
+    "version": "2.0.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/bin/readmems",
+            "args": [],
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart",
+            "logging": {
+                "moduleLoad": false,
+                "programOutput": true,
+                "trace": false
+            },
+            "showDisplayString": false,
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}/bin",
+            "environment": [],
+            "externalConsole": true, // set true to enable keyboard input
+            "osx": {
+                "MIMode": "lldb"
+            }
+        }
+    ]
+}
