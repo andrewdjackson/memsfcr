@@ -357,9 +357,6 @@ int main(int argc, char** argv)
             printf("ECU responded to D0 command with: %02X %02X %02X %02X\n", response_buffer[0], response_buffer[1], response_buffer[2], response_buffer[3]);
 
             switch (cmd_idx) {
-                case MC_Read:
-                    printf("executing read\n");
-
                 case MC_MemsGauge_Read:
                     sprintf(log_line, "#time,engineSpeed,waterTemp,intakeAirTemp,throttleVoltage,manifoldPressure,idleBypassPos,mainVoltage,idleswitch,closedloop,lambdaVoltage_mV,intakeAirTempSensorFault,coolantTempSensorFault,fuelpumpCircuitFault,throttlepotCircuitFault\n");
                     printf("%s", log_line);
@@ -395,9 +392,10 @@ int main(int argc, char** argv)
                         }
                     }
                     break;
-                    /*
 
                 case MC_Read:
+                    printf("executing read\n");
+
                     while (read_inf || (read_loop_count-- > 0)) {
                         if (mems_read(&info, &data)) {
                             printf("RPM: %u\nCoolant (deg C): %u\nAmbient (deg C): %u\nIntake air (deg C): %u\n"
@@ -412,7 +410,6 @@ int main(int argc, char** argv)
                         }
                     }
                     break;
-    */
 
                 case MC_Read_Raw:
                     while (read_inf || (read_loop_count-- > 0)) {
