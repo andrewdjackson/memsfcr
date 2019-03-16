@@ -98,7 +98,7 @@ char* current_time(void)
 
     gettimeofday(&tv, NULL);
 
-    sprintf(buffer, "%4d-%02d-%02dT%02d:%02d:%02d.%03d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, tv.tv_usec/1000);
+    sprintf(buffer, "%4d-%02d-%02dT%02d:%02d:%02d.%03d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, tv.tv_usec / 1000);
     return buffer;
 }
 
@@ -112,6 +112,11 @@ char* current_date(void)
     return buffer;
 }
 
+bool prefix(const char pre, const char* str)
+{
+    return (str[0] == pre);
+}
+
 int read_config(readmems_config* config)
 {
     FILE* file = fopen("readmems.cfg", "r"); /* should check the result */
@@ -119,33 +124,40 @@ int read_config(readmems_config* config)
     char* key;
     char* value;
     char* search = "=";
+    char comment = '#';
     int cmd_idx = -1;
     int len;
 
     if (file) {
         while (fgets(line, sizeof(line), file)) {
-            key = strtok(line, search);
-            value = strtok(NULL, search);
+            if (strlen(line) > 1) {
+                if (prefix(comment, line)) {
+                    // skip comments
+                } else {
+                    key = strtok(line, search);
+                    value = strtok(NULL, search);
 
-            // remove newline
-            len = strlen(value);
-            if (value[len - 1] == '\n')
-                value[len - 1] = 0;
+                    // remove newline
+                    len = strlen(value);
+                    if (value[len - 1] == '\n')
+                        value[len - 1] = 0;
 
-            if (strcasecmp(key, "port") == 0) {
-                config->port = strdup(value);
-            }
+                    if (strcasecmp(key, "port") == 0) {
+                        config->port = strdup(value);
+                    }
 
-            if (strcasecmp(key, "command") == 0) {
-                config->command = strdup(value);
-            }
+                    if (strcasecmp(key, "command") == 0) {
+                        config->command = strdup(value);
+                    }
 
-            if (strcasecmp(key, "output") == 0) {
-                config->output = strdup(value);
-            }
+                    if (strcasecmp(key, "output") == 0) {
+                        config->output = strdup(value);
+                    }
 
-            if (strcasecmp(key, "loop") == 0) {
-                config->loop = strdup(value);
+                    if (strcasecmp(key, "loop") == 0) {
+                        config->loop = strdup(value);
+                    }
+                }
             }
         }
 
@@ -232,7 +244,8 @@ int write_log(FILE** fp, char* line)
         return -1;
 }
 
-void delete_file(char* filename) {
+void delete_file(char* filename)
+{
     remove(filename);
 }
 
@@ -299,7 +312,7 @@ int main(int argc, char** argv)
     uint8_t bufidx;
     uint8_t readval = 0;
     uint8_t iac_limit_count = 80; // number of times to re-send an IAC move command when
-    FILE *fp = NULL;
+    FILE* fp = NULL;
     char log_line[256];
     bool connected = false;
 
@@ -357,147 +370,147 @@ int main(int argc, char** argv)
             printf("ECU responded to D0 command with: %02X %02X %02X %02X\n", response_buffer[0], response_buffer[1], response_buffer[2], response_buffer[3]);
 
             switch (cmd_idx) {
-                case MC_MemsGauge_Read:
-                    sprintf(log_line, "#time,engineSpeed,waterTemp,intakeAirTemp,throttleVoltage,manifoldPressure,idleBypassPos,mainVoltage,idleswitch,closedloop,lambdaVoltage_mV,intakeAirTempSensorFault,coolantTempSensorFault,fuelpumpCircuitFault,throttlepotCircuitFault\n");
-                    printf("%s", log_line);
+            case MC_MemsGauge_Read:
+                sprintf(log_line, "#time,engineSpeed,waterTemp,intakeAirTemp,throttleVoltage,manifoldPressure,idleBypassPos,mainVoltage,idleswitch,closedloop,lambdaVoltage_mV,intakeAirTempSensorFault,coolantTempSensorFault,fuelpumpCircuitFault,throttlepotCircuitFault\n");
+                printf("%s", log_line);
 
-                    if (fp)
-                        write_log(&fp, log_line);
+                if (fp)
+                    write_log(&fp, log_line);
 
-                    while (read_inf || (read_loop_count-- > 0)) {
-                        if (mems_read(&info, &data)) {
-                            sprintf(log_line, "%s,%u,%u,%u,%f,%f,%u,%f,%u,%u,%u,%u,%u,%u,%u\n",
-                                current_time(),
-                                data.engine_rpm,
-                                data.coolant_temp_c,
-                                data.intake_air_temp_c,
-                                data.throttle_pot_voltage,
-                                data.map_kpa,
-                                data.iac_position,
-                                data.battery_voltage,
-                                data.idle_switch,
-                                data.closed_loop,
-                                data.lambda_voltage_mv,
-                                data.intake_air_temp_sensor_fault,
-                                data.coolant_temp_sensor_fault,
-                                data.fuel_pump_circuit_fault,
-                                data.throttle_pot_circuit_fault);
+                while (read_inf || (read_loop_count-- > 0)) {
+                    if (mems_read(&info, &data)) {
+                        sprintf(log_line, "%s,%u,%u,%u,%f,%f,%u,%f,%u,%u,%u,%u,%u,%u,%u\n",
+                            current_time(),
+                            data.engine_rpm,
+                            data.coolant_temp_c,
+                            data.intake_air_temp_c,
+                            data.throttle_pot_voltage,
+                            data.map_kpa,
+                            data.iac_position,
+                            data.battery_voltage,
+                            data.idle_switch,
+                            data.closed_loop,
+                            data.lambda_voltage_mv,
+                            data.intake_air_temp_sensor_fault,
+                            data.coolant_temp_sensor_fault,
+                            data.fuel_pump_circuit_fault,
+                            data.throttle_pot_circuit_fault);
 
-                            printf("%s", log_line);
+                        printf("%s", log_line);
 
-                            if (fp)
-                                write_log(&fp, log_line);
+                        if (fp)
+                            write_log(&fp, log_line);
 
-                            success = true;
-                        }
-                    }
-                    break;
-
-                case MC_Read:
-                    printf("executing read\n");
-
-                    while (read_inf || (read_loop_count-- > 0)) {
-                        if (mems_read(&info, &data)) {
-                            printf("RPM: %u\nCoolant (deg C): %u\nAmbient (deg C): %u\nIntake air (deg C): %u\n"
-                                "Fuel temp (deg C): %u\nMAP (kPa): %f\nMain voltage: %f\nThrottle pot voltage: %f\n"
-                                "Idle switch: %u\nPark/neutral switch: %u\nFault codes: %u\nIAC position: %u\n"
-                                "-------------\n",
-                                data.engine_rpm, data.coolant_temp_c, data.ambient_temp_c,
-                                data.intake_air_temp_c, data.fuel_temp_c, data.map_kpa, data.battery_voltage,
-                                data.throttle_pot_voltage, data.idle_switch, data.park_neutral_switch,
-                                data.fault_codes, data.iac_position);
-                            success = true;
-                        }
-                    }
-                    break;
-
-                case MC_Read_Raw:
-                    while (read_inf || (read_loop_count-- > 0)) {
-                        if (mems_read_raw(&info, &frame80, &frame7d)) {
-                            frameptr = (uint8_t*)&frame80;
-                            printf("80: ");
-                            for (bufidx = 0; bufidx < sizeof(mems_data_frame_80); ++bufidx) {
-                                printf("%02X ", frameptr[bufidx]);
-                            }
-                            printf("\n");
-
-                            frameptr = (uint8_t*)&frame7d;
-                            printf("7D: ");
-                            for (bufidx = 0; bufidx < sizeof(mems_data_frame_7d); ++bufidx) {
-                                printf("%02X ", frameptr[bufidx]);
-                            }
-                            printf("\n");
-
-                            success = true;
-                        }
-                    }
-                    break;
-
-                case MC_Read_IAC:
-                    if (mems_read_iac_position(&info, &readval)) {
-                        printf("0x%02X\n", readval);
                         success = true;
                     }
-                    break;
+                }
+                break;
 
-                case MC_PTC:
-                    if (mems_test_actuator(&info, MEMS_PTCRelayOn, NULL)) {
-                        sleep(2);
-                        success = mems_test_actuator(&info, MEMS_PTCRelayOff, NULL);
+            case MC_Read:
+                printf("executing read\n");
+
+                while (read_inf || (read_loop_count-- > 0)) {
+                    if (mems_read(&info, &data)) {
+                        printf("RPM: %u\nCoolant (deg C): %u\nAmbient (deg C): %u\nIntake air (deg C): %u\n"
+                               "Fuel temp (deg C): %u\nMAP (kPa): %f\nMain voltage: %f\nThrottle pot voltage: %f\n"
+                               "Idle switch: %u\nPark/neutral switch: %u\nFault codes: %u\nIAC position: %u\n"
+                               "-------------\n",
+                            data.engine_rpm, data.coolant_temp_c, data.ambient_temp_c,
+                            data.intake_air_temp_c, data.fuel_temp_c, data.map_kpa, data.battery_voltage,
+                            data.throttle_pot_voltage, data.idle_switch, data.park_neutral_switch,
+                            data.fault_codes, data.iac_position);
+                        success = true;
                     }
-                    break;
+                }
+                break;
 
-                case MC_FuelPump:
-                    if (mems_test_actuator(&info, MEMS_FuelPumpOn, NULL)) {
-                        sleep(2);
-                        success = mems_test_actuator(&info, MEMS_FuelPumpOff, NULL);
-                    }
-                    break;
-
-                case MC_IAC_Close:
-                    do {
-                        success = mems_test_actuator(&info, MEMS_CloseIAC, &readval);
-
-                        // For some reason, diagnostic tools will continue to send send the
-                        // 'close' command many times after the IAC has already reached the
-                        // fully-closed position. Emulate that behavior here.
-                        if (success && (readval == 0x00)) {
-                            iac_limit_count -= 1;
+            case MC_Read_Raw:
+                while (read_inf || (read_loop_count-- > 0)) {
+                    if (mems_read_raw(&info, &frame80, &frame7d)) {
+                        frameptr = (uint8_t*)&frame80;
+                        printf("80: ");
+                        for (bufidx = 0; bufidx < sizeof(mems_data_frame_80); ++bufidx) {
+                            printf("%02X ", frameptr[bufidx]);
                         }
-                    } while (success && iac_limit_count);
-                    break;
+                        printf("\n");
 
-                case MC_IAC_Open:
-                    // The SP Rover 1 pod considers a value of 0xB4 to represent an opened
-                    // IAC valve, so repeat the open command until the valve is opened to
-                    // that point.
-                    do {
-                        success = mems_test_actuator(&info, MEMS_OpenIAC, &readval);
-                    } while (success && (readval < 0xB4));
-                    break;
+                        frameptr = (uint8_t*)&frame7d;
+                        printf("7D: ");
+                        for (bufidx = 0; bufidx < sizeof(mems_data_frame_7d); ++bufidx) {
+                            printf("%02X ", frameptr[bufidx]);
+                        }
+                        printf("\n");
 
-                case MC_AC:
-                    if (mems_test_actuator(&info, MEMS_ACRelayOn, NULL)) {
-                        sleep(2);
-                        success = mems_test_actuator(&info, MEMS_ACRelayOff, NULL);
+                        success = true;
                     }
-                    break;
+                }
+                break;
 
-                case MC_Coil:
-                    success = mems_test_actuator(&info, MEMS_FireCoil, NULL);
-                    break;
+            case MC_Read_IAC:
+                if (mems_read_iac_position(&info, &readval)) {
+                    printf("0x%02X\n", readval);
+                    success = true;
+                }
+                break;
 
-                case MC_Injectors:
-                    success = mems_test_actuator(&info, MEMS_TestInjectors, NULL);
-                    break;
+            case MC_PTC:
+                if (mems_test_actuator(&info, MEMS_PTCRelayOn, NULL)) {
+                    sleep(2);
+                    success = mems_test_actuator(&info, MEMS_PTCRelayOff, NULL);
+                }
+                break;
 
-                case MC_Interactive:
-                    success = interactive_mode(&info, response_buffer);
-                    break;
+            case MC_FuelPump:
+                if (mems_test_actuator(&info, MEMS_FuelPumpOn, NULL)) {
+                    sleep(2);
+                    success = mems_test_actuator(&info, MEMS_FuelPumpOff, NULL);
+                }
+                break;
 
-                default:
-                    printf("Error: invalid command\n");
-                    break;
+            case MC_IAC_Close:
+                do {
+                    success = mems_test_actuator(&info, MEMS_CloseIAC, &readval);
+
+                    // For some reason, diagnostic tools will continue to send send the
+                    // 'close' command many times after the IAC has already reached the
+                    // fully-closed position. Emulate that behavior here.
+                    if (success && (readval == 0x00)) {
+                        iac_limit_count -= 1;
+                    }
+                } while (success && iac_limit_count);
+                break;
+
+            case MC_IAC_Open:
+                // The SP Rover 1 pod considers a value of 0xB4 to represent an opened
+                // IAC valve, so repeat the open command until the valve is opened to
+                // that point.
+                do {
+                    success = mems_test_actuator(&info, MEMS_OpenIAC, &readval);
+                } while (success && (readval < 0xB4));
+                break;
+
+            case MC_AC:
+                if (mems_test_actuator(&info, MEMS_ACRelayOn, NULL)) {
+                    sleep(2);
+                    success = mems_test_actuator(&info, MEMS_ACRelayOff, NULL);
+                }
+                break;
+
+            case MC_Coil:
+                success = mems_test_actuator(&info, MEMS_FireCoil, NULL);
+                break;
+
+            case MC_Injectors:
+                success = mems_test_actuator(&info, MEMS_TestInjectors, NULL);
+                break;
+
+            case MC_Interactive:
+                success = interactive_mode(&info, response_buffer);
+                break;
+
+            default:
+                printf("Error: invalid command\n");
+                break;
             }
         } else {
             printf("Error in initialization sequence.\n");
