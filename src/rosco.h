@@ -83,24 +83,24 @@ typedef struct
 {
     uint8_t bytes_in_frame;
     uint8_t b;
-    uint8_t c;
+    uint8_t throttle_angle;
     uint8_t d;
     uint8_t e;
-    uint8_t f;
-    uint8_t g;
     uint8_t lambda_voltage;
-    uint8_t i;
-    uint8_t j;
+    uint8_t lambda_frequency;    
+    uint8_t lambda_duty_cycle;      // lambda_voltage
+    uint8_t lambda_status;
     uint8_t closed_loop;
-    uint8_t l;
-    uint8_t fuel_trim;
+    uint8_t long_term_trim;         // closed_loop
+    uint8_t short_term_trim;
+    uint8_t fuel_trim;              // carbon_canister_purge_valve_duty_cycle?
     uint8_t n;
-    uint8_t o;
     uint8_t idle_base_pos;
+    uint8_t p;                      // idle_base_pos
     uint8_t q;
     uint8_t r;
     uint8_t s;
-    uint8_t t;
+    uint8_t idle_error;
     uint8_t u;
     uint8_t v;
     uint8_t w;
