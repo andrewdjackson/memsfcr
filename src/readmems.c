@@ -427,7 +427,13 @@ int main(int argc, char **argv)
     {
         if (mems_init_link(&info, response_buffer))
         {
-            printf("ECU responded to D0 command with: %02X %02X %02X %02X\n", response_buffer[0], response_buffer[1], response_buffer[2], response_buffer[3]);
+            sprintf(log_line, "ECU responded to D0 command with: %02X %02X %02X %02X\n", response_buffer[0], response_buffer[1], response_buffer[2], response_buffer[3]);
+            printf("%s", log_line);
+
+            if (fp)
+            {
+                write_log(&fp, log_line);
+            }
 
             switch (cmd_idx)
             {
@@ -496,6 +502,7 @@ int main(int argc, char **argv)
                     {
                         frameptr = (uint8_t *)&frame80;
                         printf("80: ");
+                        sprintf(log_line, "80: ");
 
                         if (binfp)
                         {
@@ -506,16 +513,25 @@ int main(int argc, char **argv)
                         for (bufidx = 0; bufidx < sizeof(mems_data_frame_80); ++bufidx)
                         {
                             printf("%02X ", frameptr[bufidx]);
+                            sprintf(log_line + strlen(log_line), "%02X ", frameptr[bufidx]);
                             if (binfp)
                             {
                                 binval = frameptr[bufidx];
                                 fwrite(&binval, sizeof binval, 1, binfp);
                             }
                         }
+
                         printf("\n");
+                        sprintf(log_line + strlen(log_line), "\n");
+
+                        if (fp)
+                        {
+                            write_log(&fp, log_line);
+                        }
 
                         frameptr = (uint8_t *)&frame7d;
                         printf("7D: ");
+                        sprintf(log_line, "7D: ");
 
                         if (binfp)
                         {
@@ -526,6 +542,8 @@ int main(int argc, char **argv)
                         for (bufidx = 0; bufidx < sizeof(mems_data_frame_7d); ++bufidx)
                         {
                             printf("%02X ", frameptr[bufidx]);
+                            sprintf(log_line + strlen(log_line), "%02X ", frameptr[bufidx]);
+
                             if (binfp)
                             {
                                 binval = frameptr[bufidx];
@@ -533,6 +551,12 @@ int main(int argc, char **argv)
                             }
                         }
                         printf("\n");
+                        sprintf(log_line + strlen(log_line), "\n");
+
+                        if (fp)
+                        {
+                            write_log(&fp, log_line);
+                        }
 
                         success = true;
                     }
