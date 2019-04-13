@@ -15,15 +15,21 @@ output=log
 loop=inf
 
 **port** is the serial port
+
 **output** can be 'log' or 'stdout'
+
 **loop** can be 'inf' for infinity or a number for the number of loops
-**command** a command from the readmems list, 
+
+**command** a command from the readmems list
+
       - supports additional command 'memsguage' that writes output as human readable CSV
-      - command **read-rae** with **output** set to **log** with create a log file same as piping output to a file and a bin file with the output in a binary file
+      - command **read-raw** with **output** set to **log** with create a log file same as piping output to a file 
+        and a bin file with the output in a binary file
 
 **Forked from Colin's librosco project make instructions are the same**
 
 ### readmems / librosco
+
 ------------
 librosco
 https://github.com/colinbourassa/librosco
