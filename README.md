@@ -5,9 +5,13 @@ This is an enhanced version of the original readmems.
 Readmems also supports a readmems.cfg that allows you to run the readmems without specifying options on the command line.
 
 **readmems.cfg**
+
 port=/dev/ttyserial
+
 command=read
+
 output=log
+
 loop=inf
 
 **port** is the serial port
