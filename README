@@ -1,20 +1,25 @@
-MEMS 1.6 Readmems and Librosco 1.1.0
+# Enhanced MEMS 1.6 Readmems
 
-This is an enhanced version of the original librosco that supports an output that is the same as the MemGauge log file with 4 additional fields for the fault codes.
+This is an enhanced version of the original readmems.
 
 Readmems also supports a readmems.cfg that allows you to run the readmems without specifying options on the command line.
 
-readmems.cfg
+**readmems.cfg**
 port=/dev/ttyserial
 command=read
 output=log
 loop=inf
 
-port is the serial port
-output can be 'log' or 'stdout'
-loop can be 'inf' for infinity or a number for the number of loops
-command a command from the readmems list
+**port** is the serial port
+**output** can be 'log' or 'stdout'
+**loop** can be 'inf' for infinity or a number for the number of loops
+**command** a command from the readmems list, 
+      - supports additional command 'memsguage' that writes output as human readable CSV
+      - command **read-rae** with **output** set to **log** with create a log file same as piping output to a file and a bin file with the output in a binary file
 
+**Forked from Colin's librosco project make instructions are the same**
+
+### readmems / librosco
 ------------
 librosco
 https://github.com/colinbourassa/librosco
