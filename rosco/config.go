@@ -7,14 +7,23 @@ import (
 	"strings"
 )
 
+//type Config interface {
+//	Data(value string)
+//}
+
 // ReadmemsConfig readmems configuration
 type ReadmemsConfig struct {
+	// Config
 	Port       string
 	Command    string
 	Output     string
 	Loop       string
 	Connection string
 }
+
+//func (c *ReadmemsConfig) Data(value string) {
+//	c.Port = value
+//}
 
 func init() {
 
