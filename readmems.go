@@ -1,10 +1,10 @@
 package main
 
 import (
-	"andrewj.com/readmems/config"
+	"os"
+
 	"andrewj.com/readmems/rosco"
 	"andrewj.com/readmems/service"
-	"os"
 )
 
 // fileExists reports whether the named file or directory exists.
@@ -19,7 +19,7 @@ func fileExists(name string) bool {
 
 func main() {
 	// use if the readmems config is supplied
-	var readmemsConfig = config.ReadConfig()
+	var readmemsConfig = rosco.ReadConfig()
 
 	// if argument is supplied then use that as the port id
 	if len(os.Args) > 1 {

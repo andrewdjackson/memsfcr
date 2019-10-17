@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"andrewj.com/readmems/config"
 	"github.com/tarm/serial"
 )
 
@@ -24,7 +23,7 @@ func New() *Mems {
 }
 
 // MemsConnect connect to MEMS via serial port
-func MemsConnect(mems *Mems, readmemsConfig config.ReadmemsConfig) {
+func MemsConnect(mems *Mems, readmemsConfig ReadmemsConfig) {
 	// connect to the ecu
 	c := &serial.Config{Name: readmemsConfig.Port, Baud: 9600}
 
