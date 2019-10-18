@@ -5,19 +5,18 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	m := New()
-	if m == nil {
+	mems := New()
+	if mems == nil {
 		t.Errorf("Unable to create a new Mems struct")
 	}
 }
 
 func TestMemsConnect(t *testing.T) {
-	c := config.ReadConfig()
-	c.Port = "/dev/ttys0"
-	m := New()
-	MemsConnect(m, c)
+	port := "/Users/ajackson/ttyecu"
+	mems := New()
+	MemsConnect(mems, port)
 
-	if m.SerialPort != nil {
+	if mems.SerialPort != nil {
 		t.Errorf("Failed to connect")
 	}
 }

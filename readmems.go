@@ -28,7 +28,7 @@ func main() {
 
 	mems := rosco.New()
 
-	rosco.MemsConnect(mems, readmemsConfig)
+	rosco.MemsConnect(mems, readmemsConfig.Port)
 	rosco.MemsInitialise(mems)
 
 	// start http service

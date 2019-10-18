@@ -24,32 +24,29 @@ func NewMemsDataController(m *rosco.Mems) *MemsDataController {
 
 // GetMemsData retrieves the mems data
 func (mdc MemsDataController) GetMemsData(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	var d1, d2 []byte
+	var memsdata rosco.MemsData
 
 	// Grab id
 	id := p.ByName("id")
 
 	if id == "" {
-		d1, d2 = rosco.MemsReadRaw(mems)
+		memsdata = rosco.MemsRead(mems)
+
+		// Marshal provided interface into JSON structure
+		mdj, _ := json.Marshal(memsdata)
+
+		// Write content-type, statuscode, payload
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		fmt.Fprintf(w, "%s", mdj)
 	} else {
 		cmd, _ := hex.DecodeString(id)
 		rosco.MemsWriteSerial(mems, cmd)
-		d1 = rosco.MemsReadSerial(mems)
+		response := rosco.MemsReadSerial(mems)
+
+		// Write content-type, statuscode, payload
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		fmt.Fprintf(w, "%x", response)
 	}
-
-	// Stub an example
-	md := rosco.MemsData{
-		Id:          id,
-		EngineRPM:   0,
-		DataFrame80: hex.EncodeToString(d1),
-		DataFrame7d: hex.EncodeToString(d2),
-	}
-
-	// Marshal provided interface into JSON structure
-	mdj, _ := json.Marshal(md)
-
-	// Write content-type, statuscode, payload
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-	fmt.Fprintf(w, "%s", mdj)
 }
