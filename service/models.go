@@ -22,6 +22,15 @@ func NewMemsDataController(m *rosco.Mems) *MemsDataController {
 	return &MemsDataController{}
 }
 
+func (mdc MemsDataController) Exit(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	mems.Exit = true
+	// Write content-type, statuscode, payload
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	fmt.Fprintf(w, "Exit")
+}
+
 // GetMemsData retrieves the mems data
 func (mdc MemsDataController) GetMemsData(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	var memsdata rosco.MemsData

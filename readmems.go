@@ -1,10 +1,10 @@
 package main
 
 import (
-	"os"
-
 	"andrewj.com/readmems/rosco"
 	"andrewj.com/readmems/service"
+	"fmt"
+	"os"
 )
 
 // fileExists reports whether the named file or directory exists.
@@ -17,20 +17,45 @@ func fileExists(name string) bool {
 	return true
 }
 
+func connect(mems *rosco.Mems, config *rosco.ReadmemsConfig) {
+	if !mems.Connected {
+		rosco.MemsConnect(mems, config.Port)
+		if mems.Connected {
+			rosco.MemsInitialise(mems)
+		}
+	}
+}
+
 func main() {
 	// use if the readmems config is supplied
-	var readmemsConfig = rosco.ReadConfig()
+	var config = rosco.ReadConfig()
 
 	// if argument is supplied then use that as the port id
 	if len(os.Args) > 1 {
-		readmemsConfig.Port = os.Args[1]
+		config.Port = os.Args[1]
 	}
 
+	// connect to ECU
 	mems := rosco.New()
 
-	rosco.MemsConnect(mems, readmemsConfig.Port)
-	rosco.MemsInitialise(mems)
-
 	// start http service
-	service.StartService(mems)
+	go service.StartService(mems, config)
+
+	defer connect(mems, config)
+
+	for {
+		// wait for comms
+
+		if mems.SerialPort == nil {
+			// exit if the serial port is disconnected
+			fmt.Println("Lost connection to ECU, exiting")
+			break
+		}
+
+		if mems.Exit == true {
+			// exit if the serial port is disconnected
+			fmt.Println("Exit requested, exiting")
+			break
+		}
+	}
 }

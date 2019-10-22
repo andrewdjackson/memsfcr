@@ -13,15 +13,22 @@ import (
 // Mems communtication structure for MEMS
 type Mems struct {
 	// SerialPort the serial connection
-	SerialPort *serial.Port
-	ECUID      []byte
-	command    []byte
-	response   []byte
+	SerialPort  *serial.Port
+	ECUID       []byte
+	Command     []byte
+	Response    []byte
+	Connected   bool
+	Initialised bool
+	Exit        bool
 }
 
 // New creates a new mems structure
 func New() *Mems {
-	return &Mems{}
+	m := &Mems{}
+	m.Connected = false
+	m.Initialised = false
+	m.Exit = false
+	return m
 }
 
 // MemsConnect connect to MEMS via serial port
@@ -33,18 +40,20 @@ func MemsConnect(mems *Mems, port string) {
 
 	s, err := serial.OpenPort(c)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("%s", err)
+	} else {
+		fmt.Println("Listening on ", port)
+
+		mems.SerialPort = s
+		mems.SerialPort.Flush()
+
+		mems.Connected = true
 	}
-
-	fmt.Println("Listening on ", port)
-
-	mems.SerialPort = s
-	mems.SerialPort.Flush()
 }
 
 // checks the first byte of the response against the sent command
 func isCommandEcho(mems *Mems) bool {
-	return mems.command[0] == mems.response[0]
+	return mems.Command[0] == mems.Response[0]
 }
 
 // MemsInitialise initialises the connection to the ECU
@@ -57,7 +66,7 @@ func isCommandEcho(mems *Mems) bool {
 // 5. Send request ECU ID command D0 (MEMS_InitECUID)
 // 6. Recieve response D0 XX XX XX XX
 //
-func MemsInitialise(mems *Mems) bool {
+func MemsInitialise(mems *Mems) {
 	if mems.SerialPort != nil {
 
 		MemsWriteSerial(mems, MEMS_InitCommandA)
@@ -73,12 +82,12 @@ func MemsInitialise(mems *Mems) bool {
 		mems.ECUID = MemsReadSerial(mems)
 	}
 
-	return true
+	mems.Initialised = true
 }
 
 // MemsReadSerial read from MEMS
 func MemsReadSerial(mems *Mems) []byte {
-	size := GetResponseSize(mems.command)
+	size := GetResponseSize(mems.Command)
 	data := make([]byte, size)
 
 	if mems.SerialPort != nil {
@@ -94,7 +103,7 @@ func MemsReadSerial(mems *Mems) []byte {
 		}
 	}
 
-	mems.response = data
+	mems.Response = data
 
 	if !isCommandEcho(mems) {
 		log.Fatal("Expecting command echo")
@@ -107,7 +116,7 @@ func MemsReadSerial(mems *Mems) []byte {
 func MemsWriteSerial(mems *Mems, data []byte) {
 	if mems.SerialPort != nil {
 		// save the sent command
-		mems.command = data
+		mems.Command = data
 
 		// write the response to the code reader
 		n, e := mems.SerialPort.Write(data)

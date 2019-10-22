@@ -7,7 +7,7 @@ import (
 )
 
 // StartService starts an http listener
-func StartService(mems *rosco.Mems) {
+func StartService(mems *rosco.Mems, config *rosco.ReadmemsConfig) {
 	// Instantiate a new router
 	r := httprouter.New()
 
@@ -17,7 +17,9 @@ func StartService(mems *rosco.Mems) {
 	// Get mems data
 	r.GET("/mems", c.GetMemsData)
 	r.GET("/mems/:id", c.GetMemsData)
+	r.GET("/exit", c.Exit)
 
+	port := config.WebPort
 	// Fire up the server
-	http.ListenAndServe("localhost:3000", r)
+	http.ListenAndServe("localhost:"+port, r)
 }

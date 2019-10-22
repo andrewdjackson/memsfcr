@@ -7,10 +7,6 @@ import (
 	"strings"
 )
 
-//type Config interface {
-//	Data(value string)
-//}
-
 // ReadmemsConfig readmems configuration
 type ReadmemsConfig struct {
 	// Config
@@ -19,14 +15,21 @@ type ReadmemsConfig struct {
 	Output     string
 	Loop       string
 	Connection string
+	WebPort    string
 }
 
-//func (c *ReadmemsConfig) Data(value string) {
-//	c.Port = value
-//}
+var config ReadmemsConfig
 
-func init() {
+// NewConfig creates a new instance of readmems config
+func NewConfig() *ReadmemsConfig {
+	config.Port = "ttycodereader"
+	config.Command = "read"
+	config.Loop = "inf"
+	config.Output = "stdout"
+	config.Connection = "wait"
+	config.WebPort = "0"
 
+	return &config
 }
 
 // reads a whole file into memory and returns a slice of its lines.
@@ -49,15 +52,8 @@ func readLines(path string) ([]string, error) {
 }
 
 // ReadConfig reads readmems.cfg file
-func ReadConfig() ReadmemsConfig {
-	var c ReadmemsConfig
-
-	// set up defaults
-	c.Port = "ttycodereader"
-	c.Command = "read"
-	c.Loop = "inf"
-	c.Output = "stdout"
-	c.Connection = "wait"
+func ReadConfig() *ReadmemsConfig {
+	c := NewConfig()
 
 	lines, err := readLines("readmems.cfg")
 
@@ -78,6 +74,8 @@ func ReadConfig() ReadmemsConfig {
 						c.Output = data[1]
 					case "connection":
 						c.Connection = data[1]
+					case "webport":
+						c.WebPort = data[1]
 					}
 				}
 			}
