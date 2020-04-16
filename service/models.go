@@ -22,6 +22,7 @@ func NewMemsDataController(m *rosco.Mems) *MemsDataController {
 	return &MemsDataController{}
 }
 
+// Exit does stuff
 func (mdc MemsDataController) Exit(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	mems.Exit = true
 	// Write content-type, statuscode, payload

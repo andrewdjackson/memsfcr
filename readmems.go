@@ -31,15 +31,16 @@ func connect(mems *rosco.Mems, config *rosco.ReadmemsConfig) {
 // WriteToFile will print any string of text to a file safely by
 // checking for errors and syncing at the end.
 func WriteToFile(filename string, data string) error {
-	file, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND, 0644)
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	_, err = fmt.Fprintln(file, data)
-	if err != nil {
+
+	if _, err = file.WriteString(data); err != nil {
 		return err
 	}
+
 	return file.Sync()
 }
 

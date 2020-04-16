@@ -99,7 +99,7 @@ func MemsReadSerial(mems *Mems) []byte {
 		}
 
 		if n > 0 {
-			log.Printf("read (%d): %x", n, data[:n])
+			log.Printf("ECU [%d]: %x", n, data[:n])
 		}
 	}
 
@@ -126,7 +126,7 @@ func MemsWriteSerial(mems *Mems, data []byte) {
 		}
 
 		if n > 0 {
-			log.Printf("write: %x", data)
+			log.Printf("FCR: %x", data)
 		}
 	}
 }
