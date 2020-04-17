@@ -2,69 +2,66 @@ package main
 
 import (
 	"andrewj.com/readmems/rosco"
-	"andrewj.com/readmems/service"
-	"encoding/json"
+	"flag"
 	"fmt"
-	"os"
 	"strconv"
+	"time"
 )
 
-// fileExists reports whether the named file or directory exists.
-func fileExists(name string) bool {
-	if _, err := os.Stat(name); err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	return true
-}
+const version = "v0.1.0"
 
-func connect(mems *rosco.Mems, config *rosco.ReadmemsConfig) {
-	if !mems.Connected {
-		rosco.MemsConnect(mems, config.Port)
-		if mems.Connected {
-			rosco.MemsInitialise(mems)
-		}
-	}
-}
+var header = fmt.Sprintf("\nMemsFCR %s\n", version)
 
-// WriteToFile will print any string of text to a file safely by
-// checking for errors and syncing at the end.
-func WriteToFile(filename string, data string) error {
-	file, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+func helpMessage() string {
+	return fmt.Sprintf(`%s
+	ROSCO MEMS 1.6 Fault Code Reader
 
-	if _, err = file.WriteString(data); err != nil {
-		return err
-	}
-
-	return file.Sync()
+    Usage:
+	memsfcr [flags]
+	  
+    Flags:
+	-port		Name/path of the serial port 
+	-command	Command to execute on the ECU {read}
+	-loop		Command execution loop count, use 'inf' for infinite
+	-output		Use 'stdout' to send response to console, 'file' to log in CSV format to a file {stdout | file}
+	-wait		Retry the connection until a connection is established {true | false}
+	-help		This help message
+	`, header)
 }
 
 func main() {
+	var showHelp bool
+
 	// use if the readmems config is supplied
 	var config = rosco.ReadConfig()
+
+	// parse the command line parameters and override config file settings
+	flag.StringVar(&config.Port, "port", config.Port, "Name/path of the serial port")
+	flag.StringVar(&config.Command, "command", config.Command, "Command to send")
+	flag.StringVar(&config.Loop, "loop", config.Loop, "Read loop count, 'inf' for infinite")
+	flag.BoolVar(&showHelp, "help", false, "A brief help message")
+	flag.Parse()
+
+	if showHelp {
+		fmt.Println(helpMessage())
+		return
+	}
+
 	var memsdata rosco.MemsData
+	var logging = false
 
-	// if argument is supplied then use that as the port id
-	if len(os.Args) > 1 {
-		config.Port = os.Args[1]
+	if config.Output == "file" {
+		logging = true
 	}
 
-	// connect to ECU
+	if config.Loop == "inf" {
+		// infitite loop, so set loop count to a very big number
+		config.Loop = "10000000"
+	}
+
+	// connect and initialise the ECU
 	mems := rosco.New()
-
-	if config.WebPort != "0" {
-		// start http service
-		go service.StartService(mems, config)
-	} else {
-		fmt.Println("Disabling web interface")
-	}
-
-	connect(mems, config)
+	rosco.ConnectAndInitialiseECU(mems, config)
 
 	for {
 		// wait for comms
@@ -81,24 +78,21 @@ func main() {
 			break
 		}
 
-		if config.Loop == "inf" {
+		count, _ := strconv.Atoi(config.Loop)
+
+		for loop := 0; loop < count; loop++ {
 			memsdata = rosco.MemsRead(mems)
-		} else {
-			fmt.Println("Looping %s times", config.Loop)
 
-			count, _ := strconv.Atoi(config.Loop)
-
-			for loop := 0; loop < count; loop++ {
-				memsdata = rosco.MemsRead(mems)
+			if logging {
+				WriteMemsDataToFile(memsdata)
 			}
-			break
-		}
 
-		fmt.Println("%+v\n", memsdata)
-
-		if config.Output == "file" {
-			md, _ := json.Marshal(memsdata)
-			WriteToFile("output.cvs", string(md))
+			// sleep between calls to give the ECU time to catch up
+			// the ECU will get slower as load increases so this ensures
+			// a regular time series for the data set
+			time.Sleep(950 * time.Millisecond)
 		}
+		break
+
 	}
 }

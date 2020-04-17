@@ -31,6 +31,16 @@ func New() *Mems {
 	return m
 }
 
+// ConnectAndInitialiseECU connect and initialise the ECU
+func ConnectAndInitialiseECU(mems *Mems, config *ReadmemsConfig) {
+	if !mems.Connected {
+		MemsConnect(mems, config.Port)
+		if mems.Connected {
+			MemsInitialise(mems)
+		}
+	}
+}
+
 // MemsConnect connect to MEMS via serial port
 func MemsConnect(mems *Mems, port string) {
 	// connect to the ecu
@@ -188,7 +198,7 @@ func MemsRead(mems *Mems) MemsData {
 		ThrottlePotCircuitFault:  df80.Dtc1&0x80 != 0,
 		CrankshaftPositionSensor: df80.CrankshaftPositionSensor,
 		IgnitionSwitch:           df7d.IgnitionSwitch != 0,
-		ThottleAngle:             df7d.ThrottleAngle,
+		ThrottleAngle:            df7d.ThrottleAngle,
 		AirFuelRatio:             df7d.AirFuelRatio,
 		LambdaVoltage:            df7d.LambdaVoltage * 5,
 		LambdaSensorFrequency:    df7d.LambdaSensorFrequency,
@@ -205,8 +215,6 @@ func MemsRead(mems *Mems) MemsData {
 		Dataframe80:              hex.EncodeToString(d80),
 		Dataframe7d:              hex.EncodeToString(d7d),
 	}
-
-	log.Printf("memsdata: %+v\n", info)
 
 	return info
 }

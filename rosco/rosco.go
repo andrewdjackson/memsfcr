@@ -20,20 +20,20 @@ type (
 		BatteryVoltage           float32
 		ThrottlePotVoltage       float32
 		IdleSwitch               bool
-		uk1                      uint8
+		Uk1                      uint8
 		ParkNeutralSwitch        bool
 		FaultCodes               uint8
 		IdleSetPoint             uint8
 		IdleHot                  uint8
-		uk2                      uint8
+		Uk2                      uint8
 		IACPosition              uint8
 		IdleError                uint16
 		IgnitionAdvanceOffset    uint8
 		IgnitionAdvance          float32
 		CoilTime                 float32
 		CrankshaftPositionSensor uint8
-		uk4                      uint8
-		uk5                      uint8
+		Uk4                      uint8
+		Uk5                      uint8
 
 		CoolantTempSensorFault   bool
 		IntakeAirTempSensorFault bool
@@ -43,8 +43,8 @@ type (
 		// dataframe 0x7d
 
 		IgnitionSwitch          bool
-		ThottleAngle            uint8
-		uk6                     uint8
+		ThrottleAngle           uint8
+		Uk6                     uint8
 		AirFuelRatio            uint8
 		DTC2                    uint8
 		LambdaVoltage           uint8
@@ -57,22 +57,22 @@ type (
 		CarbonCanisterDutycycle uint8
 		DTC3                    uint8
 		IdleBasePosition        uint8
-		uk7                     uint8
+		Uk7                     uint8
 		DTC4                    uint8
 		IgnitionAdvance2        uint8
 		IdleSpeedOffset         uint8
 		IdleError2              uint8
-		uk10                    uint8
+		Uk10                    uint8
 		DTC5                    uint8
-		uk11                    uint8
-		uk12                    uint8
-		uk13                    uint8
-		uk14                    uint8
-		uk15                    uint8
-		uk16                    uint8
-		uk1A                    uint8
-		uk1B                    uint8
-		uk1C                    uint8
+		Uk11                    uint8
+		Uk12                    uint8
+		Uk13                    uint8
+		Uk14                    uint8
+		Uk15                    uint8
+		Uk16                    uint8
+		Uk1A                    uint8
+		Uk1B                    uint8
+		Uk1C                    uint8
 
 		Dataframe80 string `json:"dataframe80"`
 		Dataframe7d string `json:"dataframe7d"`
