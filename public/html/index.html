@@ -1,0 +1,119 @@
+<html>
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/public/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="/public/fontawesome/css/all.css" rel="stylesheet">
+
+    <script src="/public/js/gauge.min.js"></script>
+
+    <style>
+        body {
+            padding: 10;
+            margin: 0;
+            background: rgb(253, 253, 253)
+        }
+    </style>
+
+    <title>Hello, world!</title>
+</head>
+
+<body>
+    <script type="text/javascript" src="/public/js/jquery-3.5.0.min.js"></script>
+    <script type="text/javascript" src="/public/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/public/fontawesome/js/fontawesome.min.js"></script>
+
+    <script type="text/javascript">
+        var sock = null;
+        var wsuri = "ws://127.0.0.1:1234";
+
+        window.onload = function() {
+            sock = new WebSocket(wsuri);
+
+            sock.onopen = function() {
+                console.log("connected to " + wsuri);
+            }
+
+            sock.onclose = function(e) {
+                console.log("connection closed (" + e.code + ")");
+            }
+
+            sock.onmessage = function(e) {
+                console.log("message received: " + e.data);
+                setMessage(e.data)
+            }
+
+            gaugeRPM.value = 0
+            gaugeRPM.renderTo = 'gauge-rpm'
+            gaugeRPM.draw()
+
+            gaugeMap.value = 0
+            gaugeMap.renderTo = 'gauge-map'
+            gaugeMap.draw()
+        };
+
+        function setMessage(m) {
+            document.getElementById('message').value = m
+        }
+
+        function setGaugeMeter(v) {
+            gaugeRPM.value = parseInt(v)
+        }
+
+        function send() {
+            var msg = document.getElementById('message').value;
+            sock.send(msg);
+            setGaugeMeter(msg)
+        };
+
+        function connect() {
+            var msg = document.getElementById('port').value;
+            sock.send("CONNECT:" + msg);
+        }
+    </script>
+
+    <div class="container-fluid">
+
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <i class="fa fa-stethoscope">&nbsp</i>
+            <a class="navbar-brand activity" href="#">MemsFCR</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <form class="form-inline my-2 my-lg-0">
+                    <input class="form-control mr-sm-2" type="search" id="port" placeholder="/dev/usb.serial" aria-label="Serial Port">
+                    <button class="btn btn-outline-success my-2 my-sm-0" onclick="connect();" type="button">Connect</button> &nbsp;
+                    <button type="button" class="btn btn-danger" onclick="quit();">Quit</button>
+                </form>
+            </div>
+        </nav>
+
+        <div class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <div class="input-group-text" id="btnGroupAddon">></div>
+                </div>
+                <input type="text" class="form-control" id="message" placeholder="websocket message" aria-label="Message" aria-describedby="btnGroupAddon">
+            </div>
+            <div class="btn-group mr-2" role="group" aria-label="First group">
+                <button type="button" class="btn btn-success" onclick="send();">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <span><canvas id="gauge-rpm"></canvas> &nbsp;
+        <canvas id="gauge-map"></canvas></span>
+    </div>
+
+    <script type="text/javascript" src="/public/js/dashboard.js"></script>
+
+</body>
+
+</html>

@@ -29,34 +29,12 @@ func helpMessage() string {
 	`, header)
 }
 
-func main() {
-	var showHelp bool
-
-	// use if the readmems config is supplied
-	var config = rosco.ReadConfig()
-
-	// parse the command line parameters and override config file settings
-	flag.StringVar(&config.Port, "port", config.Port, "Name/path of the serial port")
-	flag.StringVar(&config.Command, "command", config.Command, "Command to send")
-	flag.StringVar(&config.Loop, "loop", config.Loop, "Read loop count, 'inf' for infinite")
-	flag.BoolVar(&showHelp, "help", false, "A brief help message")
-	flag.Parse()
-
-	if showHelp {
-		fmt.Println(helpMessage())
-		return
-	}
-
+func memsCommandResponseLoop(config *rosco.ReadmemsConfig, c chan rosco.Mems) {
 	var memsdata rosco.MemsData
 	var logging = false
 
 	if config.Output == "file" {
 		logging = true
-	}
-
-	if config.Loop == "inf" {
-		// infitite loop, so set loop count to a very big number
-		config.Loop = "10000000"
 	}
 
 	// connect and initialise the ECU
@@ -95,4 +73,36 @@ func main() {
 		break
 
 	}
+}
+
+func main() {
+	var showHelp bool
+
+	// use if the readmems config is supplied
+	var config = rosco.ReadConfig()
+
+	// parse the command line parameters and override config file settings
+	flag.StringVar(&config.Port, "port", config.Port, "Name/path of the serial port")
+	flag.StringVar(&config.Command, "command", config.Command, "Command to send")
+	flag.StringVar(&config.Loop, "loop", config.Loop, "Read loop count, 'inf' for infinite")
+	flag.BoolVar(&showHelp, "help", false, "A brief help message")
+	flag.Parse()
+
+	if showHelp {
+		fmt.Println(helpMessage())
+		return
+	}
+
+	if config.Loop == "inf" {
+		// infitite loop, so set loop count to a very big number
+		config.Loop = "10000000"
+	}
+
+	// make a channel for http / mems communication
+	c := make(chan rosco.Mems)
+
+	go RunHTTPServer(c)
+	ShowWebView()
+
+	memsCommandResponseLoop(config, c)
 }
