@@ -2,6 +2,7 @@ package main
 
 import (
 	"andrewj.com/readmems/rosco"
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/zserge/webview"
@@ -9,7 +10,12 @@ import (
 	"net/http"
 )
 
-var memsChannel chan rosco.Mems
+type wsMsg struct {
+	Action string `json:"action"`
+	Data   string `json:"data"`
+}
+
+var memsChannel = make(chan wsMsg)
 
 // Echo the messages
 func Echo(ws *websocket.Conn) {
@@ -25,31 +31,41 @@ func Echo(ws *websocket.Conn) {
 			break
 		}
 
-		fmt.Println("Received back from client: " + reply)
+		parseMessage(reply)
+		/*
+			msg := reply
+			fmt.Println("Sending to client: " + msg)
 
-		msg := reply
-		fmt.Println("Sending to client: " + msg)
-
-		if err = websocket.Message.Send(ws, msg); err != nil {
-			fmt.Println("Can't send")
-			break
-		}
+			if err = websocket.Message.Send(ws, msg); err != nil {
+				fmt.Println("Can't send")
+				break
+			}
+		*/
 	}
 }
 
-func listenForMems(ws *websocket.Conn) {
-	var err error
+func parseMessage(msg string) {
+	var m wsMsg
+	json.Unmarshal([]byte(msg), &m)
+	fmt.Printf("parse: %s %s\r\n", m.Action, m.Data)
 
+	if m.Action == "connect" {
+		go memsCommandResponseLoop(config)
+	}
+}
+
+// SendMessage to the
+func SendMessage(ws *websocket.Conn, m wsMsg) {
+	msg, _ := json.Marshal(m)
+	websocket.Message.Send(ws, string(msg))
+}
+
+func listenForMems(ws *websocket.Conn) {
 	for {
 		data := <-memsChannel // receive from mems channel
-		reply := fmt.Sprintf("%x", data.Response)
+		fmt.Printf("listen: %s %s\r\n", data.Action, data.Data)
 
-		if err = websocket.Message.Receive(ws, &reply); err != nil {
-			fmt.Println("Can't receive")
-			break
-		}
-
-		fmt.Println("Received back from mems: " + reply)
+		SendMessage(ws, data)
 	}
 }
 
@@ -83,10 +99,7 @@ func newRouter() *mux.Router {
 }
 
 // RunHTTPServer run the server
-func RunHTTPServer(c chan rosco.Mems) {
-	// assign the channel globally
-	memsChannel = c
-
+func RunHTTPServer() {
 	// Declare a new router
 	r := newRouter()
 
@@ -96,12 +109,12 @@ func RunHTTPServer(c chan rosco.Mems) {
 }
 
 // ShowWebView show the browser
-func ShowWebView() {
+func ShowWebView(config *rosco.ReadmemsConfig) {
 	w := webview.New(true)
 	defer w.Destroy()
 
 	w.SetTitle("MEMSFCR")
-	w.SetSize(1000, 800, webview.HintNone)
+	w.SetSize(1120, 920, webview.HintNone)
 
 	w.Bind("quit", func() {
 		w.Terminate()

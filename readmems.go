@@ -2,6 +2,7 @@ package main
 
 import (
 	"andrewj.com/readmems/rosco"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 const version = "v0.1.0"
 
 var header = fmt.Sprintf("\nMemsFCR %s\n", version)
+var config *rosco.ReadmemsConfig
 
 func helpMessage() string {
 	return fmt.Sprintf(`%s
@@ -29,7 +31,7 @@ func helpMessage() string {
 	`, header)
 }
 
-func memsCommandResponseLoop(config *rosco.ReadmemsConfig, c chan rosco.Mems) {
+func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 	var memsdata rosco.MemsData
 	var logging = false
 
@@ -60,6 +62,7 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig, c chan rosco.Mems) {
 
 		for loop := 0; loop < count; loop++ {
 			memsdata = rosco.MemsRead(mems)
+			sendDataToWebView(memsdata)
 
 			if logging {
 				WriteMemsDataToFile(memsdata)
@@ -75,11 +78,31 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig, c chan rosco.Mems) {
 	}
 }
 
+func sendDataToWebView(memsdata rosco.MemsData) {
+	var m wsMsg
+
+	m.Action = "data"
+
+	data, _ := json.Marshal(memsdata)
+	m.Data = string(data)
+	memsChannel <- m
+}
+
+func sendConfigToWebView(config *rosco.ReadmemsConfig) {
+	var m wsMsg
+
+	m.Action = "config"
+
+	data, _ := json.Marshal(config)
+	m.Data = string(data)
+	memsChannel <- m
+}
+
 func main() {
 	var showHelp bool
 
 	// use if the readmems config is supplied
-	var config = rosco.ReadConfig()
+	config = rosco.ReadConfig()
 
 	// parse the command line parameters and override config file settings
 	flag.StringVar(&config.Port, "port", config.Port, "Name/path of the serial port")
@@ -98,11 +121,8 @@ func main() {
 		config.Loop = "10000000"
 	}
 
-	// make a channel for http / mems communication
-	c := make(chan rosco.Mems)
+	go RunHTTPServer()
+	go sendConfigToWebView(config)
 
-	go RunHTTPServer(c)
-	ShowWebView()
-
-	memsCommandResponseLoop(config, c)
+	ShowWebView(config)
 }

@@ -16,24 +16,26 @@ type (
 		AmbientTemp              uint8
 		IntakeAirTemp            uint8
 		FuelTemp                 uint8
-		MapKpa                   float32
+		ManifoldAbsolutePressure float32
 		BatteryVoltage           float32
-		ThrottlePotVoltage       float32
+		ThrottlePotSensor        float32
+		ThrottlePosition         float32
 		IdleSwitch               bool
-		Uk1                      uint8
+		AirconSwitch             bool
 		ParkNeutralSwitch        bool
-		FaultCodes               uint8
+		DTC0                     uint8
+		DTC1                     uint8
 		IdleSetPoint             uint8
-		IdleHot                  uint8
-		Uk2                      uint8
+		IdleDecay                uint8
+		Uk8011                   uint8
 		IACPosition              uint8
-		IdleError                uint16
-		IgnitionAdvanceOffset    uint8
+		IdleSpeedDeviation       uint16
+		IgnitionAdvanceOffset80  uint8
 		IgnitionAdvance          float32
 		CoilTime                 float32
-		CrankshaftPositionSensor uint8
-		Uk4                      uint8
-		Uk5                      uint8
+		CrankshaftPositionSensor bool
+		Uk801a                   uint8
+		Uk801b                   uint8
 
 		CoolantTempSensorFault   bool
 		IntakeAirTempSensorFault bool
@@ -42,37 +44,37 @@ type (
 
 		// dataframe 0x7d
 
-		IgnitionSwitch          bool
-		ThrottleAngle           uint8
-		Uk6                     uint8
-		AirFuelRatio            uint8
-		DTC2                    uint8
-		LambdaVoltage           uint8
-		LambdaSensorFrequency   uint8
-		LambdaSensorDutycycle   uint8
-		LambdaSensorStatus      uint8
-		ClosedLoop              bool
-		LongTermFuelTrim        uint8
-		ShortTermFuelTrim       uint8
-		CarbonCanisterDutycycle uint8
-		DTC3                    uint8
-		IdleBasePosition        uint8
-		Uk7                     uint8
-		DTC4                    uint8
-		IgnitionAdvance2        uint8
-		IdleSpeedOffset         uint8
-		IdleError2              uint8
-		Uk10                    uint8
-		DTC5                    uint8
-		Uk11                    uint8
-		Uk12                    uint8
-		Uk13                    uint8
-		Uk14                    uint8
-		Uk15                    uint8
-		Uk16                    uint8
-		Uk1A                    uint8
-		Uk1B                    uint8
-		Uk1C                    uint8
+		IgnitionSwitch           bool
+		ThrottleAngle            uint8
+		Uk7d03                   uint8
+		AirFuelRatio             uint8
+		DTC2                     uint8
+		LambdaVoltage            uint8
+		LambdaFrequency          uint8
+		LambdaDutycycle          uint8
+		LambdaStatus             uint8
+		ClosedLoop               bool
+		LongTermFuelTrim         uint8
+		ShortTermFuelTrim        uint8
+		CarbonCanisterPurgeValve uint8
+		DTC3                     uint8
+		IdleBasePosition         uint8
+		Uk7d10                   uint8
+		DTC4                     uint8
+		IgnitionAdvanceOffset7d  uint8
+		IdleSpeedOffset          uint8
+		Uk7d14                   uint8
+		Uk7d15                   uint8
+		DTC5                     uint8
+		Uk7d17                   uint8
+		Uk7d18                   uint8
+		Uk7d19                   uint8
+		Uk7d1a                   uint8
+		Uk7d1b                   uint8
+		Uk7d1c                   uint8
+		Uk7d1d                   uint8
+		Uk7d1e                   uint8
+		JackCount                uint8
 
 		Dataframe80 string `json:"dataframe80"`
 		Dataframe7d string `json:"dataframe7d"`
@@ -84,39 +86,39 @@ type (
 	// This structure represents the raw data from the ECU
 	//
 	DataFrame7d struct {
-		Command                 uint8
-		BytesinFrame            uint8
-		IgnitionSwitch          uint8
-		ThrottleAngle           uint8
-		Uk6                     uint8
-		AirFuelRatio            uint8
-		Dtc2                    uint8
-		LambdaVoltage           uint8
-		LambdaSensorFrequency   uint8
-		LambdaSensorDutyCycle   uint8
-		LambdaSensorStatus      uint8
-		ClosedLoop              uint8
-		LongTermFuelTrim        uint8
-		ShortTermFuelTrim       uint8
-		CarbonCanisterDutyCycle uint8
-		Dtc3                    uint8
-		IdleBasePos             uint8
-		Uk7                     uint8
-		Dtc4                    uint8
-		IgnitionAdvance2        uint8
-		IdleSpeedOffset         uint8
-		IdleError2              uint8
-		Uk10                    uint8
-		Dtc5                    uint8
-		Uk11                    uint8
-		Uk12                    uint8
-		Uk13                    uint8
-		Uk14                    uint8
-		Uk15                    uint8
-		Uk16                    uint8
-		Uk17                    uint8
-		Uk18                    uint8
-		Uk19                    uint8
+		Command                  uint8
+		BytesinFrame             uint8
+		IgnitionSwitch           uint8
+		ThrottleAngle            uint8
+		Uk7d03                   uint8
+		AirFuelRatio             uint8
+		Dtc2                     uint8
+		LambdaVoltage            uint8
+		LambdaFrequency          uint8
+		LambdaDutyCycle          uint8
+		LambdaStatus             uint8
+		LoopIndicator            uint8
+		LongTermFuelTrim         uint8
+		ShortTermFuelTrim        uint8
+		CarbonCanisterPurgeValve uint8
+		Dtc3                     uint8
+		IdleBasePos              uint8
+		Uk7d10                   uint8
+		Dtc4                     uint8
+		IgnitionAdvanceOffset7d  uint8
+		IdleSpeedOffset          uint8
+		Uk7d14                   uint8
+		Uk7d15                   uint8
+		Dtc5                     uint8
+		Uk7d17                   uint8
+		Uk7d18                   uint8
+		Uk7d19                   uint8
+		Uk7d1a                   uint8
+		Uk7d1b                   uint8
+		Uk7d1c                   uint8
+		Uk7d1d                   uint8
+		Uk7d1e                   uint8
+		JackCount                uint8
 	}
 )
 
@@ -132,25 +134,25 @@ type (
 		AmbientTemp              uint8
 		IntakeAirTemp            uint8
 		FuelTemp                 uint8
-		MapKpa                   uint8
+		ManifoldAbsolutePressure uint8
 		BatteryVoltage           uint8
-		ThrottlePot              uint8
+		ThrottlePotSensor        uint8
 		IdleSwitch               uint8
-		Uk1                      uint8
+		AirconSwitch             uint8
 		ParkNeutralSwitch        uint8
 		Dtc0                     uint8
 		Dtc1                     uint8
 		IdleSetPoint             uint8
-		IdleHot                  uint8
-		Uk2                      uint8
+		IdleDecay                uint8
+		Uk8011                   uint8
 		IacPosition              uint8
-		IdleError                uint16
-		IgnitionAdvanceOffset    uint8
+		IdleSpeedDeviation       uint16
+		IgnitionAdvanceOffset80  uint8
 		IgnitionAdvance          uint8
 		CoilTime                 uint16
 		CrankshaftPositionSensor uint8
-		Uk4                      uint8
-		Uk5                      uint8
+		Uk801a                   uint8
+		Uk801b                   uint8
 	}
 )
 
