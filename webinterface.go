@@ -8,6 +8,7 @@ import (
 	"github.com/zserge/webview"
 	"golang.org/x/net/websocket"
 	"net/http"
+	"time"
 )
 
 type wsMsg struct {
@@ -61,6 +62,8 @@ func SendMessage(ws *websocket.Conn, m wsMsg) {
 }
 
 func listenForMems(ws *websocket.Conn) {
+	time.Sleep(1000 * time.Millisecond)
+
 	for {
 		data := <-memsChannel // receive from mems channel
 		fmt.Printf("listen: %s %s\r\n", data.Action, data.Data)

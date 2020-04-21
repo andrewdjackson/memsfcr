@@ -34,7 +34,8 @@
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
             <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Home</a>
             <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Profiling</a>
-            <a class="nav-item nav-link" id="nav-contact-tab" data-toggle="tab" href="#nav-contact" role="tab" aria-controls="nav-contact" aria-selected="false">Adjustments</a>
+            <a class="nav-item nav-link" id="nav-data-tab" data-toggle="tab" href="#nav-data" role="tab" aria-controls="nav-data" aria-selected="false">DataFrames</a>
+            <a class="nav-item nav-link" id="nav-contact-tab" data-toggle="tab" href="#nav-contact" role="tab" aria-controls="nav-contact" aria-selected="false">Infomation</a>
         </div>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <i class="fa fa-stethoscope">&nbsp</i>
@@ -60,8 +61,6 @@
 
     <div class="tab-content" id="nav-tabContent">
         <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
-
-
             <div class="card">
                 <div class="card-body">
                     <span>
@@ -134,6 +133,328 @@
                         <canvas id="coolantchart"></canvas>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="nav-data" role="tabpanel" aria-labelledby="nav-data-tab">
+            <div>
+                <table class="table">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col">DataFrame 0x7D</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Recieved</th>
+                            <th scope="col">Computed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">0x01</th>
+                            <td>Ignition Switch</td>
+                            <td class="raw" id="IgnitionSwitch" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x02</th>
+                            <td>Throttle Angle (°)</td>
+                            <td class="raw" id="ThrottleAngle">-</td>
+                            <td class="val" id="ThrottleAngle">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x03</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk7d03" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x04</th>
+                            <td>Air : Fuel Ratio</td>
+                            <td class="raw" id="AirFuelRatio">-</td>
+                            <td class="val" id="AirFuelRatio">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x05</th>
+                            <td>DTC 2</td>
+                            <td class="raw" id="Dtc2" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x06</th>
+                            <td>Lambda Frequency</td>
+                            <td class="raw" id="LambdaFrequency" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x07</th>
+                            <td>Lambda Voltage (mV)</td>
+                            <td class="raw" id="LambdaVoltage">-</td>
+                            <td class="val" id="LambdaVoltage">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x08</th>
+                            <td>Lambda Duty Cycle</td>
+                            <td class="raw" id="LambdaDutyCycle" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x09</th>
+                            <td>Lambda Status</td>
+                            <td class="raw" id="LambdaStatus" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x0A</th>
+                            <td>Loop Indicator</td>
+                            <td class="raw" id="ClosedLoop" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x0B</th>
+                            <td>Long Term Fuel Trim (LTFT)</td>
+                            <td class="raw" id="LongTermFuelTrim" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x0C</th>
+                            <td>Short Term Fuel Trim (STFT)</td>
+                            <td class="raw" id="ShortTermFuelTrim" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x0D</th>
+                            <td>Carbon Canister Purge Valve (%)</td>
+                            <td class="raw" id="CarbonCanisterPurgeValve" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x0E</th>
+                            <td>DTC 3</td>
+                            <td class="raw" id=Dtc3 "" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x0F</th>
+                            <td>Idle Base Position</td>
+                            <td class="raw" id="IdleBasePosition" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x10</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk7d10" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x11</th>
+                            <td>DTC 4</td>
+                            <td class="raw" id="Dtc4" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x12</th>
+                            <td>Ignition Advance Offset</td>
+                            <td class="raw" id="IgnitionAdvanceOffset7d">-</td>
+                            <td class="val" id="IgnitionAdvanceOffset7d">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x13</th>
+                            <td>Idle Speed Offset (RPM)</td>
+                            <td class="raw" id="IdleSpeedOffset">-</td>
+                            <td class="val" id="IdleSpeedOffset">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x14</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk7d14" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x15</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk7d15" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x16</th>
+                            <td>DTC 5</td>
+                            <td class="raw" id="Dtc5" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x17</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk7d17" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x18</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk7d18" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x19</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk7d19" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x1A</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk7d1a" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x1B</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk7d1b" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x1C</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk7d1c" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x1D</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk7d1d" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x1E</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk7d1e" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x1F</th>
+                            <td>Jack Count</td>
+                            <td class="raw" id="JackCount" colspan="2">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <table class="table">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col">DataFrame 0x80</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Recieved</th>
+                            <th scope="col">Computed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">0x01-02</th>
+                            <td>Engine Speed (RPM)</td>
+                            <td class="raw" id="EngineRPM">-</td>
+                            <td class="val" id="EngineRPM">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x03</th>
+                            <td>Coolant Temperature (°C)</td>
+                            <td class="raw" id="CoolantTemp">-</td>
+                            <td class="val" id="CoolantTemp">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x04</th>
+                            <td>Ambient Temperature (°C)</td>
+                            <td class="raw" id="AmbientTemp">-</td>
+                            <td class="val" id="AmbientTemp">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x05</th>
+                            <td>Intake Air Temperature (°C)</td>
+                            <td class="raw" id="IntakeAirTemp">-</td>
+                            <td class="val" id="IntakeAirTemp">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x06</th>
+                            <td>Fuel Temperature (°C)</td>
+                            <td class="raw" id="FuelTemp">-</td>
+                            <td class="val" id="FuelTemp">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x07</th>
+                            <td>Mainfold Absolute Pressure (kPa)</td>
+                            <td class="raw" id="ManifoldAbsolutePressure">-</td>
+                            <td class="val" id="ManifoldAbsolutePressure">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x08</th>
+                            <td>Battery Voltage (V)</td>
+                            <td class="raw" id="BatteryVoltage">-</td>
+                            <td class="val" id="BatteryVoltage">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x09</th>
+                            <td>Throttle Pot. Sensor (V)</td>
+                            <td class="raw" id="ThrottlePotSensor">-</td>
+                            <td class="val" id="ThrottlePotSensor">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x0A</th>
+                            <td>Idle Switch</td>
+                            <td class="raw" id="IdleSwitch" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x0B</th>
+                            <td>Aircon Switch</td>
+                            <td class="raw" id="AirconSwitch" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x0C</th>
+                            <td>Neutral Switch</td>
+                            <td class="raw" id="ParkNeutralSwitch" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x0D</th>
+                            <td>DTC 0</td>
+                            <td class="raw" id="Dtc0" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x0E</th>
+                            <td>DTC 1</td>
+                            <td class="raw" id="Dtc1" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x0F</th>
+                            <td>Idle Set Point</td>
+                            <td class="raw" id="IdleSetPoint" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x10</th>
+                            <td>Idle Hot / Idle Decay</td>
+                            <td class="raw" id="IdleHot" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x11</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk8011" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x12</th>
+                            <td>Idle Air Control Motor Position (%)</td>
+                            <td class="raw" id="IACPosition">-</td>
+                            <td class="val" id="IACPosition">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x13-14</th>
+                            <td>Idle Speed Deviation (RPM)</td>
+                            <td class="raw" id="IdleSpeedDeviation" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x15</th>
+                            <td>Ignition Advance Offset</td>
+                            <td class="raw" id="IgnitionAdvanceOffset80">-</td>
+                            <td class="val" id="IgnitionAdvanceOffset80">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x16</th>
+                            <td>Ignition Advance (°)</td>
+                            <td class="raw" id="IgnitionAdvance">-</td>
+                            <td class="val" id="IgnitionAdvance">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x17-18</th>
+                            <td>Coil Time (ms)</td>
+                            <td class="raw" id="CoilTime">-</td>
+                            <td class="val" id="CoilTime">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x19</th>
+                            <td>Crankshaft Position Sensor</td>
+                            <td class="raw" id="CrankshaftPositionSensor" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x1A</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk801a" colspan="2">-</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">0x1B</th>
+                            <td>Unknown</td>
+                            <td class="raw" id="Uk801b" colspan="2">-</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
         <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">

@@ -73,7 +73,7 @@ func writeCSVData(filename string, data rosco.MemsData) {
 		data.ParkNeutralSwitch,
 		data.DTC0,
 		data.IdleSetPoint,
-		data.IdleDecay,
+		data.IdleHot,
 		data.Uk8011,
 		data.IACPosition,
 		data.IdleSpeedDeviation,

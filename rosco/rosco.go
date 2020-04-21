@@ -26,7 +26,7 @@ type (
 		DTC0                     uint8
 		DTC1                     uint8
 		IdleSetPoint             uint8
-		IdleDecay                uint8
+		IdleHot                  uint8
 		Uk8011                   uint8
 		IACPosition              uint8
 		IdleSpeedDeviation       uint16
@@ -143,7 +143,7 @@ type (
 		Dtc0                     uint8
 		Dtc1                     uint8
 		IdleSetPoint             uint8
-		IdleDecay                uint8
+		IdleHot                  uint8
 		Uk8011                   uint8
 		IacPosition              uint8
 		IdleSpeedDeviation       uint16
@@ -155,6 +155,8 @@ type (
 		Uk801b                   uint8
 	}
 )
+
+////////////////////////////////////
 
 var response = make(map[string][]byte)
 

@@ -49,33 +49,81 @@ function parseMessage(m) {
 
     if (msg.action == "data") {
         console.log(data)
-        gaugeRPM.value = parseInt(data.EngineRPM)
-        gaugeMap.value = parseInt(data.ManifoldAbsolutePressure)
 
-        var throttleposition = parseInt(data.ThrottlePotSensor / 2)
-        gaugeThrottlePos.value = throttleposition
+        memsdata = computeMemsData(data)
 
-        gaugeIACPos.value = parseInt(data.IACPosition)
-
-        gaugeBattery.value = parseInt(data.BatteryVoltage)
-        gaugeCoolant.value = parseInt(data.CoolantTemp)
-        gaugeAir.value = parseInt(data.IntakeAirTemp)
-        gaugeLambda.value = parseInt(data.LambdaVoltage)
-
-        var fueltrimcorrection = parseInt(data.ShortTermFuelTrim - 100)
-        gaugeFuelTrim.value = fueltrimcorrection
-        gaugeIgnition.value = parseFloat(data.IgnitionAdvance)
-
-        setLEDs(data)
-
-        addData(rpmChart, data.Time, data.EngineRPM)
-        addData(lambdaChart, data.Time, data.LambdaVoltage)
-        addData(loopChart, data.Time, data.ClosedLoop)
-        addData(coolantChart, data.Time, data.CoolantTemp)
+        updateGauges(memsdata)
+        updateLEDs(memsdata)
+        updateGraphs(memsdata)
+        updateDataFrameValues(data, memsdata)
     }
 }
 
-function setLEDs(data) {
+function computeMemsData(memsdata) {
+    var d = Object.create(memsdata);
+
+    // Dataframe 0x7d Compute Values
+    d.ThrottleAngle = (memsdata.ThrottleAngle * 6 / 10).toFixed(2)
+    d.AirFuelRatio = (memsdata.AirFuelRatio / 10).toFixed(1)
+    d.LambdaVoltage = (memsdata.LambdaVoltage * 5).toFixed(1)
+    d.IgnitionAdvanceOffset7d = memsdata.IgnitionAdvanceOffset7d - 48
+    d.IdleSpeedOffset = ((memsdata.IdleSpeedOffset - 128) * 25).toFixed(2)
+
+    // Dataframe 0x80 Compute Values
+    d.CoolantTemp = (memsdata.CoolantTemp - 55).toFixed(1)
+    d.AmbientTemp = (memsdata.AmbientTemp - 55).toFixed(1)
+    d.IntakeAirTemp = (memsdata.IntakeAirTemp - 55).toFixed(1)
+    d.FuelTemp = (memsdata.FuelTemp - 55).toFixed(1)
+    d.BatteryVoltage = (memsdata.BatteryVoltage / 10).toFixed(1)
+    d.ThrottlePotSensor = (memsdata.ThrottlePotSensor * 0.02).toFixed(2)
+    d.IACPosition = (memsdata.IACPosition / 1.8).toFixed(2)
+    d.IgnitionAdvance = ((memsdata.IgnitionAdvance / 2) - 24).toFixed(2)
+    d.CoilTime = (memsdata.CoilTime * 0.002).toFixed(2)
+
+    // Additional Compute Values
+    d.FuelTrimCorrection = memsdata.ShortTermFuelTrim - 100
+
+    return d
+}
+
+function updateGauges(memsdata) {
+    gaugeRPM.value = memsdata.EngineRPM
+    gaugeMap.value = memsdata.ManifoldAbsolutePressure
+    gaugeThrottlePos.value = memsdata.ThrottlePotSensor
+    gaugeIACPos.value = memsdata.IACPosition
+    gaugeBattery.value = memsdata.BatteryVoltage
+    gaugeCoolant.value = memsdata.CoolantTemp
+    gaugeAir.value = memsdata.IntakeAirTemp
+    gaugeLambda.value = memsdata.LambdaVoltage
+    gaugeFuelTrim.value = memsdata.FuelTrimCorrection
+    gaugeIgnition.value = memsdata.IgnitionAdvance
+}
+
+function updateGraphs(memsdata) {
+    addData(rpmChart, memsdata.Time, memsdata.EngineRPM)
+    addData(lambdaChart, memsdata.Time, memsdata.LambdaVoltage)
+    addData(loopChart, memsdata.Time, memsdata.ClosedLoop)
+    addData(coolantChart, memsdata.Time, memsdata.CoolantTemp)
+}
+
+function updateDataFrameValues(rawdata, memsdata) {
+    Object.entries(rawdata).forEach(entry => {
+        let key = entry[0];
+        let value = entry[1];
+        updateDataFrameValue(key, value, memsdata[key])
+    });
+}
+
+function updateDataFrameValue(metric, rawvalue, computedvalue) {
+    if (typeof rawvalue == "boolean") {
+        rawvalue = rawvalue.toString()
+    }
+
+    $("td#" + metric + ".raw").html(rawvalue)
+    $("td#" + metric + ".val").html(computedvalue)
+}
+
+function updateLEDs(data) {
     if ((data.DTC0 != 0) && (data.DTC1 != 0) && (data.DTC2 != 0)) {
         setStatusLED(true, "ecufault", "fault")
         setStatusLED(data.CoolantTempSensorFault, "coolantfault", "fault")
@@ -89,7 +137,7 @@ function setLEDs(data) {
     setStatusLED(data.ParkNeutralSwitch, "parkswitch", "status")
 
     // derived warnings
-    if ((data.IACPosition == 0) && (data.IdleError >= 50) && (data.IdleSwitch == false) && (data.fd7d03 != 0)) {
+    if ((data.IACPosition == 0) && (data.IdleError >= 50) && (data.IdleSwitch == false)) {
         minIAC = true
     }
 
