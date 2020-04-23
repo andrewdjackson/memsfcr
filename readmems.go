@@ -66,9 +66,9 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 		ecuID := hex.EncodeToString(mems.ECUID)
 
 		// enter a command / response loop
-		for loop := 0; loop < count; loop++ {
+		for loop := 0; loop < count; {
 			// check if we have received a pause / start command
-			/*select {
+			select {
 			case m := <-commandChannel:
 				if m.Data == "pause" {
 					paused = true
@@ -79,7 +79,7 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 					log.Printf("Resuming Data Loop")
 				}
 			default:
-			}*/
+			}
 
 			if paused {
 				// send a heartbeat when paused
@@ -104,7 +104,7 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 			// sleep between calls to give the ECU time to catch up
 			// the ECU will get slower as load increases so this ensures
 			// a regular time series for the data set
-			time.Sleep(950 * time.Millisecond)
+			time.Sleep(2950 * time.Millisecond)
 
 		}
 

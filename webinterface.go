@@ -54,12 +54,8 @@ func parseMessage(ws *websocket.Conn, msg string) {
 	// pause / start the data loop
 	if m.Action == "dataloop" {
 		// send to the CommandResponse loop
-		select {
-		case commandChannel <- m:
-			log.Printf("sent data loop command")
-		default:
-		}
-
+		log.Printf("recieved data loop command %s", m.Data)
+		commandChannel <- m
 	}
 
 	if m.Action == "increase" || m.Action == "decrease" || m.Action == "command" {
