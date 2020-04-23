@@ -55,7 +55,7 @@ func readLines(path string) ([]string, error) {
 func ReadConfig() *ReadmemsConfig {
 	c := NewConfig()
 
-	lines, err := readLines("readmems.cfg")
+	lines, err := readLines("./readmems.cfg")
 
 	if err == nil {
 		for i := range lines {

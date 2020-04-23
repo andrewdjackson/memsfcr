@@ -2,12 +2,16 @@ package main
 
 import (
 	"andrewj.com/readmems/rosco"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/zserge/webview"
 	"golang.org/x/net/websocket"
+	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -17,6 +21,7 @@ type wsMsg struct {
 }
 
 var memsChannel = make(chan wsMsg)
+var commandChannel = make(chan wsMsg)
 
 // Echo the messages
 func Echo(ws *websocket.Conn) {
@@ -28,34 +33,49 @@ func Echo(ws *websocket.Conn) {
 		var reply string
 
 		if err = websocket.Message.Receive(ws, &reply); err != nil {
-			fmt.Println("Can't receive")
+			fmt.Println("Websocket connection broken")
 			break
 		}
 
-		parseMessage(reply)
-		/*
-			msg := reply
-			fmt.Println("Sending to client: " + msg)
-
-			if err = websocket.Message.Send(ws, msg); err != nil {
-				fmt.Println("Can't send")
-				break
-			}
-		*/
+		parseMessage(ws, reply)
 	}
 }
 
-func parseMessage(msg string) {
+func parseMessage(ws *websocket.Conn, msg string) {
 	var m wsMsg
 	json.Unmarshal([]byte(msg), &m)
 	fmt.Printf("parse: %s %s\r\n", m.Action, m.Data)
 
+	// connect to ECU and start the data loop
 	if m.Action == "connect" {
 		go memsCommandResponseLoop(config)
 	}
+
+	// pause / start the data loop
+	if m.Action == "dataloop" {
+		// send to the CommandResponse loop
+		select {
+		case commandChannel <- m:
+			log.Printf("sent data loop command")
+		default:
+		}
+
+	}
+
+	if m.Action == "increase" || m.Action == "decrease" || m.Action == "command" {
+		response := sendCommandToMems(m)
+		log.Printf("ECU Response: %x\n", response)
+		// get the value from the Mems response
+		value := response[1:]
+		log.Printf("ECU Response Value: %x\n", value)
+		// package up and sned back to the web interface
+		m.Action = "response"
+		m.Data = hex.EncodeToString(value)
+		SendMessage(ws, m)
+	}
 }
 
-// SendMessage to the
+// SendMessage to the web interface
 func SendMessage(ws *websocket.Conn, m wsMsg) {
 	msg, _ := json.Marshal(m)
 	websocket.Message.Send(ws, string(msg))
@@ -73,6 +93,14 @@ func listenForMems(ws *websocket.Conn) {
 }
 
 func newRouter() *mux.Router {
+	exepath, err := os.Executable()
+	path, err := filepath.Abs(filepath.Dir(exepath))
+	if err != nil {
+		log.Println(err)
+	}
+
+	httpdir := fmt.Sprintf("%s/public", path)
+
 	r := mux.NewRouter()
 	ws := websocket.Handler(Echo)
 
@@ -83,7 +111,7 @@ func newRouter() *mux.Router {
 
 	// Declare the static file directory and point it to the
 	// directory we just made
-	staticFileDirectory := http.Dir("./public")
+	staticFileDirectory := http.Dir(httpdir)
 
 	// Declare the handler, that routes requests to their respective filename.
 	// The fileserver is wrapped in the `stripPrefix` method, because we want to

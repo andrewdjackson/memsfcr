@@ -2,9 +2,11 @@ package main
 
 import (
 	"andrewj.com/readmems/rosco"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 )
@@ -13,6 +15,7 @@ const version = "v0.1.0"
 
 var header = fmt.Sprintf("\nMemsFCR %s\n", version)
 var config *rosco.ReadmemsConfig
+var mems *rosco.Mems
 
 func helpMessage() string {
 	return fmt.Sprintf(`%s
@@ -34,13 +37,14 @@ func helpMessage() string {
 func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 	var memsdata rosco.MemsData
 	var logging = false
+	var paused = false
 
 	if config.Output == "file" {
 		logging = true
 	}
 
 	// connect and initialise the ECU
-	mems := rosco.New()
+	mems = rosco.New()
 	rosco.ConnectAndInitialiseECU(mems, config)
 
 	for {
@@ -59,23 +63,104 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 		}
 
 		count, _ := strconv.Atoi(config.Loop)
+		ecuID := hex.EncodeToString(mems.ECUID)
 
+		// enter a command / response loop
 		for loop := 0; loop < count; loop++ {
-			memsdata = rosco.MemsRead(mems)
-			sendDataToWebView(memsdata)
+			// check if we have received a pause / start command
+			/*select {
+			case m := <-commandChannel:
+				if m.Data == "pause" {
+					paused = true
+					log.Printf("Paused Data Loop, sending heartbeats to keep connection alive")
+				}
+				if m.Data == "start" {
+					paused = false
+					log.Printf("Resuming Data Loop")
+				}
+			default:
+			}*/
 
-			if logging {
-				WriteMemsDataToFile(memsdata)
+			if paused {
+				// send a heartbeat when paused
+				rosco.MemsSendCommand(mems, rosco.MEMS_Heartbeat)
+				log.Printf("Sending Heatbeat")
+			} else {
+				// read data from the ECU
+				memsdata = rosco.MemsRead(mems)
+				// send it to the web interface
+				sendDataToWebView(memsdata)
+
+				if logging {
+					// write to a log file if logging is enabled
+					WriteMemsDataToFile(ecuID, memsdata)
+				}
+
+				// increment count of data calls
+				// don't increment if we're paused
+				loop = loop + 1
 			}
 
 			// sleep between calls to give the ECU time to catch up
 			// the ECU will get slower as load increases so this ensures
 			// a regular time series for the data set
 			time.Sleep(950 * time.Millisecond)
-		}
-		break
 
+		}
+
+		// read loop complete, exit
+		break
 	}
+
+}
+
+func sendCommandToMems(m wsMsg) []byte {
+	var command []byte
+
+	if m.Action == "decrease" && m.Data == "idlespeed" {
+		command = rosco.MEMS_IdleSpeed_Increment
+	}
+	if m.Action == "increase" && m.Data == "idlespeed" {
+		command = rosco.MEMS_IdleSpeed_Decrement
+	}
+
+	if m.Action == "decrease" && m.Data == "idlehot" {
+		command = rosco.MEMS_IdleDecay_Decrement
+	}
+	if m.Action == "increase" && m.Data == "idlehot" {
+		command = rosco.MEMS_IdleDecay_Increment
+	}
+
+	if m.Action == "decrease" && m.Data == "ignitionadvance" {
+		command = rosco.MEMS_IgnitionAdvanceOffset_Decrement
+	}
+	if m.Action == "increase" && m.Data == "ignitionadvance" {
+		command = rosco.MEMS_IgnitionAdvanceOffset_Increment
+	}
+
+	if m.Action == "decrease" && m.Data == "fueltrim" {
+		command = rosco.MEMS_LTFT_Decrement
+	}
+	if m.Action == "increase" && m.Data == "fueltrim" {
+		command = rosco.MEMS_LTFT_Increment
+	}
+
+	if m.Action == "command" {
+		if m.Data == "clear" {
+			command = rosco.MEMS_ClearFaults
+		}
+		if m.Data == "resetecu" {
+			command = rosco.MEMS_ResetECU
+		}
+		if m.Data == "resetadj" {
+			command = rosco.MEMS_ResetAdj
+		}
+		if m.Data == "iacposition" {
+			command = rosco.MEMS_GetIACPosition
+		}
+	}
+
+	return rosco.MemsSendCommand(mems, command)
 }
 
 func sendDataToWebView(memsdata rosco.MemsData) {

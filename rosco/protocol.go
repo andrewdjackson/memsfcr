@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/tarm/serial"
 	"log"
+	"math"
 	"time"
 )
 
@@ -46,7 +47,7 @@ func ConnectAndInitialiseECU(mems *Mems, config *ReadmemsConfig) {
 // MemsConnect connect to MEMS via serial port
 func MemsConnect(mems *Mems, port string) {
 	// connect to the ecu
-	c := &serial.Config{Name: port, Baud: 9600, ReadTimeout: time.Millisecond * 1000}
+	c := &serial.Config{Name: port, Baud: 9600}
 
 	fmt.Println("Opening ", port)
 
@@ -84,50 +85,63 @@ func MemsInitialise(mems *Mems) {
 
 		MemsWriteSerial(mems, MEMS_InitCommandA)
 		MemsReadSerial(mems)
-		time.Sleep(200 * time.Millisecond)
 
 		MemsWriteSerial(mems, MEMS_InitCommandB)
 		MemsReadSerial(mems)
-		time.Sleep(200 * time.Millisecond)
 
 		MemsWriteSerial(mems, MEMS_Heartbeat)
 		MemsReadSerial(mems)
-		time.Sleep(200 * time.Millisecond)
 
 		MemsWriteSerial(mems, MEMS_InitECUID)
 		mems.ECUID = MemsReadSerial(mems)
-		time.Sleep(200 * time.Millisecond)
 	}
 
 	mems.Initialised = true
 }
 
 // MemsReadSerial read from MEMS
+// read 1 byte at a time until we have all the expected bytes
 func MemsReadSerial(mems *Mems) []byte {
+	var n int
+	var e error
+
 	size := GetResponseSize(mems.Command)
-	data := make([]byte, size)
+
+	// serial read buffer
+	b := make([]byte, 100)
+
+	//  data frame buffer
+	data := make([]byte, 0)
 
 	if mems.SerialPort != nil {
-		// wait for a response from MEMS
-		n, e := mems.SerialPort.Read(data)
 
-		if e != nil {
-			log.Printf("error %s", e)
-		}
+		// read all the expected bytes before returning the data
+		for count := 0; count < size; {
+			// wait for a response from MEMS
+			n, e = mems.SerialPort.Read(b)
 
-		if n > 0 {
-			log.Printf("ECU [%d]: %x", n, data[:n])
+			if e != nil {
+				log.Printf("error %s", e)
+			} else {
+				// append the read bytes to the data frame
+				data = append(data, b[:n]...)
+			}
+
+			// increment by the number of bytes read
+			count = count + n
+			if count > size {
+				log.Printf("data frame size mismatch (received %d, expected %d)", count, size)
+			}
 		}
 	}
 
+	log.Printf("ECU [%d] < %x", n, data)
 	mems.Response = data
 
-	/*if mems.Command[0] != MEMS_InitECUID[0] {
-		if !isCommandEcho(mems) {
-			log.Fatal("Expecting command echo")
-		}
+	if !isCommandEcho(mems) {
+		log.Printf("Expecting command echo (%x)\n", mems.Command)
 	}
-	*/
+
 	return data
 }
 
@@ -141,11 +155,11 @@ func MemsWriteSerial(mems *Mems, data []byte) {
 		n, e := mems.SerialPort.Write(data)
 
 		if e != nil {
-			log.Printf("error %s", e)
+			log.Printf("FCR Send Error %s", e)
 		}
 
 		if n > 0 {
-			log.Printf("FCR: %x", data)
+			log.Printf("FCR > %x", data)
 		}
 	}
 }
@@ -181,68 +195,16 @@ func MemsRead(mems *Mems) MemsData {
 
 	// build the Mems Data frame using the raw data and applying the relevant
 	// adjustments and calculations
-	/*
-		info := MemsData{
-			Time:                     t.Format("15:04:05"),
-			EngineRPM:                df80.EngineRpm,
-			CoolantTemp:              df80.CoolantTemp - 55,
-			AmbientTemp:              df80.AmbientTemp - 55,
-			IntakeAirTemp:            df80.IntakeAirTemp - 55,
-			FuelTemp:                 df80.FuelTemp - 55,
-			ManifoldAbsolutePressure: float32(df80.ManifoldAbsolutePressure),
-			BatteryVoltage:           float32(df80.BatteryVoltage / 10),
-			ThrottlePotSensor:        float32(df80.ThrottlePotSensor) * 0.02,
-			IdleSwitch:               df80.IdleSwitch == 1,
-			AirconSwitch:             df80.AirconSwitch == 1,
-			ParkNeutralSwitch:        df80.ParkNeutralSwitch == 1,
-			DTC0:                     df80.Dtc0,
-			DTC1:                     df80.Dtc1,
-			IdleSetPoint:             df80.IdleSetPoint,
-			IdleHot:                  df80.IdleHot,
-			IACPosition:              (uint8(math.Round(float64(df80.IacPosition) / 1.8))),
-			IdleSpeedDeviation:       df80.IdleSpeedDeviation,
-			IgnitionAdvanceOffset80:  df80.IgnitionAdvanceOffset80,
-			IgnitionAdvance:          (float32(df80.IgnitionAdvance) / 2) - 24,
-			CoilTime:                 float32(df80.CoilTime) * 0.002,
-			CrankshaftPositionSensor: df80.CrankshaftPositionSensor != 0,
-			CoolantTempSensorFault:   df80.Dtc0&0x01 != 0,
-			IntakeAirTempSensorFault: df80.Dtc0&0x02 != 0,
-			FuelPumpCircuitFault:     df80.Dtc1&0x02 != 0,
-			ThrottlePotCircuitFault:  df80.Dtc1&0x80 != 0,
-			IgnitionSwitch:           df7d.IgnitionSwitch != 0,
-			ThrottleAngle:            df7d.ThrottleAngle * 6 / 10,
-			AirFuelRatio:             df7d.AirFuelRatio / 10,
-			DTC2:                     df7d.Dtc2,
-			LambdaVoltage:            df7d.LambdaVoltage * 5,
-			LambdaFrequency:          df7d.LambdaFrequency,
-			LambdaDutycycle:          df7d.LambdaDutyCycle,
-			LambdaStatus:             df7d.LambdaStatus,
-			ClosedLoop:               df7d.LoopIndicator != 0,
-			LongTermFuelTrim:         df7d.LongTermFuelTrim,
-			ShortTermFuelTrim:        df7d.ShortTermFuelTrim,
-			CarbonCanisterPurgeValve: df7d.CarbonCanisterPurgeValve,
-			DTC3:                     df7d.Dtc3,
-			IdleBasePosition:         df7d.IdleBasePos,
-			DTC4:                     df7d.Dtc4,
-			IgnitionAdvanceOffset7d:  df7d.IgnitionAdvanceOffset7d - 48,
-			IdleSpeedOffset:          ((df7d.IdleSpeedOffset - 128) * 25),
-			DTC5:                     df7d.Dtc5,
-			JackCount:                df7d.JackCount,
-			Dataframe80:              hex.EncodeToString(d80),
-			Dataframe7d:              hex.EncodeToString(d7d),
-		}
-	*/
-
 	info := MemsData{
 		Time:                     t.Format("15:04:05"),
 		EngineRPM:                df80.EngineRpm,
-		CoolantTemp:              df80.CoolantTemp,
-		AmbientTemp:              df80.AmbientTemp,
-		IntakeAirTemp:            df80.IntakeAirTemp,
-		FuelTemp:                 df80.FuelTemp,
+		CoolantTemp:              df80.CoolantTemp - 55,
+		AmbientTemp:              df80.AmbientTemp - 55,
+		IntakeAirTemp:            df80.IntakeAirTemp - 55,
+		FuelTemp:                 df80.FuelTemp - 55,
 		ManifoldAbsolutePressure: float32(df80.ManifoldAbsolutePressure),
-		BatteryVoltage:           float32(df80.BatteryVoltage),
-		ThrottlePotSensor:        float32(df80.ThrottlePotSensor),
+		BatteryVoltage:           float32(df80.BatteryVoltage / 10),
+		ThrottlePotSensor:        float32(df80.ThrottlePotSensor) * 0.02,
 		IdleSwitch:               df80.IdleSwitch == 1,
 		AirconSwitch:             df80.AirconSwitch == 1,
 		ParkNeutralSwitch:        df80.ParkNeutralSwitch == 1,
@@ -250,33 +212,34 @@ func MemsRead(mems *Mems) MemsData {
 		DTC1:                     df80.Dtc1,
 		IdleSetPoint:             df80.IdleSetPoint,
 		IdleHot:                  df80.IdleHot,
-		IACPosition:              df80.IacPosition,
+		IACPosition:              (uint8(math.Round(float64(df80.IacPosition) / 1.8))),
 		IdleSpeedDeviation:       df80.IdleSpeedDeviation,
 		IgnitionAdvanceOffset80:  df80.IgnitionAdvanceOffset80,
-		IgnitionAdvance:          float32(df80.IgnitionAdvance),
-		CoilTime:                 float32(df80.CoilTime),
+		IgnitionAdvance:          (float32(df80.IgnitionAdvance) / 2) - 24,
+		CoilTime:                 float32(df80.CoilTime) * 0.002,
 		CrankshaftPositionSensor: df80.CrankshaftPositionSensor != 0,
 		CoolantTempSensorFault:   df80.Dtc0&0x01 != 0,
 		IntakeAirTempSensorFault: df80.Dtc0&0x02 != 0,
 		FuelPumpCircuitFault:     df80.Dtc1&0x02 != 0,
 		ThrottlePotCircuitFault:  df80.Dtc1&0x80 != 0,
 		IgnitionSwitch:           df7d.IgnitionSwitch != 0,
-		ThrottleAngle:            df7d.ThrottleAngle,
-		AirFuelRatio:             df7d.AirFuelRatio,
+		ThrottleAngle:            df7d.ThrottleAngle * 6 / 10,
+		AirFuelRatio:             df7d.AirFuelRatio / 10,
 		DTC2:                     df7d.Dtc2,
-		LambdaVoltage:            df7d.LambdaVoltage,
+		LambdaVoltage:            df7d.LambdaVoltage * 5,
 		LambdaFrequency:          df7d.LambdaFrequency,
 		LambdaDutycycle:          df7d.LambdaDutyCycle,
 		LambdaStatus:             df7d.LambdaStatus,
 		ClosedLoop:               df7d.LoopIndicator != 0,
 		LongTermFuelTrim:         df7d.LongTermFuelTrim,
 		ShortTermFuelTrim:        df7d.ShortTermFuelTrim,
+		FuelTrimCorrection:       df7d.ShortTermFuelTrim - 100,
 		CarbonCanisterPurgeValve: df7d.CarbonCanisterPurgeValve,
 		DTC3:                     df7d.Dtc3,
 		IdleBasePosition:         df7d.IdleBasePos,
 		DTC4:                     df7d.Dtc4,
-		IgnitionAdvanceOffset7d:  df7d.IgnitionAdvanceOffset7d,
-		IdleSpeedOffset:          df7d.IdleSpeedOffset,
+		IgnitionAdvanceOffset7d:  df7d.IgnitionAdvanceOffset7d - 48,
+		IdleSpeedOffset:          ((df7d.IdleSpeedOffset - 128) * 25),
 		DTC5:                     df7d.Dtc5,
 		JackCount:                df7d.JackCount,
 		Dataframe80:              hex.EncodeToString(d80),

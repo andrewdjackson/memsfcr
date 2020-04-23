@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+var file *os.File
+
 // fileExists reports whether the named file or directory exists.
 func fileExists(name string) bool {
 	if _, err := os.Stat(name); err != nil {
@@ -19,15 +21,25 @@ func fileExists(name string) bool {
 	return true
 }
 
-// writeToFile will print any string of text to a file safely by
-// checking for errors and syncing at the end.
-func writeToFile(filename string, data string) error {
-	file, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+func openFile(filename string) error {
+	var err error
+
+	if file == nil {
+		file, err = os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+	}
 
 	if err != nil {
 		return err
 	}
 	defer file.Close()
+
+	return file.Sync()
+}
+
+// writeToFile will print any string of text to a file safely by
+// checking for errors and syncing at the end.
+func writeToFile(data string) error {
+	var err error
 
 	if _, err = file.WriteString(data); err != nil {
 		return err
@@ -38,7 +50,7 @@ func writeToFile(filename string, data string) error {
 	return file.Sync()
 }
 
-func writeCSVHeader(filename string) {
+func writeCSVHeader() {
 	header := "#time," +
 		"80x01-02_engine-rpm,80x03_coolant_temp,80x04_ambient_temp,80x05_intake_air_temp,80x06_fuel_temp,80x07_map_kpa,80x08_battery_voltage,80x09_throttle_pot,80x0A_idle_switch,80x0B_uk1," +
 		"80x0C_park_neutral_switch,80x0D-0E_fault_codes,80x0F_idle_set_point,80x10_idle_hot,80x11_uk2,80x12_iac_position,80x13-14_idle_error,80x15_ignition_advance_offset,80x16_ignition_advance,80x17-18_coil_time," +
@@ -48,10 +60,10 @@ func writeCSVHeader(filename string) {
 		"7dx14-15_uk10,7dx16_dtc5,7dx17_uk11,7dx18_uk12,7dx19_uk13,7dx1A_uk14,7dx1B_uk15,7dx1C_uk16,7dx1D_uk17,7dx1E_uk18,7dx1F_uk19\n"
 
 	s := fmt.Sprintf("%s", header)
-	writeToFile(filename, s)
+	writeToFile(s)
 }
 
-func writeCSVData(filename string, data rosco.MemsData) {
+func writeCSVData(data rosco.MemsData) {
 	s := fmt.Sprintf("%s,"+
 		"%d,%d,%d,%d,%d,%f,%f,%f,%t,%t,"+
 		"%t,%d,%d,%d,%d,%d,%d,%d,%f,%f,"+
@@ -115,22 +127,33 @@ func writeCSVData(filename string, data rosco.MemsData) {
 		data.Uk7d1e,
 		data.JackCount)
 
-	writeToFile(filename, s)
+	writeToFile(s)
 }
 
-// WriteMemsDataToFile writes the mems data structure to a file
-func WriteMemsDataToFile(memsdata rosco.MemsData) {
+func getFilename(ecuID string) string {
 	currentTime := time.Now()
-	filename := fmt.Sprintf("logs/%s.csv", currentTime.Format("2006-01-02 15:04:05"))
+	filename := fmt.Sprintf("logs/%s-%s.csv", currentTime.Format("2006-01-02 15:04:05"), ecuID)
 	filename = strings.ReplaceAll(filename, ":", "")
 	filename = strings.ReplaceAll(filename, " ", "-")
 
-	if !fileExists(filename) {
-		writeCSVHeader(filename)
+	return filename
+}
+
+// WriteMemsDataToFile writes the mems data structure to a file
+func WriteMemsDataToFile(ecuID string, memsdata rosco.MemsData) {
+	var filename string
+
+	if file != nil {
+		filename = getFilename(ecuID)
 	}
 
-	writeCSVData(filename, memsdata)
+	// open the file
+	openFile(filename)
 
-	//md, _ := json.Marshal(memsdata)
-	//WriteToFile("output.cvs", string(md))
+	// if it's a new file then add the header
+	if !fileExists(filename) {
+		writeCSVHeader()
+	}
+
+	writeCSVData(memsdata)
 }

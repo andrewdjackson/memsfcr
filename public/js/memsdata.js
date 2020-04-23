@@ -36,6 +36,8 @@ window.onload = function() {
     lambdaChart = createChart("lambdachart", "Lambda Voltage (mV)")
     loopChart = createChart("loopchart", "Loop Indicator")
     coolantChart = createChart("coolantchart", "Coolant Temp (°C)", 80, 105)
+
+    $("#connectECUbtn").click(this.connectECU)
 };
 
 function parseMessage(m) {
@@ -50,12 +52,13 @@ function parseMessage(m) {
     if (msg.action == "data") {
         console.log(data)
 
-        memsdata = computeMemsData(data)
+        //memsdata = computeMemsData(data)
 
-        updateGauges(memsdata)
-        updateLEDs(memsdata)
-        updateGraphs(memsdata)
-        updateDataFrameValues(data, memsdata)
+        updateGauges(data)
+        updateLEDs(data)
+        updateGraphs(data)
+        updateDataFrameValues(data)
+        updateAdjustmentValues(data)
     }
 }
 
@@ -106,21 +109,20 @@ function updateGraphs(memsdata) {
     addData(coolantChart, memsdata.Time, memsdata.CoolantTemp)
 }
 
-function updateDataFrameValues(rawdata, memsdata) {
-    Object.entries(rawdata).forEach(entry => {
+function updateDataFrameValues(memsdata) {
+    Object.entries(memsdata).forEach(entry => {
         let key = entry[0];
         let value = entry[1];
-        updateDataFrameValue(key, value, memsdata[key])
+        updateDataFrameValue(key, value)
     });
 }
 
-function updateDataFrameValue(metric, rawvalue, computedvalue) {
-    if (typeof rawvalue == "boolean") {
-        rawvalue = rawvalue.toString()
+function updateDataFrameValue(metric, data) {
+    if (typeof data == "boolean") {
+        data = data.toString()
     }
 
-    $("td#" + metric + ".raw").html(rawvalue)
-    $("td#" + metric + ".val").html(computedvalue)
+    $("td#" + metric + ".raw").html(data)
 }
 
 function updateLEDs(data) {
@@ -196,10 +198,68 @@ function setStatusLED(status, id, statustype = "status") {
     $(id).addClass(c);
 }
 
+function increase(id) {
+    var msg = formatSocketMessage('increase', id)
+    sendSocketMessage(msg)
+}
+
+function decrease(id) {
+    var msg = formatSocketMessage('decrease', id)
+    sendSocketMessage(msg)
+}
+
+function updateAdjustmentValues(memsdata) {
+    updateAdjustmentValue('idlespeed', memsdata.IdleSpeedOffset)
+    updateAdjustmentValue('idlehot', memsdata.IdleHot)
+    updateAdjustmentValue('ignitionadvance', memsdata.IgnitionAdvance)
+    updateAdjustmentValue('fueltrim', memsdata.LongTermFuelTrim)
+}
+
+function updateAdjustmentValue(id, value) {
+    $("td#" + id + ".adjustment").html(value.toString())
+}
+
+// Connect to the ECU
 function connectECU() {
     var port = document.getElementById('port').value;
     var msg = formatSocketMessage('connect', port)
     sendSocketMessage(msg)
+
+    // change the button operation to pause the data loop
+    setConnectButtonStyle("Pause Data Loop", "btn-outline-info", pauseECUDataLoop)
+}
+
+// Pause the Data Loop
+function pauseECUDataLoop() {
+    var msg = formatSocketMessage('dataloop', 'pause')
+    sendSocketMessage(msg)
+
+    // change the button operation to restart the data loop
+    setConnectButtonStyle("Restart Data Loop", "btn-outline-warning", restartECUDataLoop)
+}
+
+// Restart the Data Loop
+function restartECUDataLoop() {
+    var msg = formatSocketMessage('dataloop', 'start')
+    sendSocketMessage(msg)
+
+    // change the button operation back to pause the data loop
+    setConnectButtonStyle("Pause Data Loop", "btn-outline-info", pauseECUDataLoop)
+}
+
+function setConnectButtonStyle(name, style, f) {
+    id = "#connectECUbtn"
+
+    // remove all styles and handlers
+    $(id).removeClass('btn-outline-success');
+    $(id).removeClass('btn-outline-info');
+    $(id).removeClass('btn-outline-warning');
+
+    // assign new ones
+    $(id).addClass(style);
+    $(id).html(name);
+
+    $(id).off().click(f);
 }
 
 function sendSocketMessage(msg) {

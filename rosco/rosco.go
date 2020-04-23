@@ -2,15 +2,13 @@ package rosco
 
 import (
 	"encoding/hex"
+	"log"
 )
 
 // MemsData is the mems information computed from dataframes 0x80 and 0x7d
 type (
 	MemsData struct {
-		Time string
-
-		// dataframe 0x80
-
+		Time                     string
 		EngineRPM                uint16
 		CoolantTemp              uint8
 		AmbientTemp              uint8
@@ -36,14 +34,6 @@ type (
 		CrankshaftPositionSensor bool
 		Uk801a                   uint8
 		Uk801b                   uint8
-
-		CoolantTempSensorFault   bool
-		IntakeAirTempSensorFault bool
-		FuelPumpCircuitFault     bool
-		ThrottlePotCircuitFault  bool
-
-		// dataframe 0x7d
-
 		IgnitionSwitch           bool
 		ThrottleAngle            uint8
 		Uk7d03                   uint8
@@ -56,6 +46,7 @@ type (
 		ClosedLoop               bool
 		LongTermFuelTrim         uint8
 		ShortTermFuelTrim        uint8
+		FuelTrimCorrection       uint8
 		CarbonCanisterPurgeValve uint8
 		DTC3                     uint8
 		IdleBasePosition         uint8
@@ -75,6 +66,11 @@ type (
 		Uk7d1d                   uint8
 		Uk7d1e                   uint8
 		JackCount                uint8
+
+		CoolantTempSensorFault   bool
+		IntakeAirTempSensorFault bool
+		FuelPumpCircuitFault     bool
+		ThrottlePotCircuitFault  bool
 
 		Dataframe80 string `json:"dataframe80"`
 		Dataframe7d string `json:"dataframe7d"`
@@ -164,26 +160,32 @@ func init() {
 	// Response formats for commands that do not respond with the format [COMMAND][VALUE]
 	// Generally these are either part of the initialisation sequence or are ECU data frames
 	response["0a"] = []byte{0x0A}
-	response["80"] = []byte{0x80, 0x1C, 0x03, 0x5B, 0x8B, 0xFF, 0x56, 0xFF, 0x22, 0x8B, 0x1D, 0x00, 0x10, 0x01, 0x00, 0x00, 0x00, 0x24, 0x90, 0x2E, 0x00, 0x03, 0x00, 0x48, 0x06, 0x61, 0x10, 0x00, 0x00}
-	response["7d"] = []byte{0x7d, 0x20, 0x10, 0x0D, 0xFF, 0x92, 0x00, 0x69, 0xFF, 0xFF, 0x00, 0x00, 0x96, 0x64, 0x00, 0xFF, 0x34, 0xFF, 0xFF, 0x30, 0x80, 0x7F, 0xFE, 0xFF, 0x19, 0x00, 0x1E, 0x80, 0x26, 0x40, 0x34, 0xC0, 0x1A}
-	response["d0"] = []byte{0xD0, 0x99, 0x00, 0x03, 0x03}
 	response["ca"] = []byte{0xCA}
 	response["75"] = []byte{0x75}
-	response["f0"] = []byte{0xF0, 0x00}
-	response["f4"] = []byte{0xF4, 0x00}
+	// Format for DataFrames starts with [Command Echo][Data Size][Data Bytes (28 for 0x80 and 32 for 0x7D)]
+	response["80"] = []byte{0x80, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B}
+	response["7d"] = []byte{0x7d, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F}
+	response["d0"] = []byte{0xD0, 0x99, 0x00, 0x03, 0x03}
+	// generic response
+	response["00"] = []byte{0x00, 0x00}
 }
 
 // GetResponseSize returns the expected number of bytes for a given command
 // The 'response' variable contains the formats for each command response pattern
 // by default the response size is 2 bytes unless the command has a special format.
 func GetResponseSize(command []byte) int {
+	size := 2
+
 	c := hex.EncodeToString(command)
 	r := response[c]
 
 	if r != nil {
-		return len(r) + 1
+		size = len(r)
+	} else {
+		r = response["00"]
+		copy(r[0:], command)
 	}
 
-	// default data returned is 2 bytes (echo of command and status)
-	return 3
+	log.Printf("expecting %x -> o <- %x (%d)", command, r, size)
+	return size
 }
