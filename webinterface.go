@@ -63,10 +63,7 @@ func parseMessage(ws *websocket.Conn, msg string) {
 		rosco.LogI.Printf("parsing command %s %s, sending to channel", m.Action, m.Data)
 		select {
 		case webToMemsChannel <- m:
-		case <-time.After(1000 * time.Millisecond):
-			{
-				rosco.LogE.Printf("Command channel blocked")
-			}
+		default:
 		}
 	}
 }
@@ -78,7 +75,8 @@ func SendMessage(ws *websocket.Conn, m wsMsg) {
 }
 
 func listenForMems(ws *websocket.Conn) {
-	time.Sleep(1000 * time.Millisecond)
+	// wait for web interface to finish loading
+	time.Sleep(200 * time.Millisecond)
 
 	for {
 		data := <-memsToWebChannel // receive from mems interface

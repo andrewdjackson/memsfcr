@@ -2,56 +2,99 @@ package rosco
 
 import (
 	"fmt"
-	"log"
 	"os"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 )
 
-var file *os.File
-
-// fileExists reports whether the named file or directory exists.
-func fileExists(name string) bool {
-	if _, err := os.Stat(name); err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	return true
+// MemsDataLogger logs the mems data to a CSV file
+type MemsDataLogger struct {
+	Filename string
+	Logfile  *os.File
+	IsOpen   bool
 }
 
-func openFile(filename string) error {
+// NewMemsDataLogger logs the mems data to a CSV file
+func NewMemsDataLogger() *MemsDataLogger {
+	logger := &MemsDataLogger{}
+	logger.setFilename()
+
+	// check if this is a new file
+	exist := logger.fileExists()
+
+	// open the file
+	logger.openFile()
+
+	// if a new file then add a header to the file
+	if !exist {
+		logger.writeCSVHeader()
+	}
+
+	return logger
+}
+
+// WriteMemsDataToFile writes the mems data structure to a file
+func (logger *MemsDataLogger) WriteMemsDataToFile(memsdata MemsData) {
+	logger.writeCSVData(memsdata)
+}
+
+func (logger *MemsDataLogger) setFilename() {
+	currentTime := time.Now()
+
+	filename := fmt.Sprintf("logs/%s.csv", currentTime.Format("2006-01-02 15:04:05"))
+	filename = strings.ReplaceAll(filename, ":", "")
+	filename = strings.ReplaceAll(filename, " ", "-")
+
+	logger.Filename = filename
+}
+
+// fileExists reports whether the named file or directory exists.
+func (logger *MemsDataLogger) fileExists() bool {
+	exists := false
+
+	if _, err := os.Stat(logger.Filename); err != nil {
+		if os.IsNotExist(err) {
+			exists = false
+		} else {
+			exists = true
+		}
+	}
+
+	LogI.Printf("%s exists %t", logger.Filename, exists)
+
+	return exists
+}
+
+func (logger *MemsDataLogger) openFile() {
 	var err error
 
-	if file == nil {
-		file, err = os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
-	}
+	LogI.Printf("opening log file '%s'", logger.Filename)
+	logger.Logfile, err = os.OpenFile(logger.Filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 
 	if err != nil {
-		return err
+		LogE.Printf("%s", err)
+		logger.IsOpen = false
+	} else {
+		logger.IsOpen = true
 	}
-	defer file.Close()
-
-	return file.Sync()
 }
 
 // writeToFile will print any string of text to a file safely by
 // checking for errors and syncing at the end.
-func writeToFile(data string) error {
+func (logger *MemsDataLogger) writeToFile(data string) error {
 	var err error
 
-	if _, err = file.WriteString(data); err != nil {
+	if _, err = logger.Logfile.WriteString(data); err != nil {
+		LogE.Printf("%s", err)
 		return err
 	}
 
-	LogI.Printf(">> %s\n", data)
+	LogI.Printf("%s", data)
 
-	return file.Sync()
+	return logger.Logfile.Sync()
 }
 
-func writeCSVHeader() {
+func (logger *MemsDataLogger) writeCSVHeader() {
 	header := "#time," +
 		"80x01-02_engine-rpm,80x03_coolant_temp,80x04_ambient_temp,80x05_intake_air_temp,80x06_fuel_temp,80x07_map_kpa,80x08_battery_voltage,80x09_throttle_pot,80x0A_idle_switch,80x0B_uk1," +
 		"80x0C_park_neutral_switch,80x0D-0E_fault_codes,80x0F_idle_set_point,80x10_idle_hot,80x11_uk2,80x12_iac_position,80x13-14_idle_error,80x15_ignition_advance_offset,80x16_ignition_advance,80x17-18_coil_time," +
@@ -61,10 +104,10 @@ func writeCSVHeader() {
 		"7dx14-15_uk10,7dx16_dtc5,7dx17_uk11,7dx18_uk12,7dx19_uk13,7dx1A_uk14,7dx1B_uk15,7dx1C_uk16,7dx1D_uk17,7dx1E_uk18,7dx1F_uk19\n"
 
 	s := fmt.Sprintf("%s", header)
-	writeToFile(s)
+	logger.writeToFile(s)
 }
 
-func writeCSVData(data MemsData) {
+func (logger *MemsDataLogger) writeCSVData(data MemsData) {
 	s := fmt.Sprintf("%s,"+
 		"%d,%d,%d,%d,%d,%f,%f,%f,%t,%t,"+
 		"%t,%d,%d,%d,%d,%d,%d,%d,%f,%f,"+
@@ -128,66 +171,5 @@ func writeCSVData(data MemsData) {
 		data.Uk7d1e,
 		data.JackCount)
 
-	writeToFile(s)
-}
-
-func getFilename(ecuID string) string {
-	currentTime := time.Now()
-	filename := fmt.Sprintf("logs/%s-%s.csv", currentTime.Format("2006-01-02 15:04:05"), ecuID)
-	filename = strings.ReplaceAll(filename, ":", "")
-	filename = strings.ReplaceAll(filename, " ", "-")
-
-	return filename
-}
-
-// WriteMemsDataToFile writes the mems data structure to a file
-func WriteMemsDataToFile(ecuID string, memsdata MemsData) {
-	var filename string
-
-	if file != nil {
-		filename = getFilename(ecuID)
-	}
-
-	// open the file
-	openFile(filename)
-
-	// if it's a new file then add the header
-	if !fileExists(filename) {
-		writeCSVHeader()
-	}
-
-	writeCSVData(memsdata)
-}
-
-var (
-	// LogE logs as an error
-	LogE = log.New(LogWriter{}, "ERROR: ", 0)
-	// LogW logs as a warning
-	LogW = log.New(LogWriter{}, "WARN: ", 0)
-	// LogI logs as an info
-	LogI = log.New(LogWriter{}, "INFO: ", 0)
-)
-
-// LogWriter is used to format the log message
-type LogWriter struct{}
-
-// Write the log entry
-func (f LogWriter) Write(p []byte) (n int, err error) {
-	pc, file, line, ok := runtime.Caller(4)
-	if !ok {
-		file = "?"
-		line = 0
-	}
-
-	fn := runtime.FuncForPC(pc)
-	var fnName string
-	if fn == nil {
-		fnName = "?()"
-	} else {
-		dotName := filepath.Ext(fn.Name())
-		fnName = strings.TrimLeft(dotName, ".") + "()"
-	}
-
-	log.Printf("%s:%d %s: %s", filepath.Base(file), line, fnName, p)
-	return len(p), nil
+	logger.writeToFile(s)
 }
