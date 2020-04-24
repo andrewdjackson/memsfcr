@@ -226,25 +226,40 @@ function connectECU() {
     sendSocketMessage(msg)
 
     // change the button operation to pause the data loop
-    setConnectButtonStyle("Pause Data Loop", "btn-outline-info", pauseECUDataLoop)
+    setConnectButtonStyle("<i class='fa fa-pause-circle'>&nbsp</i>Pause Data Loop", "btn-outline-info", pauseECUDataLoop)
+}
+
+function resetECU() {
+    var msg = formatSocketMessage('command', 'resetecu')
+    sendSocketMessage(msg)
+}
+
+function resetAdj() {
+    var msg = formatSocketMessage('command', 'resetadj')
+    sendSocketMessage(msg)
+}
+
+function clearFaultCodes() {
+    var msg = formatSocketMessage('command', 'clearfaults')
+    sendSocketMessage(msg)
 }
 
 // Pause the Data Loop
 function pauseECUDataLoop() {
-    var msg = formatSocketMessage('dataloop', 'pause')
+    var msg = formatSocketMessage('command', 'pause')
     sendSocketMessage(msg)
 
     // change the button operation to restart the data loop
-    setConnectButtonStyle("Restart Data Loop", "btn-outline-warning", restartECUDataLoop)
+    setConnectButtonStyle("<i class='fa fa-play-circle'>&nbsp</i>Restart Data Loop", "btn-outline-warning", restartECUDataLoop)
 }
 
 // Restart the Data Loop
 function restartECUDataLoop() {
-    var msg = formatSocketMessage('dataloop', 'start')
+    var msg = formatSocketMessage('command', 'start')
     sendSocketMessage(msg)
 
     // change the button operation back to pause the data loop
-    setConnectButtonStyle("Pause Data Loop", "btn-outline-info", pauseECUDataLoop)
+    setConnectButtonStyle("<i class='fa fa-pause-circle'>&nbsp</i>Pause Data Loop", "btn-outline-info", pauseECUDataLoop)
 }
 
 function setConnectButtonStyle(name, style, f) {

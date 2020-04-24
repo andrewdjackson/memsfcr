@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 )
@@ -36,8 +35,15 @@ func helpMessage() string {
 
 func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 	var memsdata rosco.MemsData
+	var memsCommandResponse []byte
+	var commandInterval time.Duration
 	var logging = false
 	var paused = false
+
+	const DataInterval = 950
+	const HeartbeatInterval = 100
+
+	commandInterval = DataInterval * time.Millisecond // time in ms between requests
 
 	if config.Output == "file" {
 		logging = true
@@ -52,13 +58,13 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 
 		if mems.SerialPort == nil {
 			// exit if the serial port is disconnected
-			fmt.Println("Lost connection to ECU, exiting")
+			rosco.LogI.Println("Lost connection to ECU, exiting")
 			// break
 		}
 
 		if mems.Exit == true {
 			// exit if the serial port is disconnected
-			fmt.Println("Exit requested, exiting")
+			rosco.LogI.Println("Exit requested, exiting")
 			break
 		}
 
@@ -67,25 +73,86 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 
 		// enter a command / response loop
 		for loop := 0; loop < count; {
-			// check if we have received a pause / start command
-			select {
-			case m := <-commandChannel:
-				if m.Data == "pause" {
+			// check if we have received a command from the web interface
+			commandID := recieveMessageFromWebView()
+
+			switch commandID {
+			case commandPauseDataLoop:
+				{
 					paused = true
-					log.Printf("Paused Data Loop, sending heartbeats to keep connection alive")
+					rosco.LogI.Printf("Paused Data Loop, sending heartbeats to keep connection alive")
 				}
-				if m.Data == "start" {
+			case commandStartDataLoop:
+				{
 					paused = false
-					log.Printf("Resuming Data Loop")
+					rosco.LogI.Printf("Resuming Data Loop")
+				}
+			case commandResetECU:
+				{
+					rosco.LogI.Printf("memsCommandResponseLoop sending Reset ECU")
+					memsCommandResponse = rosco.MemsSendCommand(mems, rosco.MEMS_ResetECU)
+					rosco.LogI.Printf("memsCommandResponseLoop recieved from Reset ECU %x", memsCommandResponse)
+				}
+			case commandClearFaults:
+				{
+					rosco.LogI.Printf("memsCommandResponseLoop sending Clear Faults")
+					rosco.MemsSendCommand(mems, rosco.MEMS_ClearFaults)
+				}
+			case commandResetAdjustments:
+				{
+					rosco.LogI.Printf("memsCommandResponseLoop sending Reset Adjustments")
+					rosco.MemsSendCommand(mems, rosco.MEMS_ResetAdj)
+				}
+			case commandIncreaseIdleSpeed:
+				{
+					rosco.LogI.Printf("memsCommandResponseLoop sending Increase Idle Speed")
+					rosco.MemsSendCommand(mems, rosco.MEMS_IdleSpeed_Increment)
+				}
+			case commandIncreaseIdleHot:
+				{
+					rosco.LogI.Printf("memsCommandResponseLoop sending Increase Idle Decay (Hot)")
+					rosco.MemsSendCommand(mems, rosco.MEMS_IdleDecay_Increment)
+				}
+			case commandIncreaseFuelTrim:
+				{
+					rosco.LogI.Printf("memsCommandResponseLoop sending Increase Fuel Trim (LTFT)")
+					rosco.MemsSendCommand(mems, rosco.MEMS_LTFT_Increment)
+				}
+			case commandIncreaseIgnitionAdvance:
+				{
+					rosco.LogI.Printf("memsCommandResponseLoop sending Increase Ignition Advance")
+					rosco.MemsSendCommand(mems, rosco.MEMS_IgnitionAdvanceOffset_Increment)
+				}
+			case commandDecreaseIdleSpeed:
+				{
+					rosco.LogI.Printf("memsCommandResponseLoop sending Decrease Idle Speed")
+					rosco.MemsSendCommand(mems, rosco.MEMS_IdleSpeed_Decrement)
+				}
+			case commandDecreaseIdleHot:
+				{
+					rosco.LogI.Printf("memsCommandResponseLoop sending Decrease Idle Decay (Hot)")
+					rosco.MemsSendCommand(mems, rosco.MEMS_IdleDecay_Decrement)
+				}
+			case commandDecreaseFuelTrim:
+				{
+					rosco.LogI.Printf("memsCommandResponseLoop sending Decrease Fuel Trim (LTFT)")
+					rosco.MemsSendCommand(mems, rosco.MEMS_LTFT_Decrement)
+				}
+			case commandDecreaseIgnitionAdvance:
+				{
+					rosco.LogI.Printf("memsCommandResponseLoop sending Decrease Ignition Advance")
+					rosco.MemsSendCommand(mems, rosco.MEMS_IgnitionAdvanceOffset_Decrement)
 				}
 			default:
 			}
 
 			if paused {
 				// send a heartbeat when paused
-				rosco.MemsSendCommand(mems, rosco.MEMS_Heartbeat)
-				log.Printf("Sending Heatbeat")
+				commandInterval = HeartbeatInterval * time.Millisecond
+				//rosco.MemsSendCommand(mems, rosco.MEMS_Heartbeat)
+				rosco.LogI.Printf("Sending Heatbeat")
 			} else {
+				rosco.LogI.Printf("Reading from ECU")
 				// read data from the ECU
 				memsdata = rosco.MemsRead(mems)
 				// send it to the web interface
@@ -93,7 +160,7 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 
 				if logging {
 					// write to a log file if logging is enabled
-					WriteMemsDataToFile(ecuID, memsdata)
+					go rosco.WriteMemsDataToFile(ecuID, memsdata)
 				}
 
 				// increment count of data calls
@@ -104,63 +171,30 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 			// sleep between calls to give the ECU time to catch up
 			// the ECU will get slower as load increases so this ensures
 			// a regular time series for the data set
-			time.Sleep(2950 * time.Millisecond)
+			time.Sleep(commandInterval)
 
 		}
 
 		// read loop complete, exit
 		break
 	}
-
 }
 
-func sendCommandToMems(m wsMsg) []byte {
-	var command []byte
-
-	if m.Action == "decrease" && m.Data == "idlespeed" {
-		command = rosco.MEMS_IdleSpeed_Increment
-	}
-	if m.Action == "increase" && m.Data == "idlespeed" {
-		command = rosco.MEMS_IdleSpeed_Decrement
-	}
-
-	if m.Action == "decrease" && m.Data == "idlehot" {
-		command = rosco.MEMS_IdleDecay_Decrement
-	}
-	if m.Action == "increase" && m.Data == "idlehot" {
-		command = rosco.MEMS_IdleDecay_Increment
-	}
-
-	if m.Action == "decrease" && m.Data == "ignitionadvance" {
-		command = rosco.MEMS_IgnitionAdvanceOffset_Decrement
-	}
-	if m.Action == "increase" && m.Data == "ignitionadvance" {
-		command = rosco.MEMS_IgnitionAdvanceOffset_Increment
-	}
-
-	if m.Action == "decrease" && m.Data == "fueltrim" {
-		command = rosco.MEMS_LTFT_Decrement
-	}
-	if m.Action == "increase" && m.Data == "fueltrim" {
-		command = rosco.MEMS_LTFT_Increment
-	}
-
-	if m.Action == "command" {
-		if m.Data == "clear" {
-			command = rosco.MEMS_ClearFaults
+func recieveMessageFromWebView() int {
+	select {
+	case m := <-webToMemsChannel:
+		{
+			rosco.LogI.Printf("Recieved command from channel")
+			commandID := evaluateCommand(m)
+			return commandID
 		}
-		if m.Data == "resetecu" {
-			command = rosco.MEMS_ResetECU
-		}
-		if m.Data == "resetadj" {
-			command = rosco.MEMS_ResetAdj
-		}
-		if m.Data == "iacposition" {
-			command = rosco.MEMS_GetIACPosition
+	case <-time.After(2 * time.Second):
+		{
+			rosco.LogE.Printf("Command channel receive timeout")
 		}
 	}
 
-	return rosco.MemsSendCommand(mems, command)
+	return commandUnknown
 }
 
 func sendDataToWebView(memsdata rosco.MemsData) {
@@ -170,7 +204,7 @@ func sendDataToWebView(memsdata rosco.MemsData) {
 
 	data, _ := json.Marshal(memsdata)
 	m.Data = string(data)
-	memsChannel <- m
+	memsToWebChannel <- m
 }
 
 func sendConfigToWebView(config *rosco.ReadmemsConfig) {
@@ -180,11 +214,14 @@ func sendConfigToWebView(config *rosco.ReadmemsConfig) {
 
 	data, _ := json.Marshal(config)
 	m.Data = string(data)
-	memsChannel <- m
+	memsToWebChannel <- m
 }
 
 func main() {
 	var showHelp bool
+
+	// create a map of commands
+	createCommandMap()
 
 	// use if the readmems config is supplied
 	config = rosco.ReadConfig()
@@ -197,7 +234,7 @@ func main() {
 	flag.Parse()
 
 	if showHelp {
-		fmt.Println(helpMessage())
+		rosco.LogI.Println(helpMessage())
 		return
 	}
 

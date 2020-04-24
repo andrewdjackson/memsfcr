@@ -2,7 +2,6 @@ package rosco
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strings"
 )
@@ -82,7 +81,7 @@ func ReadConfig() *ReadmemsConfig {
 		}
 	}
 
-	fmt.Println("ReadMems Config", c)
+	LogI.Println("ReadMems Config", c)
 
 	return c
 }

@@ -2,13 +2,11 @@ package main
 
 import (
 	"andrewj.com/readmems/rosco"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/zserge/webview"
 	"golang.org/x/net/websocket"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -20,11 +18,20 @@ type wsMsg struct {
 	Data   string `json:"data"`
 }
 
-var memsChannel = make(chan wsMsg)
-var commandChannel = make(chan wsMsg)
+// channel for communicating from the Mems interface to the web interface
+var memsToWebChannel = make(chan wsMsg)
 
-// Echo the messages
-func Echo(ws *websocket.Conn) {
+// channel for communicating from the web interface to the Mems interface
+var webToMemsChannel = make(chan wsMsg)
+
+type commandEnum struct {
+	Cmd, Val string
+}
+
+var commandMap = make(map[commandEnum]int)
+
+// recieveMessage the messages
+func recieveMessage(ws *websocket.Conn) {
 	var err error
 
 	go listenForMems(ws)
@@ -33,7 +40,7 @@ func Echo(ws *websocket.Conn) {
 		var reply string
 
 		if err = websocket.Message.Receive(ws, &reply); err != nil {
-			fmt.Println("Websocket connection broken")
+			rosco.LogI.Println("Websocket connection broken")
 			break
 		}
 
@@ -44,30 +51,23 @@ func Echo(ws *websocket.Conn) {
 func parseMessage(ws *websocket.Conn, msg string) {
 	var m wsMsg
 	json.Unmarshal([]byte(msg), &m)
-	fmt.Printf("parse: %s %s\r\n", m.Action, m.Data)
+	rosco.LogI.Printf("parse: %s %s\r\n", m.Action, m.Data)
 
 	// connect to ECU and start the data loop
 	if m.Action == "connect" {
 		go memsCommandResponseLoop(config)
 	}
 
-	// pause / start the data loop
-	if m.Action == "dataloop" {
-		// send to the CommandResponse loop
-		log.Printf("recieved data loop command %s", m.Data)
-		commandChannel <- m
-	}
-
 	if m.Action == "increase" || m.Action == "decrease" || m.Action == "command" {
-		response := sendCommandToMems(m)
-		log.Printf("ECU Response: %x\n", response)
-		// get the value from the Mems response
-		value := response[1:]
-		log.Printf("ECU Response Value: %x\n", value)
-		// package up and sned back to the web interface
-		m.Action = "response"
-		m.Data = hex.EncodeToString(value)
-		SendMessage(ws, m)
+		// send to the CommandResponse loop
+		rosco.LogI.Printf("parsing command %s %s, sending to channel", m.Action, m.Data)
+		select {
+		case webToMemsChannel <- m:
+		case <-time.After(1000 * time.Millisecond):
+			{
+				rosco.LogE.Printf("Command channel blocked")
+			}
+		}
 	}
 }
 
@@ -81,8 +81,8 @@ func listenForMems(ws *websocket.Conn) {
 	time.Sleep(1000 * time.Millisecond)
 
 	for {
-		data := <-memsChannel // receive from mems channel
-		fmt.Printf("listen: %s %s\r\n", data.Action, data.Data)
+		data := <-memsToWebChannel // receive from mems interface
+		rosco.LogI.Printf("listen: %s %s\r\n", data.Action, data.Data)
 
 		SendMessage(ws, data)
 	}
@@ -92,13 +92,13 @@ func newRouter() *mux.Router {
 	exepath, err := os.Executable()
 	path, err := filepath.Abs(filepath.Dir(exepath))
 	if err != nil {
-		log.Println(err)
+		rosco.LogI.Println(err)
 	}
 
 	httpdir := fmt.Sprintf("%s/public", path)
 
 	r := mux.NewRouter()
-	ws := websocket.Handler(Echo)
+	ws := websocket.Handler(recieveMessage)
 
 	r.Handle("/", ws)
 
@@ -133,6 +133,45 @@ func RunHTTPServer() {
 	// We can then pass our router (after declaring all our routes) to this method
 	// (where previously, we were leaving the secodn argument as nil)
 	http.ListenAndServe(":1234", r)
+}
+
+const commandUnknown = 0
+const commandConnectECU = 1
+const commandPauseDataLoop = 2
+const commandStartDataLoop = 3
+const commandResetECU = 4
+const commandResetAdjustments = 5
+const commandClearFaults = 6
+const commandIncreaseIdleSpeed = 7
+const commandIncreaseIdleHot = 8
+const commandIncreaseFuelTrim = 9
+const commandIncreaseIgnitionAdvance = 10
+const commandDecreaseIdleSpeed = 11
+const commandDecreaseIdleHot = 12
+const commandDecreaseFuelTrim = 13
+const commandDecreaseIgnitionAdvance = 14
+
+func evaluateCommand(m wsMsg) int {
+	c := commandMap[commandEnum{m.Action, m.Data}]
+	rosco.LogI.Printf("Evaluating %s, %s = %d", m.Action, m.Data, c)
+	return c
+}
+
+func createCommandMap() {
+	commandMap[commandEnum{"command", "connect"}] = commandConnectECU
+	commandMap[commandEnum{"command", "resetecu"}] = commandResetECU
+	commandMap[commandEnum{"command", "resetadj"}] = commandResetAdjustments
+	commandMap[commandEnum{"command", "clearfaults"}] = commandClearFaults
+	commandMap[commandEnum{"command", "pause"}] = commandPauseDataLoop
+	commandMap[commandEnum{"command", "start"}] = commandStartDataLoop
+	commandMap[commandEnum{"increase", "idlespeed"}] = commandIncreaseIdleSpeed
+	commandMap[commandEnum{"increase", "idlehot"}] = commandIncreaseIdleHot
+	commandMap[commandEnum{"increase", "fueltrim"}] = commandIncreaseFuelTrim
+	commandMap[commandEnum{"increase", "ignition"}] = commandIncreaseIgnitionAdvance
+	commandMap[commandEnum{"decrease", "idlespeed"}] = commandDecreaseIdleSpeed
+	commandMap[commandEnum{"decrease", "idlehot"}] = commandDecreaseIdleHot
+	commandMap[commandEnum{"decrease", "fueltrim"}] = commandDecreaseFuelTrim
+	commandMap[commandEnum{"decrease", "ignition"}] = commandDecreaseIgnitionAdvance
 }
 
 // ShowWebView show the browser

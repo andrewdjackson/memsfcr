@@ -42,13 +42,13 @@ var MEMS_ResetECU = []byte{0xFA}
 // | Idle speed              |     92    |     91    |
 // | Ignition advance offset |     94    |     93    |
 
-var MEMS_STFT_Decrement = []byte{0x7A}
+var MEMS_STFT_Decrement = []byte{0x7a}
 var MEMS_STFT_Increment = []byte{0x79}
-var MEMS_LTFT_Decrement = []byte{0x7C}
-var MEMS_LTFT_Increment = []byte{0x7B}
-var MEMS_IdleDecay_Decrement = []byte{0x7C}
-var MEMS_IdleDecay_Increment = []byte{0x7B}
-var MEMS_IdleSpeed_Decrement = []byte{0x7C}
-var MEMS_IdleSpeed_Increment = []byte{0x7B}
-var MEMS_IgnitionAdvanceOffset_Decrement = []byte{0x7C}
-var MEMS_IgnitionAdvanceOffset_Increment = []byte{0x7B}
+var MEMS_LTFT_Decrement = []byte{0x7c}
+var MEMS_LTFT_Increment = []byte{0x7b}
+var MEMS_IdleDecay_Decrement = []byte{0x7c}
+var MEMS_IdleDecay_Increment = []byte{0x7b}
+var MEMS_IdleSpeed_Decrement = []byte{0x92}
+var MEMS_IdleSpeed_Increment = []byte{0x93}
+var MEMS_IgnitionAdvanceOffset_Decrement = []byte{0x94}
+var MEMS_IgnitionAdvanceOffset_Increment = []byte{0x93}

@@ -1,10 +1,11 @@
-package main
+package rosco
 
 import (
-	"andrewj.com/readmems/rosco"
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -45,7 +46,7 @@ func writeToFile(data string) error {
 		return err
 	}
 
-	log.Printf(">> %s\n", data)
+	LogI.Printf(">> %s\n", data)
 
 	return file.Sync()
 }
@@ -63,7 +64,7 @@ func writeCSVHeader() {
 	writeToFile(s)
 }
 
-func writeCSVData(data rosco.MemsData) {
+func writeCSVData(data MemsData) {
 	s := fmt.Sprintf("%s,"+
 		"%d,%d,%d,%d,%d,%f,%f,%f,%t,%t,"+
 		"%t,%d,%d,%d,%d,%d,%d,%d,%f,%f,"+
@@ -140,7 +141,7 @@ func getFilename(ecuID string) string {
 }
 
 // WriteMemsDataToFile writes the mems data structure to a file
-func WriteMemsDataToFile(ecuID string, memsdata rosco.MemsData) {
+func WriteMemsDataToFile(ecuID string, memsdata MemsData) {
 	var filename string
 
 	if file != nil {
@@ -156,4 +157,37 @@ func WriteMemsDataToFile(ecuID string, memsdata rosco.MemsData) {
 	}
 
 	writeCSVData(memsdata)
+}
+
+var (
+	// LogE logs as an error
+	LogE = log.New(LogWriter{}, "ERROR: ", 0)
+	// LogW logs as a warning
+	LogW = log.New(LogWriter{}, "WARN: ", 0)
+	// LogI logs as an info
+	LogI = log.New(LogWriter{}, "INFO: ", 0)
+)
+
+// LogWriter is used to format the log message
+type LogWriter struct{}
+
+// Write the log entry
+func (f LogWriter) Write(p []byte) (n int, err error) {
+	pc, file, line, ok := runtime.Caller(4)
+	if !ok {
+		file = "?"
+		line = 0
+	}
+
+	fn := runtime.FuncForPC(pc)
+	var fnName string
+	if fn == nil {
+		fnName = "?()"
+	} else {
+		dotName := filepath.Ext(fn.Name())
+		fnName = strings.TrimLeft(dotName, ".") + "()"
+	}
+
+	log.Printf("%s:%d %s: %s", filepath.Base(file), line, fnName, p)
+	return len(p), nil
 }

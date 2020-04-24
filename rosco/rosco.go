@@ -2,7 +2,6 @@ package rosco
 
 import (
 	"encoding/hex"
-	"log"
 )
 
 // MemsData is the mems information computed from dataframes 0x80 and 0x7d
@@ -186,6 +185,6 @@ func GetResponseSize(command []byte) int {
 		copy(r[0:], command)
 	}
 
-	log.Printf("expecting %x -> o <- %x (%d)", command, r, size)
+	LogI.Printf("expecting %x -> o <- %x (%d)", command, r, size)
 	return size
 }

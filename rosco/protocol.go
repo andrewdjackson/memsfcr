@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/tarm/serial"
-	"log"
 	"math"
 	"time"
 )
@@ -49,13 +48,13 @@ func MemsConnect(mems *Mems, port string) {
 	// connect to the ecu
 	c := &serial.Config{Name: port, Baud: 9600}
 
-	fmt.Println("Opening ", port)
+	LogI.Println("Opening ", port)
 
 	s, err := serial.OpenPort(c)
 	if err != nil {
-		log.Printf("%s", err)
+		LogI.Printf("%s", err)
 	} else {
-		fmt.Println("Listening on ", port)
+		LogI.Println("Listening on ", port)
 
 		mems.SerialPort = s
 		mems.SerialPort.Flush()
@@ -121,7 +120,7 @@ func MemsReadSerial(mems *Mems) []byte {
 			n, e = mems.SerialPort.Read(b)
 
 			if e != nil {
-				log.Printf("error %s", e)
+				LogI.Printf("error %s", e)
 			} else {
 				// append the read bytes to the data frame
 				data = append(data, b[:n]...)
@@ -130,16 +129,16 @@ func MemsReadSerial(mems *Mems) []byte {
 			// increment by the number of bytes read
 			count = count + n
 			if count > size {
-				log.Printf("data frame size mismatch (received %d, expected %d)", count, size)
+				LogI.Printf("data frame size mismatch (received %d, expected %d)", count, size)
 			}
 		}
 	}
 
-	log.Printf("ECU [%d] < %x", n, data)
+	LogI.Printf("ECU [%d] < %x", n, data)
 	mems.Response = data
 
 	if !isCommandEcho(mems) {
-		log.Printf("Expecting command echo (%x)\n", mems.Command)
+		LogI.Printf("Expecting command echo (%x)\n", mems.Command)
 	}
 
 	return data
@@ -155,11 +154,11 @@ func MemsWriteSerial(mems *Mems, data []byte) {
 		n, e := mems.SerialPort.Write(data)
 
 		if e != nil {
-			log.Printf("FCR Send Error %s", e)
+			LogI.Printf("FCR Send Error %s", e)
 		}
 
 		if n > 0 {
-			log.Printf("FCR > %x", data)
+			LogI.Printf("FCR > %x", data)
 		}
 	}
 }
@@ -173,7 +172,7 @@ func MemsSendCommand(mems *Mems, cmd []byte) []byte {
 // MemsRead reads the raw dataframes and returns structured data
 func MemsRead(mems *Mems) MemsData {
 	// read the raw dataframes
-	d80, d7d := MemsReadRaw(mems)
+	d80, d7d := memsReadRaw(mems)
 
 	// populate the DataFrame structure for command 0x80
 	r := bytes.NewReader(d80)
@@ -250,7 +249,7 @@ func MemsRead(mems *Mems) MemsData {
 }
 
 // MemsReadRaw reads dataframe 80 and then dataframe 7d as raw byte arrays
-func MemsReadRaw(mems *Mems) ([]byte, []byte) {
+func memsReadRaw(mems *Mems) ([]byte, []byte) {
 	MemsWriteSerial(mems, MEMS_ReqData80)
 	dataframe80 := MemsReadSerial(mems)
 

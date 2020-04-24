@@ -24,6 +24,7 @@
 </head>
 
 <body>
+    <script type="text/javascript" src="/public/js/constants.js"></script>
     <script type="text/javascript" src="/public/js/jquery-3.5.0.min.js"></script>
     <script type="text/javascript" src="/public/js/bootstrap.js"></script>
     <script type="text/javascript" src="/public/fontawesome/js/fontawesome.min.js"></script>
@@ -48,13 +49,13 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <form class="form-inline my-2 my-lg-0">
                     <input class="form-control mr-sm-2" type="search" id="port" placeholder="/dev/usb.serial" aria-label="Serial Port">
-                    <button class="btn btn-outline-success my-2 my-sm-0" id="connectECUbtn" type="button">Connect</button> &nbsp;
-                    <button type="button" class="btn btn-danger" onclick="quit();">Quit</button>
+                    <button class="btn btn-outline-success my-2 my-sm-0" id="connectECUbtn" type="button"><i class="fa fa-plug">&nbsp</i>Connect</button> &nbsp;
+                    <button type="button" class="btn btn-danger" onclick="quit();"><i class="fa fa-power-off">&nbsp</i>Quit</button>
                 </form>
             </div>
 
             <div>
-                <button type="button" class="btn btn-success" onclick="clearfaults();"><i class="fa fa-stethoscope">&nbsp</i>Clear Faults</button>
+                <button type="button" class="btn btn-success" onclick="clearFaultCodes();"><i class="fa fa-stethoscope">&nbsp</i>Clear Faults</button>
             </div>
 
             <div class="led-box">
@@ -452,7 +453,8 @@
             <div class="card mt-1">
                 <div class="card bg-light mb-3" style="border: none;">
                     <div class="card-body">
-                        <button type="button" class="btn btn-danger" onclick="resetecu();"><i class="fa fa-exclamation-triangle">&nbsp</i>Reset ECU</button>
+                        <button type="button" class="btn btn-danger" onclick="resetECU();"><i class="fa fa-exclamation-triangle">&nbsp</i>Reset ECU</button>
+                        <button type="button" class="btn btn-warning" onclick="resetAdj();"><i class="fa fa-undo">&nbsp</i>Reset Adjustments</button>
                     </div>
                 </div>
                 <div class="card mb-3" style="border: none;">
@@ -466,10 +468,10 @@
                                     <td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('idlespeed');"><i class="fa fa-angle-right">&nbsp</i>Faster</button></td>
                                 </tr>
                                 <tr>
-                                    <td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('hotidle');">Decrease&nbsp<i class="fa fa-angle-left"></i></button></td>
+                                    <td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('idlehot');">Decrease&nbsp<i class="fa fa-angle-left"></i></button></td>
                                     <td><i class="fa fa-thermometer-full">&nbsp</i>Hot Idle Position</td>
                                     <td class="adjustment" id="hotidle">0</td>
-                                    <td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('hotidle');"><i class="fa fa-angle-right">&nbsp</i>Increase</button></td>
+                                    <td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('idlehot');"><i class="fa fa-angle-right">&nbsp</i>Increase</button></td>
                                 </tr>
                                 <tr>
                                     <td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('fueltrim');">Leaner&nbsp<i class="fas fa-angle-left"></i></button></td>
