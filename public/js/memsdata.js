@@ -1,10 +1,12 @@
 var sock = null;
-var wsuri = "ws://127.0.0.1:1234";
 var minLambda = false
 var maxLambda = false
 var minIAC = false
 
 window.onload = function() {
+    wsuri = window.location.href.split('/').slice(0, 3).join('/')
+    wsuri = wsuri.replace("http:", "ws:")
+
     sock = new WebSocket(wsuri);
 
     sock.onopen = function() {
@@ -47,6 +49,8 @@ function parseMessage(m) {
     if (msg.action == "config") {
         console.log(data)
         setPort(data.Port)
+        setSerialPortSelection(data.Ports)
+        setLogToFile(data.Output)
     }
 
     if (msg.action == "data") {
@@ -219,6 +223,23 @@ function updateAdjustmentValue(id, value) {
     $("td#" + id + ".adjustment").html(value.toString())
 }
 
+function setSerialPortSelection(ports) {
+    $.each(ports, function(key, value) {
+        console.log("serial port added " + key + " : " + value)
+        $('#serialports')
+            .append($("<option></option>")
+                .attr("value", value)
+                .text(value));
+    });
+}
+
+function setLogToFile(logsetting) {
+    if (logsetting != "stdout") {
+        $('#logtofile').attr('checked', true);
+    } else {
+        $('#logtofile').attr('checked', false);
+    }
+}
 // Connect to the ECU
 function connectECU() {
     var port = document.getElementById('port').value;

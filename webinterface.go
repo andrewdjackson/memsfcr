@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/zserge/webview"
 	"golang.org/x/net/websocket"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -29,6 +30,7 @@ type commandEnum struct {
 }
 
 var commandMap = make(map[commandEnum]int)
+var httpPort = 0
 
 // recieveMessage the messages
 func recieveMessage(ws *websocket.Conn) {
@@ -130,7 +132,15 @@ func RunHTTPServer() {
 
 	// We can then pass our router (after declaring all our routes) to this method
 	// (where previously, we were leaving the secodn argument as nil)
-	http.ListenAndServe(":1234", r)
+	//http.ListenAndServe(":0", r)
+	listener, err := net.Listen("tcp", ":0")
+
+	if err != nil {
+		panic(err)
+	}
+
+	httpPort = listener.Addr().(*net.TCPAddr).Port
+	http.Serve(listener, r)
 }
 
 const commandUnknown = 0
@@ -184,6 +194,8 @@ func ShowWebView(config *rosco.ReadmemsConfig) {
 		w.Terminate()
 	})
 
-	w.Navigate("http://127.0.0.1:1234/public/html/index.html")
+	url := fmt.Sprintf("http://127.0.0.1:%d/public/html/index.html", httpPort)
+
+	w.Navigate(url)
 	w.Run()
 }

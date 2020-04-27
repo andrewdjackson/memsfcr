@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"go.bug.st/serial.v1"
 	"strconv"
 	"time"
 )
@@ -34,7 +35,7 @@ func helpMessage() string {
 }
 
 func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
-	const DataInterval = 250 * time.Millisecond
+	const DataInterval = 500 * time.Millisecond
 	const HeartbeatInterval = 2000 * time.Millisecond
 	var logger *rosco.MemsDataLogger
 
@@ -219,6 +220,22 @@ func sendConfigToWebView(config *rosco.ReadmemsConfig) {
 	memsToWebChannel <- m
 }
 
+func getSerialPorts() []string {
+	ports, err := serial.GetPortsList()
+
+	if err != nil {
+		rosco.LogI.Printf("error enumerating serial ports")
+	}
+	if len(ports) == 0 {
+		rosco.LogW.Printf("unable to find any serial ports")
+	}
+	for _, port := range ports {
+		rosco.LogI.Printf("found serial port %v", port)
+	}
+
+	return ports
+}
+
 func main() {
 	var showHelp bool
 
@@ -245,6 +262,11 @@ func main() {
 		config.Loop = "100000000"
 	}
 
+	// get the list of ports available
+	config.Ports = append(config.Ports, config.Port)
+	config.Ports = append(config.Ports, getSerialPorts()...)
+
+	// run the http server
 	go RunHTTPServer()
 	go sendConfigToWebView(config)
 

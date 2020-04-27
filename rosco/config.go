@@ -14,7 +14,7 @@ type ReadmemsConfig struct {
 	Output     string
 	Loop       string
 	Connection string
-	WebPort    string
+	Ports      []string
 }
 
 var config ReadmemsConfig
@@ -26,7 +26,6 @@ func NewConfig() *ReadmemsConfig {
 	config.Loop = "inf"
 	config.Output = "stdout"
 	config.Connection = "wait"
-	config.WebPort = "0"
 
 	return &config
 }
@@ -73,8 +72,6 @@ func ReadConfig() *ReadmemsConfig {
 						c.Output = data[1]
 					case "connection":
 						c.Connection = data[1]
-					case "webport":
-						c.WebPort = data[1]
 					}
 				}
 			}

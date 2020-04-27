@@ -33,11 +33,12 @@
 
     <nav>
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
-            <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Home</a>
-            <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Profiling</a>
-            <a class="nav-item nav-link" id="nav-data-tab" data-toggle="tab" href="#nav-data" role="tab" aria-controls="nav-data" aria-selected="false">DataFrames</a>
-            <a class="nav-item nav-link" id="nav-data-tab" data-toggle="tab" href="#nav-commands" role="tab" aria-controls="nav-commands" aria-selected="false">Commands</a>
-            <a class="nav-item nav-link" id="nav-contact-tab" data-toggle="tab" href="#nav-contact" role="tab" aria-controls="nav-contact" aria-selected="false">Information</a>
+            <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true"><i class="fa fa-tachometer-alt">&nbsp</i>Dashboard</a>
+            <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false"><i class="fa fa-wave-square">&nbsp</i>Profiling</a>
+            <a class="nav-item nav-link" id="nav-data-tab" data-toggle="tab" href="#nav-data" role="tab" aria-controls="nav-data" aria-selected="false"><i class="fa fa-list-ol">&nbsp</i>DataFrames</a>
+            <a class="nav-item nav-link" id="nav-commands-tab" data-toggle="tab" href="#nav-commands" role="tab" aria-controls="nav-commands" aria-selected="false"><i class="fa fa-terminal">&nbsp</i>Adjustments</a>
+            <a class="nav-item nav-link" id="nav-options-tab" data-toggle="tab" href="#nav-options" role="tab" aria-controls="nav-options" aria-selected="false"><i class="fa fa-user-cog">&nbsp</i>Settings</a>
+            <a class="nav-item nav-link" id="nav-info-tab" data-toggle="tab" href="#nav-info" role="tab" aria-controls="nav-info" aria-selected="false"><i class="fa fa-info">&nbsp</i>Information</a>
         </div>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <i class="fa fa-stethoscope">&nbsp</i>
@@ -103,7 +104,6 @@
                 </div>
             </div>
         </div>
-
         <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
             <div class="card mt-1">
                 <div class="card bg-light mb-3" style="border: none;">
@@ -491,7 +491,47 @@
                 </div>
             </div>
         </div>
-        <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
+        <div class="tab-pane fade" id="nav-options" role="tabpanel" aria-labelledby="nav-options-tab">
+            <div class="card mt-1">
+                <div class="card bg-light mb-3" style="border: none;">
+                    <div class="card-body">
+                        <form>
+                            <div class="form-group">
+                                <!-- serial port selection -->
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <label class="input-group-text" for="serialports">Serial Port</label>
+                                    </div>
+                                    <select class="custom-select" id="serialports">
+                                    </select>
+                                </div>
+
+                                <!-- log to file -->
+                                <div class="input-group mb-1">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">
+                                            <input type="checkbox" id="logtofile" aria-label="Checkbox for following text input">
+                                            <label class="form-check-label" for="logtofile">&nbsp;Log Data to File</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- folder selection -->
+                                <div class="input-group mb-3">
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" id="inputGroupFile01">
+                                        <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-outline-success my-2 my-sm-0" id="applySettings" type="button">Apply</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="nav-info" role="tabpanel" aria-labelledby="nav-info-tab">
             <p>
                 <ul>
                     <li><strong>Feedback</strong>: Display of the current feedback fuelling correction. This is shown as a percentage of the mapped (open loop) value. This percentage is continuously updated by the MEMS ECU whenever the conditions for closed
@@ -562,6 +602,7 @@
                 </ul>
             </p>
         </div>
+
         <div>
             <script type="text/javascript" src="/public/js/historical.js"></script>
             <script type="text/javascript" src="/public/js/dashboard.js"></script>
