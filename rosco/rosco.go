@@ -1,6 +1,7 @@
 package rosco
 
 import (
+	"andrewj.com/readmems/utils"
 	"bufio"
 	"bytes"
 	"encoding/binary"
@@ -76,13 +77,13 @@ func (mems *MemsConnection) connect(port string) {
 	// connect to the ecu
 	c := &serial.Config{Name: port, Baud: 9600}
 
-	LogI.Println("Opening ", port)
+	utils.LogI.Println("Opening ", port)
 
 	s, err := serial.OpenPort(c)
 	if err != nil {
-		LogI.Printf("%s", err)
+		utils.LogI.Printf("%s", err)
 	} else {
-		LogI.Println("Listening on ", port)
+		utils.LogI.Println("Listening on ", port)
 
 		mems.SerialPort = s
 		mems.SerialPort.Flush()
@@ -148,7 +149,7 @@ func (mems *MemsConnection) readSerial() []byte {
 			n, e = mems.SerialPort.Read(b)
 
 			if e != nil {
-				LogI.Printf("error %s", e)
+				utils.LogI.Printf("error %s", e)
 			} else {
 				// append the read bytes to the data frame
 				data = append(data, b[:n]...)
@@ -157,16 +158,16 @@ func (mems *MemsConnection) readSerial() []byte {
 			// increment by the number of bytes read
 			count = count + n
 			if count > size {
-				LogI.Printf("data frame size mismatch (received %d, expected %d)", count, size)
+				utils.LogI.Printf("data frame size mismatch (received %d, expected %d)", count, size)
 			}
 		}
 	}
 
-	LogI.Printf("ECU [%d] < %x", n, data)
+	utils.LogI.Printf("ECU [%d] < %x", n, data)
 	mems.response = data
 
 	if !mems.isCommandEcho() {
-		LogI.Printf("Expecting command echo (%x)\n", mems.command)
+		utils.LogI.Printf("Expecting command echo (%x)\n", mems.command)
 	}
 
 	return data
@@ -182,11 +183,11 @@ func (mems *MemsConnection) writeSerial(data []byte) {
 		n, e := mems.SerialPort.Write(data)
 
 		if e != nil {
-			LogI.Printf("FCR Send Error %s", e)
+			utils.LogI.Printf("FCR Send Error %s", e)
 		}
 
 		if n > 0 {
-			LogI.Printf("FCR > %x", data)
+			utils.LogI.Printf("FCR > %x", data)
 		}
 	}
 }
@@ -207,7 +208,7 @@ func (mems *MemsConnection) sendRecievedDataToChannel(data []byte) {
 	var m MemsCommandResponse
 	m.Response = data
 
-	LogI.Printf("sending mems response to the channel")
+	utils.LogI.Printf("sending mems response to the channel")
 
 	mems.ReceivedFromECU <- m
 }
@@ -302,7 +303,7 @@ func (mems *MemsConnection) sendMemsDataToChannel(memsdata MemsData) {
 	var m MemsCommandResponse
 	m.MemsDataFrame = memsdata
 
-	LogI.Printf("sending mems dataframe to the channel")
+	utils.LogI.Printf("sending mems dataframe to the channel")
 
 	mems.ReceivedFromECU <- m
 }
@@ -334,6 +335,6 @@ func (mems *MemsConnection) getResponseSize(command []byte) int {
 		copy(r[0:], command)
 	}
 
-	LogI.Printf("expecting %x -> o <- %x (%d)", command, r, size)
+	utils.LogI.Printf("expecting %x -> o <- %x (%d)", command, r, size)
 	return size
 }

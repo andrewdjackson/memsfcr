@@ -1,6 +1,7 @@
 package rosco
 
 import (
+	"andrewj.com/readmems/utils"
 	"bufio"
 	"os"
 	"strings"
@@ -12,6 +13,7 @@ type ReadmemsConfig struct {
 	Port       string
 	Command    string
 	Output     string
+	LogFolder  string
 	Loop       string
 	Connection string
 	Ports      []string
@@ -26,6 +28,7 @@ func NewConfig() *ReadmemsConfig {
 	config.Loop = "inf"
 	config.Output = "stdout"
 	config.Connection = "wait"
+	config.LogFolder = "./logs"
 
 	return &config
 }
@@ -53,7 +56,7 @@ func readLines(path string) ([]string, error) {
 func ReadConfig() *ReadmemsConfig {
 	c := NewConfig()
 
-	lines, err := readLines("./readmems.cfg")
+	lines, err := readLines("./memsfcr.cfg")
 
 	if err == nil {
 		for i := range lines {
@@ -70,6 +73,8 @@ func ReadConfig() *ReadmemsConfig {
 						c.Loop = data[1]
 					case "output":
 						c.Output = data[1]
+					case "logfolder":
+						c.LogFolder = data[1]
 					case "connection":
 						c.Connection = data[1]
 					}
@@ -78,7 +83,7 @@ func ReadConfig() *ReadmemsConfig {
 		}
 	}
 
-	LogI.Println("ReadMems Config", c)
+	utils.LogI.Println("MemsFCR Config", c)
 
 	return c
 }

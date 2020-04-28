@@ -1,6 +1,7 @@
 package rosco
 
 import (
+	"andrewj.com/readmems/utils"
 	"fmt"
 	"os"
 	"strings"
@@ -60,7 +61,7 @@ func (logger *MemsDataLogger) fileExists() bool {
 		}
 	}
 
-	LogI.Printf("%s exists %t", logger.Filename, exists)
+	utils.LogI.Printf("%s exists %t", logger.Filename, exists)
 
 	return exists
 }
@@ -68,11 +69,11 @@ func (logger *MemsDataLogger) fileExists() bool {
 func (logger *MemsDataLogger) openFile() {
 	var err error
 
-	LogI.Printf("opening log file '%s'", logger.Filename)
+	utils.LogI.Printf("opening log file '%s'", logger.Filename)
 	logger.Logfile, err = os.OpenFile(logger.Filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 
 	if err != nil {
-		LogE.Printf("%s", err)
+		utils.LogE.Printf("%s", err)
 		logger.IsOpen = false
 	} else {
 		logger.IsOpen = true
@@ -85,11 +86,11 @@ func (logger *MemsDataLogger) writeToFile(data string) error {
 	var err error
 
 	if _, err = logger.Logfile.WriteString(data); err != nil {
-		LogE.Printf("%s", err)
+		utils.LogE.Printf("%s", err)
 		return err
 	}
 
-	LogI.Printf("%s", data)
+	utils.LogI.Printf("%s", data)
 
 	return logger.Logfile.Sync()
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"andrewj.com/readmems/rosco"
+	"andrewj.com/readmems/utils"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -42,7 +43,7 @@ func recieveMessage(ws *websocket.Conn) {
 		var reply string
 
 		if err = websocket.Message.Receive(ws, &reply); err != nil {
-			rosco.LogI.Println("Websocket connection broken")
+			utils.LogI.Println("Websocket connection broken")
 			break
 		}
 
@@ -53,7 +54,7 @@ func recieveMessage(ws *websocket.Conn) {
 func parseMessage(ws *websocket.Conn, msg string) {
 	var m wsMsg
 	json.Unmarshal([]byte(msg), &m)
-	rosco.LogI.Printf("parse: %s %s\r\n", m.Action, m.Data)
+	utils.LogI.Printf("parse: %s %s\r\n", m.Action, m.Data)
 
 	// connect to ECU and start the data loop
 	if m.Action == "connect" {
@@ -62,7 +63,7 @@ func parseMessage(ws *websocket.Conn, msg string) {
 
 	if m.Action == "increase" || m.Action == "decrease" || m.Action == "command" {
 		// send to the CommandResponse loop
-		rosco.LogI.Printf("parsing command %s %s, sending to channel", m.Action, m.Data)
+		utils.LogI.Printf("parsing command %s %s, sending to channel", m.Action, m.Data)
 		select {
 		case webToMemsChannel <- m:
 		default:
@@ -82,7 +83,7 @@ func listenForMems(ws *websocket.Conn) {
 
 	for {
 		data := <-memsToWebChannel // receive from mems interface
-		rosco.LogI.Printf("listen: %s %s\r\n", data.Action, data.Data)
+		utils.LogI.Printf("listen: %s %s\r\n", data.Action, data.Data)
 
 		SendMessage(ws, data)
 	}
@@ -92,7 +93,7 @@ func newRouter() *mux.Router {
 	exepath, err := os.Executable()
 	path, err := filepath.Abs(filepath.Dir(exepath))
 	if err != nil {
-		rosco.LogI.Println(err)
+		utils.LogI.Println(err)
 	}
 
 	httpdir := fmt.Sprintf("%s/public", path)
@@ -101,9 +102,6 @@ func newRouter() *mux.Router {
 	ws := websocket.Handler(recieveMessage)
 
 	r.Handle("/", ws)
-
-	//dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	//r.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir(dir+"/public"))))
 
 	// Declare the static file directory and point it to the
 	// directory we just made
@@ -161,7 +159,7 @@ const commandDecreaseIgnitionAdvance = 14
 
 func evaluateCommand(m wsMsg) int {
 	c := commandMap[commandEnum{m.Action, m.Data}]
-	rosco.LogI.Printf("Evaluating %s, %s = %d", m.Action, m.Data, c)
+	utils.LogI.Printf("Evaluating %s, %s = %d", m.Action, m.Data, c)
 	return c
 }
 

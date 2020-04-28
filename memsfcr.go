@@ -2,6 +2,7 @@ package main
 
 import (
 	"andrewj.com/readmems/rosco"
+	"andrewj.com/readmems/utils"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -53,13 +54,13 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 
 		if mems.SerialPort == nil {
 			// exit if the serial port is disconnected
-			rosco.LogI.Println("Lost connection to ECU, exiting")
+			utils.LogI.Println("Lost connection to ECU, exiting")
 			// break
 		}
 
 		if mems.Exit == true {
 			// exit if the serial port is disconnected
-			rosco.LogI.Println("Exit requested, exiting")
+			utils.LogI.Println("Exit requested, exiting")
 			break
 		}
 
@@ -72,7 +73,7 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 		for loop := 0; loop < count; {
 			if paused {
 				// send a periodic heartbeat to keep the connection alive when paused
-				rosco.LogI.Printf("sending heatbeat")
+				utils.LogI.Printf("sending heatbeat")
 				go sendCommandToMemsChannel(mems, rosco.MEMS_Heartbeat)
 
 				// send heatbeats at a slower interval to data frame requests
@@ -80,13 +81,13 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 
 			} else {
 				// read data from the ECU
-				rosco.LogI.Printf("sending dataframe request to ECU")
+				utils.LogI.Printf("sending dataframe request to ECU")
 				mems.ReadMemsData()
 
 				// wait for response
-				rosco.LogI.Printf("waiting for response from ECU")
+				utils.LogI.Printf("waiting for response from ECU")
 				data := <-mems.ReceivedFromECU
-				rosco.LogI.Printf("received dataframe from ECU")
+				utils.LogI.Printf("received dataframe from ECU")
 
 				// send it to the web interface
 				sendDataToWebView(data.MemsDataFrame)
@@ -123,66 +124,66 @@ func recieveMessageFromWebViewLoop(mems *rosco.MemsConnection) {
 		case commandPauseDataLoop:
 			{
 				paused = true
-				rosco.LogI.Printf("Paused Data Loop, sending heartbeats to keep connection alive")
+				utils.LogI.Printf("Paused Data Loop, sending heartbeats to keep connection alive")
 			}
 		case commandStartDataLoop:
 			{
 				paused = false
-				rosco.LogI.Printf("Resuming Data Loop")
+				utils.LogI.Printf("Resuming Data Loop")
 			}
 		case commandResetECU:
 			{
-				rosco.LogI.Printf("memsCommandResponseLoop sending Reset ECU")
+				utils.LogI.Printf("memsCommandResponseLoop sending Reset ECU")
 				go sendCommandToMemsChannel(mems, rosco.MEMS_ResetECU)
 			}
 		case commandClearFaults:
 			{
-				rosco.LogI.Printf("memsCommandResponseLoop sending Clear Faults")
+				utils.LogI.Printf("memsCommandResponseLoop sending Clear Faults")
 				go sendCommandToMemsChannel(mems, rosco.MEMS_ClearFaults)
 			}
 		case commandResetAdjustments:
 			{
-				rosco.LogI.Printf("memsCommandResponseLoop sending Reset Adjustments")
+				utils.LogI.Printf("memsCommandResponseLoop sending Reset Adjustments")
 				go sendCommandToMemsChannel(mems, rosco.MEMS_ResetAdj)
 			}
 		case commandIncreaseIdleSpeed:
 			{
-				rosco.LogI.Printf("memsCommandResponseLoop sending Increase Idle Speed")
+				utils.LogI.Printf("memsCommandResponseLoop sending Increase Idle Speed")
 				go sendCommandToMemsChannel(mems, rosco.MEMS_IdleSpeed_Increment)
 			}
 		case commandIncreaseIdleHot:
 			{
-				rosco.LogI.Printf("memsCommandResponseLoop sending Increase Idle Decay (Hot)")
+				utils.LogI.Printf("memsCommandResponseLoop sending Increase Idle Decay (Hot)")
 				go sendCommandToMemsChannel(mems, rosco.MEMS_IdleDecay_Increment)
 			}
 		case commandIncreaseFuelTrim:
 			{
-				rosco.LogI.Printf("memsCommandResponseLoop sending Increase Fuel Trim (LTFT)")
+				utils.LogI.Printf("memsCommandResponseLoop sending Increase Fuel Trim (LTFT)")
 				go sendCommandToMemsChannel(mems, rosco.MEMS_LTFT_Increment)
 			}
 		case commandIncreaseIgnitionAdvance:
 			{
-				rosco.LogI.Printf("memsCommandResponseLoop sending Increase Ignition Advance")
+				utils.LogI.Printf("memsCommandResponseLoop sending Increase Ignition Advance")
 				go sendCommandToMemsChannel(mems, rosco.MEMS_IgnitionAdvanceOffset_Increment)
 			}
 		case commandDecreaseIdleSpeed:
 			{
-				rosco.LogI.Printf("memsCommandResponseLoop sending Decrease Idle Speed")
+				utils.LogI.Printf("memsCommandResponseLoop sending Decrease Idle Speed")
 				go sendCommandToMemsChannel(mems, rosco.MEMS_IdleSpeed_Decrement)
 			}
 		case commandDecreaseIdleHot:
 			{
-				rosco.LogI.Printf("memsCommandResponseLoop sending Decrease Idle Decay (Hot)")
+				utils.LogI.Printf("memsCommandResponseLoop sending Decrease Idle Decay (Hot)")
 				go sendCommandToMemsChannel(mems, rosco.MEMS_IdleDecay_Decrement)
 			}
 		case commandDecreaseFuelTrim:
 			{
-				rosco.LogI.Printf("memsCommandResponseLoop sending Decrease Fuel Trim (LTFT)")
+				utils.LogI.Printf("memsCommandResponseLoop sending Decrease Fuel Trim (LTFT)")
 				go sendCommandToMemsChannel(mems, rosco.MEMS_LTFT_Decrement)
 			}
 		case commandDecreaseIgnitionAdvance:
 			{
-				rosco.LogI.Printf("memsCommandResponseLoop sending Decrease Ignition Advance")
+				utils.LogI.Printf("memsCommandResponseLoop sending Decrease Ignition Advance")
 				go sendCommandToMemsChannel(mems, rosco.MEMS_IgnitionAdvanceOffset_Decrement)
 			}
 		default:
@@ -224,13 +225,13 @@ func getSerialPorts() []string {
 	ports, err := serial.GetPortsList()
 
 	if err != nil {
-		rosco.LogI.Printf("error enumerating serial ports")
+		utils.LogI.Printf("error enumerating serial ports")
 	}
 	if len(ports) == 0 {
-		rosco.LogW.Printf("unable to find any serial ports")
+		utils.LogW.Printf("unable to find any serial ports")
 	}
 	for _, port := range ports {
-		rosco.LogI.Printf("found serial port %v", port)
+		utils.LogI.Printf("found serial port %v", port)
 	}
 
 	return ports
@@ -253,7 +254,7 @@ func main() {
 	flag.Parse()
 
 	if showHelp {
-		rosco.LogI.Println(helpMessage())
+		utils.LogI.Println(helpMessage())
 		return
 	}
 
