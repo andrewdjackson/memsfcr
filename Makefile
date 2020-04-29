@@ -36,7 +36,7 @@ buildapp:
 	mkdir "$(DARWINDISTPATH)/$(APPNAME).app/Contents/Resources"
 	mkdir "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/logs"
 	cp resources/icons/icon.icns "$(DARWINDISTPATH)/$(APPNAME).app/Contents/Resources"
-	cp resources/Info.plist "$(DARWINDISTPATH)/$(APPNAME).app/Contents"
+	cp resources/darwin/Info.plist "$(DARWINDISTPATH)/$(APPNAME).app/Contents"
 	cp $(DARWIN) "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/$(EXECUTABLE)"
 	cp memsfcr.cfg "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS"
 	cp -r ./public "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS"
