@@ -1,14 +1,15 @@
 package main
 
 import (
-	"andrewj.com/readmems/rosco"
-	"andrewj.com/readmems/utils"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"go.bug.st/serial.v1"
 	"strconv"
 	"time"
+
+	"github.com/andrewdjackson/readmems/rosco"
+	"github.com/andrewdjackson/readmems/utils"
+	"go.bug.st/serial.v1"
 )
 
 const version = "v0.1.0"

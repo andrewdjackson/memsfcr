@@ -1,11 +1,12 @@
 package rosco
 
 import (
-	"andrewj.com/readmems/utils"
 	"fmt"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/andrewdjackson/readmems/utils"
 )
 
 // MemsDataLogger logs the mems data to a CSV file

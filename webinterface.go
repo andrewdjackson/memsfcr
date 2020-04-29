@@ -1,18 +1,19 @@
 package main
 
 import (
-	"andrewj.com/readmems/rosco"
-	"andrewj.com/readmems/utils"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/zserge/webview"
-	"golang.org/x/net/websocket"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/andrewdjackson/readmems/rosco"
+	"github.com/andrewdjackson/readmems/utils"
+	"github.com/gorilla/mux"
+	"github.com/zserge/webview"
+	"golang.org/x/net/websocket"
 )
 
 type wsMsg struct {

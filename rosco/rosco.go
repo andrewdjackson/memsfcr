@@ -1,15 +1,16 @@
 package rosco
 
 import (
-	"andrewj.com/readmems/utils"
 	"bufio"
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/tarm/serial"
 	"math"
 	"time"
+
+	"github.com/andrewdjackson/readmems/utils"
+	"github.com/tarm/serial"
 )
 
 // MemsCommandResponse communication pair

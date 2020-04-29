@@ -1,10 +1,11 @@
 package rosco
 
 import (
-	"andrewj.com/readmems/utils"
 	"bufio"
 	"os"
 	"strings"
+
+	"github.com/andrewdjackson/readmems/utils"
 )
 
 // ReadmemsConfig readmems configuration
