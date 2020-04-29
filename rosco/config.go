@@ -2,10 +2,12 @@ package rosco
 
 import (
 	"bufio"
+	"fmt"
 	"os"
-	"strings"
 
 	"github.com/andrewdjackson/readmems/utils"
+	"github.com/mitchellh/go-homedir"
+	"gopkg.in/ini.v1"
 )
 
 // ReadmemsConfig readmems configuration
@@ -53,38 +55,53 @@ func readLines(path string) ([]string, error) {
 	return lines, scanner.Err()
 }
 
-// ReadConfig reads readmems.cfg file
-func ReadConfig() *ReadmemsConfig {
-	c := NewConfig()
+// WriteConfig write the config file
+func WriteConfig(c *ReadmemsConfig) {
+	folder, _ := homedir.Dir()
+	filename := fmt.Sprintf("%s/.memsfcr.cfg", folder)
 
-	lines, err := readLines("./memsfcr.cfg")
+	os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
 
-	if err == nil {
-		for i := range lines {
-			// ignore comment lines or lines that are not value pairs
-			if !strings.HasPrefix(lines[i], "#") {
-				if strings.Contains(lines[i], "=") {
-					data := strings.Split(lines[i], "=")
-					switch data[0] {
-					case "port":
-						c.Port = data[1]
-					case "command":
-						c.Command = data[1]
-					case "loop":
-						c.Loop = data[1]
-					case "output":
-						c.Output = data[1]
-					case "logfolder":
-						c.LogFolder = data[1]
-					case "connection":
-						c.Connection = data[1]
-					}
-				}
-			}
-		}
+	cfg, err := ini.LooseLoad(filename)
+	if err != nil {
+		utils.LogI.Printf("failed to read file: %v", err)
 	}
 
-	utils.LogI.Println("MemsFCR Config", c)
+	cfg.Section("").Key("port").SetValue(c.Port)
+	cfg.Section("").Key("command").SetValue(c.Command)
+	cfg.Section("").Key("loop").SetValue(c.Loop)
+	cfg.Section("").Key("output").SetValue(c.Output)
+	cfg.Section("").Key("logfolder").SetValue(c.LogFolder)
+	cfg.Section("").Key("connection").SetValue(c.Connection)
 
+	err = cfg.SaveTo(filename)
+
+	if err != nil {
+		utils.LogI.Printf("failed to write file: %v", err)
+	}
+
+	utils.LogI.Printf("updated config: %s", filename)
+}
+
+// ReadConfig readsthe config file
+func ReadConfig() *ReadmemsConfig {
+	folder, _ := homedir.Dir()
+	filename := fmt.Sprintf("%s/.memsfcr.cfg", folder)
+	c := NewConfig()
+
+	cfg, err := ini.Load(filename)
+	if err != nil {
+		utils.LogI.Printf("failed to read file: %v", err)
+		return c
+	}
+
+	c.Port = cfg.Section("").Key("port").String()
+	c.Command = cfg.Section("").Key("command").String()
+	c.Loop = cfg.Section("").Key("loop").String()
+	c.Output = cfg.Section("").Key("output").String()
+	c.LogFolder = cfg.Section("").Key("logfolder").String()
+	c.Connection = cfg.Section("").Key("connection").String()
+
+	utils.LogI.Println("MemsFCR Config", c)
 	return c
 }
