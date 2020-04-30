@@ -69,6 +69,8 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 
 		// start a loop for listening for events from the web interface
 		go recieveMessageFromWebViewLoop(mems)
+		// start a loop to listen for data responses from the ECU
+		go mems.ListenSendToECUChannelLoop()
 
 		// enter a command / response loop
 		for loop := 0; loop < count; {
@@ -85,10 +87,13 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 				utils.LogI.Printf("sending dataframe request to ECU")
 				mems.ReadMemsData()
 
-				// wait for response
-				utils.LogI.Printf("waiting for response from ECU")
-				data := <-mems.ReceivedFromECU
-				utils.LogI.Printf("received dataframe from ECU")
+				// wait for response, this is built into the sendCommand function
+				// but as we're reading the MemData we need to call this here
+				data := receiveResponseFromMemsChannel(mems)
+
+				//utils.LogI.Printf("waiting for response from ECU")
+				//data := <-mems.ReceivedFromECU
+				//utils.LogI.Printf("received dataframe from ECU")
 
 				// send it to the web interface
 				sendDataToWebView(data.MemsDataFrame)
@@ -196,8 +201,22 @@ func recieveMessageFromWebViewLoop(mems *rosco.MemsConnection) {
 func sendCommandToMemsChannel(mems *rosco.MemsConnection, command []byte) {
 	var m rosco.MemsCommandResponse
 	m.Command = command
+	utils.LogI.Printf(">>> mems command sent to the channel")
 
+	// send through channel
 	mems.SendToECU <- m
+
+	// wait for response
+	receiveResponseFromMemsChannel(mems)
+}
+
+func receiveResponseFromMemsChannel(mems *rosco.MemsConnection) rosco.MemsCommandResponse {
+	// wait for response
+	utils.LogI.Printf("waiting for response from ECU")
+	data := <-mems.ReceivedFromECU
+	utils.LogI.Printf("received dataframe from ECU")
+
+	return data
 }
 
 // send a message back to the web interface via a channel

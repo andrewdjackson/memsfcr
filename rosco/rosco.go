@@ -57,7 +57,7 @@ func NewMemsConnection() *MemsConnection {
 	m := &MemsConnection{}
 	m.Connected = false
 	m.Initialised = false
-	m.SendToECU = make(chan MemsCommandResponse)
+	m.SendToECU = make(chan MemsCommandResponse, 2)
 	m.ReceivedFromECU = make(chan MemsCommandResponse)
 
 	return m
@@ -193,15 +193,17 @@ func (mems *MemsConnection) writeSerial(data []byte) {
 	}
 }
 
-// listen for commands to be sent to the ECU
-func (mems *MemsConnection) listenSendToECUChannelLoop() {
+// ListenSendToECUChannelLoop for commands to be sent to the ECU
+func (mems *MemsConnection) ListenSendToECUChannelLoop() {
 	for {
 		// wait for messages to be sent to the ECU
+		utils.LogI.Printf(">>> waiting for mems command from the channel")
 		m := <-mems.SendToECU
+		utils.LogI.Printf(">>> mems command retrieved from the channel")
 		// send the command
 		reponse := mems.sendCommand(m.Command)
 		// send back on the channel
-		mems.sendRecievedDataToChannel(reponse)
+		go mems.sendRecievedDataToChannel(reponse)
 	}
 }
 
