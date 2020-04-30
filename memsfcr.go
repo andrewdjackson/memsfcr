@@ -70,13 +70,13 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 		// start a loop for listening for events from the web interface
 		go recieveMessageFromWebViewLoop(mems)
 		// start a loop to listen for data responses from the ECU
-		go mems.ListenSendToECUChannelLoop()
+		//go mems.ListenSendToECUChannelLoop()
 
 		// enter a command / response loop
 		for loop := 0; loop < count; {
 			if paused {
 				// send a periodic heartbeat to keep the connection alive when paused
-				utils.LogI.Printf("sending heatbeat")
+				utils.LogI.Printf("memsCommandResponseLoop sending heatbeat")
 				go sendCommandToMemsChannel(mems, rosco.MEMS_Heartbeat)
 
 				// send heatbeats at a slower interval to data frame requests
@@ -84,7 +84,7 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 
 			} else {
 				// read data from the ECU
-				utils.LogI.Printf("sending dataframe request to ECU")
+				utils.LogI.Printf("CR.1 memsCommandResponseLoop sending dataframe request to ECU")
 				mems.ReadMemsData()
 
 				// wait for response, this is built into the sendCommand function
@@ -123,7 +123,10 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 // send commands to the ecu if required via a go routine as to not block
 func recieveMessageFromWebViewLoop(mems *rosco.MemsConnection) {
 	for {
+		utils.LogI.Printf("WC.2.1 waiting for message from webview webToMemsChannel channel..")
 		m := <-webToMemsChannel
+		utils.LogI.Printf("WC.2.2 recieved message from webToMemsChannel channel")
+
 		c := evaluateCommand(m)
 
 		switch c {
@@ -201,10 +204,11 @@ func recieveMessageFromWebViewLoop(mems *rosco.MemsConnection) {
 func sendCommandToMemsChannel(mems *rosco.MemsConnection, command []byte) {
 	var m rosco.MemsCommandResponse
 	m.Command = command
-	utils.LogI.Printf(">>> mems command sent to the channel")
 
 	// send through channel
+	utils.LogI.Printf("CR.1.1 waiting to send mems command to the SendToECU channel")
 	mems.SendToECU <- m
+	utils.LogI.Printf("CR.1.2 mems command sent to the SendToECU channel")
 
 	// wait for response
 	receiveResponseFromMemsChannel(mems)
@@ -212,9 +216,9 @@ func sendCommandToMemsChannel(mems *rosco.MemsConnection, command []byte) {
 
 func receiveResponseFromMemsChannel(mems *rosco.MemsConnection) rosco.MemsCommandResponse {
 	// wait for response
-	utils.LogI.Printf("waiting for response from ECU")
+	utils.LogI.Printf("CR.5.1 waiting for response from ECU")
 	data := <-mems.ReceivedFromECU
-	utils.LogI.Printf("received dataframe from ECU")
+	utils.LogI.Printf("CR.5.2 received dataframe from ECU")
 
 	return data
 }
@@ -227,7 +231,10 @@ func sendDataToWebView(memsdata rosco.MemsData) {
 
 	data, _ := json.Marshal(memsdata)
 	m.Data = string(data)
+
+	utils.LogI.Printf("CR.6.1 waiting to send data to webview with memsToWebChannel channel")
 	memsToWebChannel <- m
+	utils.LogI.Printf("CR.6.2 sent data to webview with memsToWebChannel channel")
 }
 
 // send configuration to the web interace via a channel
@@ -238,7 +245,9 @@ func sendConfigToWebView(config *rosco.ReadmemsConfig) {
 
 	data, _ := json.Marshal(config)
 	m.Data = string(data)
+	utils.LogI.Printf("CR.6.3 waiting to send config to webview with memsToWebChannel channel")
 	memsToWebChannel <- m
+	utils.LogI.Printf("CR.6.4 sent config to webview with memsToWebChannel channel")
 }
 
 func getSerialPorts() []string {

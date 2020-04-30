@@ -57,7 +57,7 @@ func NewMemsConnection() *MemsConnection {
 	m := &MemsConnection{}
 	m.Connected = false
 	m.Initialised = false
-	m.SendToECU = make(chan MemsCommandResponse, 2)
+	m.SendToECU = make(chan MemsCommandResponse)
 	m.ReceivedFromECU = make(chan MemsCommandResponse)
 
 	return m
@@ -197,9 +197,9 @@ func (mems *MemsConnection) writeSerial(data []byte) {
 func (mems *MemsConnection) ListenSendToECUChannelLoop() {
 	for {
 		// wait for messages to be sent to the ECU
-		utils.LogI.Printf(">>> waiting for mems command from the channel")
+		utils.LogI.Printf("CR.3.1 ListenSendToECUChannelLoop waiting for mems command from the SendToECU channel")
 		m := <-mems.SendToECU
-		utils.LogI.Printf(">>> mems command retrieved from the channel")
+		utils.LogI.Printf("CR 3.2 ListenSendToECUChannelLoop mems command retrieved from the SendToECU channel")
 		// send the command
 		response := mems.sendCommand(m.Command)
 		// send back on the channel
@@ -217,6 +217,8 @@ func (mems *MemsConnection) sendCommand(cmd []byte) []byte {
 
 // ReadMemsData reads the raw dataframes and returns structured data
 func (mems *MemsConnection) ReadMemsData() {
+	utils.LogI.Printf("CR.2 getting x7d and x80 dataframes")
+
 	// read the raw dataframes
 	d80, d7d := mems.readRaw()
 
@@ -299,12 +301,12 @@ func (mems *MemsConnection) sendMemsDataToChannel(memsdata MemsData) {
 	var m MemsCommandResponse
 	m.MemsDataFrame = memsdata
 
-	utils.LogI.Printf("sending mems dataframe to the channel")
+	utils.LogI.Printf("CR.3.3 send MemsData to the ReceivedFromECU channel")
 	mems.sendRecievedDataToChannel(m)
 }
 
 func (mems *MemsConnection) sendRecievedDataToChannel(m MemsCommandResponse) {
-	utils.LogI.Printf("sending mems response to the channel")
+	utils.LogI.Printf("CR.4 sending mems Response to the ReceivedFromECU channel")
 
 	mems.ReceivedFromECU <- m
 }

@@ -64,11 +64,14 @@ func parseMessage(ws *websocket.Conn, msg string) {
 
 	if m.Action == "increase" || m.Action == "decrease" || m.Action == "command" {
 		// send to the CommandResponse loop
-		utils.LogI.Printf("parsing command %s %s, sending to channel", m.Action, m.Data)
-		select {
-		case webToMemsChannel <- m:
-		default:
-		}
+		utils.LogI.Printf("WC.1.1 waiting to send message %s %s to memsToWebChannel channel", m.Action, m.Data)
+		webToMemsChannel <- m
+		utils.LogI.Printf("WC.1.2 sent message to memsToWebChannel channel")
+
+		//select {
+		//case webToMemsChannel <- m:
+		//default:
+		//}
 	}
 }
 
@@ -83,8 +86,9 @@ func listenForMems(ws *websocket.Conn) {
 	time.Sleep(200 * time.Millisecond)
 
 	for {
+		utils.LogI.Printf("WC.2.1 waiting for data from memsToWebChannel..")
 		data := <-memsToWebChannel // receive from mems interface
-		utils.LogI.Printf("listen: %s %s\r\n", data.Action, data.Data)
+		utils.LogI.Printf("WC.2 received %s %s from memsToWebChannel", data.Action, data.Data)
 
 		SendMessage(ws, data)
 	}
