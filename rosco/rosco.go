@@ -201,19 +201,12 @@ func (mems *MemsConnection) ListenSendToECUChannelLoop() {
 		m := <-mems.SendToECU
 		utils.LogI.Printf(">>> mems command retrieved from the channel")
 		// send the command
-		reponse := mems.sendCommand(m.Command)
+		response := mems.sendCommand(m.Command)
 		// send back on the channel
-		go mems.sendRecievedDataToChannel(reponse)
+		var r MemsCommandResponse
+		r.Response = response
+		mems.sendRecievedDataToChannel(r)
 	}
-}
-
-func (mems *MemsConnection) sendRecievedDataToChannel(data []byte) {
-	var m MemsCommandResponse
-	m.Response = data
-
-	utils.LogI.Printf("sending mems response to the channel")
-
-	mems.ReceivedFromECU <- m
 }
 
 // sends a command and returns the response
@@ -307,6 +300,11 @@ func (mems *MemsConnection) sendMemsDataToChannel(memsdata MemsData) {
 	m.MemsDataFrame = memsdata
 
 	utils.LogI.Printf("sending mems dataframe to the channel")
+	mems.sendRecievedDataToChannel(m)
+}
+
+func (mems *MemsConnection) sendRecievedDataToChannel(m MemsCommandResponse) {
+	utils.LogI.Printf("sending mems response to the channel")
 
 	mems.ReceivedFromECU <- m
 }
