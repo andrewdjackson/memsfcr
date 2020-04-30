@@ -1,4 +1,4 @@
-$(document).ready(function() {
+//$(document).onload(function() {
     addData = function(chart, label, data) {
         chart.data.labels.shift()
         chart.data.labels.push(label);
@@ -101,4 +101,4 @@ $(document).ready(function() {
             },
         });
     }
-});
+//});
