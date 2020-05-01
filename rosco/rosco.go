@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"math"
 	"time"
 
@@ -84,7 +83,7 @@ func (mems *MemsConnection) connect(port string) {
 	if err != nil {
 		utils.LogI.Printf("%s", err)
 	} else {
-		utils.LogI.Println("Listening on ", port)
+		utils.LogI.Println("Connected to ", port)
 
 		mems.SerialPort = s
 		mems.SerialPort.Flush()
@@ -150,7 +149,7 @@ func (mems *MemsConnection) readSerial() []byte {
 			n, e = mems.SerialPort.Read(b)
 
 			if e != nil {
-				utils.LogI.Printf("error %s", e)
+				utils.LogW.Printf("serial port read error %s", e)
 			} else {
 				// append the read bytes to the data frame
 				data = append(data, b[:n]...)
@@ -159,16 +158,16 @@ func (mems *MemsConnection) readSerial() []byte {
 			// increment by the number of bytes read
 			count = count + n
 			if count > size {
-				utils.LogI.Printf("data frame size mismatch (received %d, expected %d)", count, size)
+				utils.LogW.Printf("%s dataframe size mismatch (received %d, expected %d)", utils.ECUResponseTrace, count, size)
 			}
 		}
 	}
 
-	utils.LogI.Printf("ECU [%d] < %x", n, data)
+	utils.LogI.Printf("%s recieved data from ECU [%d] < %x", utils.ECUResponseTrace, n, data)
 	mems.response = data
 
 	if !mems.isCommandEcho() {
-		utils.LogI.Printf("Expecting command echo (%x)\n", mems.command)
+		utils.LogW.Printf("%s expecting command echo (%x)\n", utils.ECUResponseTrace, mems.command)
 	}
 
 	return data
@@ -184,11 +183,11 @@ func (mems *MemsConnection) writeSerial(data []byte) {
 		n, e := mems.SerialPort.Write(data)
 
 		if e != nil {
-			utils.LogI.Printf("FCR Send Error %s", e)
+			utils.LogE.Printf("%s error sending data to serial port (%s)", utils.ECUCommandTrace, e)
 		}
 
 		if n > 0 {
-			utils.LogI.Printf("FCR > %x", data)
+			utils.LogI.Printf("%s data sent to serial port %x", utils.ECUCommandTrace, data)
 		}
 	}
 }
@@ -197,9 +196,9 @@ func (mems *MemsConnection) writeSerial(data []byte) {
 func (mems *MemsConnection) ListenSendToECUChannelLoop() {
 	for {
 		// wait for messages to be sent to the ECU
-		utils.LogI.Printf("CR.3.1 ListenSendToECUChannelLoop waiting for mems command from the SendToECU channel")
+		utils.LogI.Printf("%s ListenSendToECUChannelLoop waiting for mems command from the SendToECU channel", utils.ECUCommandTrace)
 		m := <-mems.SendToECU
-		utils.LogI.Printf("CR 3.2 ListenSendToECUChannelLoop mems command retrieved from the SendToECU channel")
+		utils.LogI.Printf("%s ListenSendToECUChannelLoop mems command retrieved from the SendToECU channel", utils.ECUCommandTrace)
 		// send the command
 		response := mems.sendCommand(m.Command)
 		// send back on the channel
@@ -217,7 +216,7 @@ func (mems *MemsConnection) sendCommand(cmd []byte) []byte {
 
 // ReadMemsData reads the raw dataframes and returns structured data
 func (mems *MemsConnection) ReadMemsData() {
-	utils.LogI.Printf("CR.2 getting x7d and x80 dataframes")
+	utils.LogI.Printf("%s getting x7d and x80 dataframes", utils.ECUCommandTrace)
 
 	// read the raw dataframes
 	d80, d7d := mems.readRaw()
@@ -227,7 +226,7 @@ func (mems *MemsConnection) ReadMemsData() {
 	var df80 DataFrame80
 
 	if err := binary.Read(r, binary.BigEndian, &df80); err != nil {
-		fmt.Println("binary.Read failed:", err)
+		utils.LogE.Printf("%s dataframe x80 binary.Read failed: %v", utils.ECUCommandTrace, err)
 	}
 
 	// populate the DataFrame structure for command 0x7d
@@ -235,7 +234,7 @@ func (mems *MemsConnection) ReadMemsData() {
 	var df7d DataFrame7d
 
 	if err := binary.Read(r, binary.BigEndian, &df7d); err != nil {
-		fmt.Println("binary.Read failed:", err)
+		utils.LogE.Printf("%s dataframe x7d binary.Read failed: %v", utils.ECUCommandTrace, err)
 	}
 
 	t := time.Now()
@@ -301,14 +300,18 @@ func (mems *MemsConnection) sendMemsDataToChannel(memsdata MemsData) {
 	var m MemsCommandResponse
 	m.MemsDataFrame = memsdata
 
-	utils.LogI.Printf("CR.3.3 send MemsData to the ReceivedFromECU channel")
+	utils.LogI.Printf("%s preparing MemsData to send to ReceivedFromECU channel", utils.ECUResponseTrace)
 	mems.sendRecievedDataToChannel(m)
 }
 
 func (mems *MemsConnection) sendRecievedDataToChannel(m MemsCommandResponse) {
-	utils.LogI.Printf("CR.4 sending mems Response to the ReceivedFromECU channel")
+	utils.LogI.Printf("%s sending mems Response to the ReceivedFromECU channel", utils.ECUResponseTrace)
 
-	mems.ReceivedFromECU <- m
+	select {
+	case mems.ReceivedFromECU <- m:
+	default:
+		utils.LogE.Printf("%s unable to send to ReceivedFromECU channel", utils.ECUResponseTrace)
+	}
 }
 
 // readRaw reads dataframe 80 and then dataframe 7d as raw byte arrays
@@ -338,6 +341,6 @@ func (mems *MemsConnection) getResponseSize(command []byte) int {
 		copy(r[0:], command)
 	}
 
-	utils.LogI.Printf("expecting %x -> o <- %x (%d)", command, r, size)
+	utils.LogI.Printf("%s expecting %x (%d)", utils.ECUResponseTrace, r, size)
 	return size
 }

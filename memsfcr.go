@@ -55,13 +55,13 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 
 		if mems.SerialPort == nil {
 			// exit if the serial port is disconnected
-			utils.LogI.Println("Lost connection to ECU, exiting")
+			utils.LogE.Println("Lost connection to ECU, exiting")
 			// break
 		}
 
 		if mems.Exit == true {
 			// exit if the serial port is disconnected
-			utils.LogI.Println("Exit requested, exiting")
+			utils.LogE.Println("Exit requested, exiting")
 			break
 		}
 
@@ -76,7 +76,7 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 		for loop := 0; loop < count; {
 			if paused {
 				// send a periodic heartbeat to keep the connection alive when paused
-				utils.LogI.Printf("memsCommandResponseLoop sending heatbeat")
+				utils.LogI.Printf("%s memsCommandResponseLoop sending heatbeat", utils.ECUCommandTrace)
 				go sendCommandToMemsChannel(mems, rosco.MEMS_Heartbeat)
 
 				// send heatbeats at a slower interval to data frame requests
@@ -84,7 +84,7 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 
 			} else {
 				// read data from the ECU
-				utils.LogI.Printf("CR.1 memsCommandResponseLoop sending dataframe request to ECU")
+				utils.LogI.Printf("%s memsCommandResponseLoop sending dataframe request to ECU", utils.ECUCommandTrace)
 				mems.ReadMemsData()
 
 				// wait for response, this is built into the sendCommand function
@@ -123,9 +123,9 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 // send commands to the ecu if required via a go routine as to not block
 func recieveMessageFromWebViewLoop(mems *rosco.MemsConnection) {
 	for {
-		utils.LogI.Printf("WC.2.1 waiting for message from webview webToMemsChannel channel..")
+		utils.LogI.Printf("%s waiting for message from webview webToMemsChannel channel..", utils.ReceiveFromWebTrace)
 		m := <-webToMemsChannel
-		utils.LogI.Printf("WC.2.2 recieved message from webToMemsChannel channel")
+		utils.LogI.Printf("%s recieved message from webToMemsChannel channel", utils.ReceiveFromWebTrace)
 
 		c := evaluateCommand(m)
 
@@ -206,9 +206,13 @@ func sendCommandToMemsChannel(mems *rosco.MemsConnection, command []byte) {
 	m.Command = command
 
 	// send through channel
-	utils.LogI.Printf("CR.1.1 waiting to send mems command to the SendToECU channel")
-	mems.SendToECU <- m
-	utils.LogI.Printf("CR.1.2 mems command sent to the SendToECU channel")
+	utils.LogI.Printf("%s waiting to send mems command to the SendToECU channel", utils.ECUCommandTrace)
+	select {
+	case mems.SendToECU <- m:
+		utils.LogI.Printf("%s mems command sent to the SendToECU channel", utils.ECUCommandTrace)
+	default:
+		utils.LogE.Printf("%s unable to send mems command to the SendToECU channel", utils.ECUCommandTrace)
+	}
 
 	// wait for response
 	receiveResponseFromMemsChannel(mems)
@@ -216,9 +220,11 @@ func sendCommandToMemsChannel(mems *rosco.MemsConnection, command []byte) {
 
 func receiveResponseFromMemsChannel(mems *rosco.MemsConnection) rosco.MemsCommandResponse {
 	// wait for response
-	utils.LogI.Printf("CR.5.1 waiting for response from ECU")
+	utils.LogI.Printf("%s waiting for response from ECU", utils.ECUResponseTrace)
+
 	data := <-mems.ReceivedFromECU
-	utils.LogI.Printf("CR.5.2 received dataframe from ECU")
+
+	utils.LogI.Printf("%s received dataframe from ECU", utils.ECUResponseTrace)
 
 	return data
 }
@@ -232,9 +238,9 @@ func sendDataToWebView(memsdata rosco.MemsData) {
 	data, _ := json.Marshal(memsdata)
 	m.Data = string(data)
 
-	utils.LogI.Printf("CR.6.1 waiting to send data to webview with memsToWebChannel channel")
+	utils.LogI.Printf("%s waiting to send data to webview with memsToWebChannel channel", utils.SendToWebTrace)
 	memsToWebChannel <- m
-	utils.LogI.Printf("CR.6.2 sent data to webview with memsToWebChannel channel")
+	utils.LogI.Printf("%s sent data to webview with memsToWebChannel channel", utils.SendToWebTrace)
 }
 
 // send configuration to the web interace via a channel
@@ -245,16 +251,16 @@ func sendConfigToWebView(config *rosco.ReadmemsConfig) {
 
 	data, _ := json.Marshal(config)
 	m.Data = string(data)
-	utils.LogI.Printf("CR.6.3 waiting to send config to webview with memsToWebChannel channel")
+	utils.LogI.Printf("%s waiting to send config to webview with memsToWebChannel channel", utils.SendToWebTrace)
 	memsToWebChannel <- m
-	utils.LogI.Printf("CR.6.4 sent config to webview with memsToWebChannel channel")
+	utils.LogI.Printf("%s sent config to webview with memsToWebChannel channel", utils.SendToWebTrace)
 }
 
 func getSerialPorts() []string {
 	ports, err := serial.GetPortsList()
 
 	if err != nil {
-		utils.LogI.Printf("error enumerating serial ports")
+		utils.LogE.Printf("error enumerating serial ports")
 	}
 	if len(ports) == 0 {
 		utils.LogW.Printf("unable to find any serial ports")

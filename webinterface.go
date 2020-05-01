@@ -44,7 +44,7 @@ func recieveMessage(ws *websocket.Conn) {
 		var reply string
 
 		if err = websocket.Message.Receive(ws, &reply); err != nil {
-			utils.LogI.Println("Websocket connection broken")
+			utils.LogE.Printf("%s websocket connection broken", utils.SendToWebTrace)
 			break
 		}
 
@@ -64,9 +64,9 @@ func parseMessage(ws *websocket.Conn, msg string) {
 
 	if m.Action == "increase" || m.Action == "decrease" || m.Action == "command" {
 		// send to the CommandResponse loop
-		utils.LogI.Printf("WC.1.1 waiting to send message %s %s to memsToWebChannel channel", m.Action, m.Data)
+		utils.LogI.Printf("%s waiting to send message %s %s to memsToWebChannel channel", utils.SendToWebTrace, m.Action, m.Data)
 		webToMemsChannel <- m
-		utils.LogI.Printf("WC.1.2 sent message to memsToWebChannel channel")
+		utils.LogI.Printf("%s sent message to memsToWebChannel channel", utils.SendToWebTrace)
 
 		//select {
 		//case webToMemsChannel <- m:
@@ -84,13 +84,15 @@ func SendMessage(ws *websocket.Conn, m wsMsg) {
 func listenForMems(ws *websocket.Conn) {
 	// wait for web interface to finish loading
 	time.Sleep(200 * time.Millisecond)
+	utils.LogI.Printf("%s waiting for data from memsToWebChannel..", utils.ReceiveFromWebTrace)
 
 	for {
-		utils.LogI.Printf("WC.2.1 waiting for data from memsToWebChannel..")
-		data := <-memsToWebChannel // receive from mems interface
-		utils.LogI.Printf("WC.2 received %s %s from memsToWebChannel", data.Action, data.Data)
-
-		SendMessage(ws, data)
+		select {
+		case data := <-memsToWebChannel:
+			utils.LogI.Printf("%s received %s %s from memsToWebChannel", utils.ReceiveFromWebTrace, data.Action, data.Data)
+			SendMessage(ws, data)
+		default:
+		}
 	}
 }
 
