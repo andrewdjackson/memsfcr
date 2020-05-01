@@ -31,7 +31,12 @@ type MemsConnection struct {
 	ReceivedFromECU chan MemsCommandResponse
 	Connected       bool
 	Initialised     bool
-	Exit            bool
+}
+
+// MemsConnectionStatus are we?
+type MemsConnectionStatus struct {
+	Connected   bool
+	Initialised bool
 }
 
 // package init function
@@ -77,13 +82,16 @@ func (mems *MemsConnection) connect(port string) {
 	// connect to the ecu
 	c := &serial.Config{Name: port, Baud: 9600}
 
-	utils.LogI.Println("Opening ", port)
+	utils.LogI.Println("opening ", port)
 
 	s, err := serial.OpenPort(c)
-	if err != nil {
-		utils.LogI.Printf("%s", err)
+
+	if s == nil {
+		utils.LogE.Printf("error opening port (%s)", err)
+		mems.Connected = false
+		mems.Initialised = false
 	} else {
-		utils.LogI.Println("Connected to ", port)
+		utils.LogI.Println("connected to ", port)
 
 		mems.SerialPort = s
 		mems.SerialPort.Flush()

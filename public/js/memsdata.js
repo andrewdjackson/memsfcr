@@ -3,6 +3,10 @@ var minLambda = false
 var maxLambda = false
 var minIAC = false
 
+const WebActionConfig = "config"
+const WebActionConnection = "connection"
+const WebActionData = "data"
+
 window.onload = function() {
     wsuri = window.location.href.split('/').slice(0, 3).join('/')
     wsuri = wsuri.replace("http:", "ws:")
@@ -46,14 +50,19 @@ function parseMessage(m) {
     var msg = JSON.parse(m);
     var data = JSON.parse(msg.data)
 
-    if (msg.action == "config") {
+    if (msg.action == WebActionConfig) {
         console.log(data)
         setPort(data.Port)
         setSerialPortSelection(data.Ports)
         setLogToFile(data.Output, data.LogFolder)
     }
 
-    if (msg.action == "data") {
+    if (msg.action == WebActionConnection) {
+        connected = data.Connnected & data.Initialised
+        updateConnected(data.Initialised)
+    }
+
+    if (msg.action == WebActionData) {
         console.log(data)
 
         //memsdata = computeMemsData(data)
@@ -127,6 +136,21 @@ function updateDataFrameValue(metric, data) {
     }
 
     $("td#" + metric + ".raw").html(data)
+}
+
+function updateConnected(connected) {
+    console.log("connected " + connected)
+
+    if (connected) {
+        // change the button operation to pause the data loop
+        setConnectButtonStyle("<i class='fa fa-pause-circle'>&nbsp</i>Pause Data Loop", "btn-outline-info", pauseECUDataLoop)
+        // enable all buttons
+        $(':button').prop('disabled', false);
+    } else {
+        // enable connect button
+        setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connect", "btn-outline-success", connectECU)
+        $('#connectECUbtn').prop('disabled', false);
+    }
 }
 
 function updateLEDs(data) {
@@ -253,8 +277,10 @@ function connectECU() {
     var msg = formatSocketMessage('connect', port)
     sendSocketMessage(msg)
 
-    // change the button operation to pause the data loop
-    setConnectButtonStyle("<i class='fa fa-pause-circle'>&nbsp</i>Pause Data Loop", "btn-outline-info", pauseECUDataLoop)
+    // show connecting
+    setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connecting..", "btn-warning", connectECU)
+    // disable all buttons
+    $(':button').prop('disabled', true);
 }
 
 function resetECU() {
@@ -294,6 +320,9 @@ function setConnectButtonStyle(name, style, f) {
     id = "#connectECUbtn"
 
     // remove all styles and handlers
+    $(id).removeClass('btn-success');
+    $(id).removeClass('btn-info');
+    $(id).removeClass('btn-warning');
     $(id).removeClass('btn-outline-success');
     $(id).removeClass('btn-outline-info');
     $(id).removeClass('btn-outline-warning');

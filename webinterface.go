@@ -21,6 +21,15 @@ type wsMsg struct {
 	Data   string `json:"data"`
 }
 
+// WebAction constants
+const WebActionConfig = "config"
+const WebActionConnection = "connection"
+const WebActionConnect = "connect"
+const WebActionECUCommand = "command"
+const WebActionECUCommandIncrease = "command"
+const WebActionECUCommandDecrease = "command"
+const WebActionData = "data"
+
 // channel for communicating from the Mems interface to the web interface
 var memsToWebChannel = make(chan wsMsg)
 
@@ -34,20 +43,23 @@ type commandEnum struct {
 var commandMap = make(map[commandEnum]int)
 var httpPort = 0
 
-// recieveMessage the messages
+// recieveMessage handler for messages sent from the web interface over the websocket
 func recieveMessage(ws *websocket.Conn) {
 	var err error
 
-	go listenForMems(ws)
+	// TODO: This shouldn't go here!!!
+	// start a thread listening for ECU data response events
+	// go listenForDataSentFromECULoop(ws)
 
-	for {
-		var reply string
+	//for {
+	var reply string
 
-		if err = websocket.Message.Receive(ws, &reply); err != nil {
-			utils.LogE.Printf("%s websocket connection broken", utils.SendToWebTrace)
-			break
-		}
+	if err = websocket.Message.Receive(ws, &reply); err != nil {
+		utils.LogE.Printf("%s websocket connection broken", utils.SendToWebTrace)
+		//break
+	} else {
 
+		// parse the received message
 		parseMessage(ws, reply)
 	}
 }
@@ -58,11 +70,11 @@ func parseMessage(ws *websocket.Conn, msg string) {
 	utils.LogI.Printf("parse: %s %s\r\n", m.Action, m.Data)
 
 	// connect to ECU and start the data loop
-	if m.Action == "connect" {
+	if m.Action == WebActionConnect {
 		go memsCommandResponseLoop(config)
 	}
 
-	if m.Action == "increase" || m.Action == "decrease" || m.Action == "command" {
+	if m.Action == WebActionECUCommandIncrease || m.Action == WebActionECUCommandDecrease || m.Action == WebActionECUCommand {
 		// send to the CommandResponse loop
 		utils.LogI.Printf("%s waiting to send message %s %s to memsToWebChannel channel", utils.SendToWebTrace, m.Action, m.Data)
 		webToMemsChannel <- m
@@ -81,9 +93,9 @@ func SendMessage(ws *websocket.Conn, m wsMsg) {
 	websocket.Message.Send(ws, string(msg))
 }
 
-func listenForMems(ws *websocket.Conn) {
+// loop waiting for data received from the ECU to be sent on to the web interface
+func listenForDataSentFromECULoop(ws *websocket.Conn) {
 	// wait for web interface to finish loading
-	time.Sleep(200 * time.Millisecond)
 	utils.LogI.Printf("%s waiting for data from memsToWebChannel..", utils.ReceiveFromWebTrace)
 
 	for {
@@ -93,6 +105,9 @@ func listenForMems(ws *websocket.Conn) {
 			SendMessage(ws, data)
 		default:
 		}
+
+		// and breath..
+		time.Sleep(50 * time.Millisecond)
 	}
 }
 
