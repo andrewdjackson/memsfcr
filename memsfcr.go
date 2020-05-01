@@ -70,7 +70,7 @@ func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
 		// start a loop for listening for events from the web interface
 		go recieveMessageFromWebViewLoop(mems)
 		// start a loop to listen for data responses from the ECU
-		//go mems.ListenSendToECUChannelLoop()
+		go mems.ListenSendToECUChannelLoop()
 
 		// enter a command / response loop
 		for loop := 0; loop < count; {
