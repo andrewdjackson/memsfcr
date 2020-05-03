@@ -78,8 +78,22 @@ func (memsfcr *MemsFCR) getSerialPorts() []string {
 
 // ConnectFCR connects the FCR to the ECU
 // on successful connection the FCR runs the initialisation sequence
-func (memsfcr *MemsFCR) ConnectFCR() {
+func (memsfcr *MemsFCR) ConnectFCR() bool {
 	memsfcr.ECU.ConnectAndInitialiseECU(memsfcr.Config.Port)
+	return memsfcr.ECU.Initialised
+}
+
+// SendToECU send the command to the ECU from the FCR
+func (memsfcr *MemsFCR) SendToECU(cmd []byte) {
+	var c rosco.MemsCommandResponse
+	c.Command = cmd
+
+	select {
+	case memsfcr.ToECUChannel <- c:
+		utils.LogI.Printf("%s FCR sent command to ECU", utils.ECUCommandTrace)
+	default:
+		utils.LogI.Printf("%s FCR unable to send command to ECU on ToECUChannel, blocked?", utils.ECUCommandTrace)
+	}
 }
 
 // TxRxECULoop wraps the ECU send and recieve protocol
