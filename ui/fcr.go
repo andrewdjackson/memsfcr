@@ -8,14 +8,14 @@ import (
 
 // MemsFCR structure
 type MemsFCR struct {
-	// FCR configuration
-	config *rosco.ReadmemsConfig
+	// Config FCR configuration
+	Config *rosco.ReadmemsConfig
 
-	// dataframe read enabled / disabled
-	paused bool
+	// Paused dataframe read enabled / disabled
+	Paused bool
 
-	// logging to file enabled / disabled
-	logging bool
+	// Logging to file enabled / disabled
+	Logging bool
 
 	// ECU represents the serial connection to the ECU
 	ECU *rosco.MemsConnection
@@ -35,8 +35,8 @@ func NewMemsFCR() *MemsFCR {
 	memsfcr.ToECUChannel = make(chan rosco.MemsCommandResponse)
 	memsfcr.FromECUChannel = make(chan rosco.MemsCommandResponse)
 
-	memsfcr.paused = false
-	memsfcr.logging = false
+	memsfcr.Paused = false
+	memsfcr.Logging = false
 
 	// read and apply the configuration
 	memsfcr.readConfig()
@@ -46,16 +46,16 @@ func NewMemsFCR() *MemsFCR {
 
 // read the configuration file and apply the values
 func (memsfcr *MemsFCR) readConfig() {
-	memsfcr.config = rosco.ReadConfig()
+	memsfcr.Config = rosco.ReadConfig()
 
-	if memsfcr.config.Loop == "inf" {
+	if memsfcr.Config.Loop == "inf" {
 		// infitite loop, so set loop count to a very big number
-		memsfcr.config.Loop = "100000000"
+		memsfcr.Config.Loop = "100000000"
 	}
 
 	// get the list of ports available
-	memsfcr.config.Ports = append(memsfcr.config.Ports, memsfcr.config.Port)
-	memsfcr.config.Ports = append(memsfcr.config.Ports, memsfcr.getSerialPorts()...)
+	memsfcr.Config.Ports = append(memsfcr.Config.Ports, memsfcr.Config.Port)
+	memsfcr.Config.Ports = append(memsfcr.Config.Ports, memsfcr.getSerialPorts()...)
 }
 
 // enumerate the available serial ports
@@ -76,6 +76,12 @@ func (memsfcr *MemsFCR) getSerialPorts() []string {
 	return ports
 }
 
+// ConnectFCR connects the FCR to the ECU
+// on successful connection the FCR runs the initialisation sequence
+func (memsfcr *MemsFCR) ConnectFCR() {
+	memsfcr.ECU.ConnectAndInitialiseECU(memsfcr.Config.Port)
+}
+
 // TxRxECULoop wraps the ECU send and recieve protocol
 //
 // The MEMs ECU uses a simple command / response protocol
@@ -87,14 +93,18 @@ func (memsfcr *MemsFCR) TxRxECULoop() {
 	for {
 		// block waiting for an FCR command to send to the ECU
 		tx := <-memsfcr.ToECUChannel
+		utils.LogI.Printf("%s FCR received command to send to ECU", utils.ECUCommandTrace)
 
 		// block waiting for the command to be sent to the ECU
 		memsfcr.ECU.SendToECU <- tx
+		utils.LogI.Printf("%s FCR sent command to ECU", utils.ECUCommandTrace)
 
 		// block waiting for the response to be received from the ECU
 		rx := <-memsfcr.ECU.ReceivedFromECU
+		utils.LogI.Printf("%s FCR received response from ECU", utils.ECUResponseTrace)
 
 		// block waiting for the response to be collected for processing
 		memsfcr.FromECUChannel <- rx
+		utils.LogI.Printf("%s FCR forwarded ECU response for processing", utils.ECUResponseTrace)
 	}
 }

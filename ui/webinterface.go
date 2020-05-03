@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -10,23 +9,31 @@ import (
 
 	"github.com/andrewdjackson/readmems/utils"
 	"github.com/gorilla/mux"
-	"golang.org/x/net/websocket"
+	"github.com/gorilla/websocket"
 )
 
-type wsMsg struct {
+// WebMsg structure fro sending / receiving over the websocket
+type WebMsg struct {
 	Action string `json:"action"`
 	Data   string `json:"data"`
 }
 
 // WebAction constants
 const (
-	WebActionConfig             = "config"
-	WebActionConnection         = "connection"
-	WebActionConnect            = "connect"
-	WebActionECUCommand         = "command"
+	// WebActionConfig data packet is config
+	WebActionConfig = "config"
+	// WebActionConnection data packet is connection status
+	WebActionConnection = "connection"
+	// WebActionConnect action is to connect the ecu
+	WebActionConnect = "connect"
+	// WebActionECUCommand data packet is an ecu command
+	WebActionECUCommand = "command"
+	// WebActionECUCommandIncrease data packet is an increase adjustment command
 	WebActionECUCommandIncrease = "command"
+	// WebActionECUCommandDecrease data packet is an decrease adjustment command
 	WebActionECUCommandDecrease = "command"
-	WebActionData               = "data"
+	// WebActionData data packet is ecu data
+	WebActionData = "data"
 )
 
 // UI command map
@@ -58,8 +65,9 @@ type WebInterface struct {
 	router *mux.Router
 
 	// websocket interface
-	ws      *websocket.Conn
-	httpDir string
+	httpDir  string
+	ws       *websocket.Conn
+	upgrader websocket.Upgrader
 
 	// map of valid commands
 	commandMap map[commandEnum]int
@@ -68,20 +76,26 @@ type WebInterface struct {
 	HTTPPort int
 
 	// channel for communication to the web interface
-	ToWebChannel chan wsMsg
+	ToWebChannel chan WebMsg
 
 	// channel for communication from the web interface
-	FromWebChannel chan wsMsg
+	FromWebChannel chan WebMsg
 }
 
 // NewWebInterface creates a new web interface
 func NewWebInterface() *WebInterface {
 	wi := &WebInterface{}
-	wi.ToWebChannel = make(chan wsMsg)
-	wi.FromWebChannel = make(chan wsMsg)
+	wi.ToWebChannel = make(chan WebMsg)
+	wi.FromWebChannel = make(chan WebMsg)
 	wi.intitialiseCommandMap()
 	wi.HTTPPort = 0
 	wi.httpDir = ""
+
+	wi.upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
 
 	return wi
 }
@@ -118,8 +132,7 @@ func (wi *WebInterface) newRouter() *mux.Router {
 
 	// set a router and a hander to accept messages over the websocket
 	r := mux.NewRouter()
-	ws := websocket.Handler(wi.recieveMessageFromWebInterface)
-	r.Handle("/", ws)
+	r.HandleFunc("/", wi.wsHandler)
 
 	// Declare the static file directory and point it to the
 	// directory we just made
@@ -152,19 +165,73 @@ func (wi *WebInterface) RunHTTPServer() {
 	http.Serve(listener, wi.router)
 }
 
+func (wi *WebInterface) wsHandler(w http.ResponseWriter, r *http.Request) {
+	var m WebMsg
+	var err error
+
+	// upgrade the http connection to a websocket
+	wi.ws, err = wi.upgrader.Upgrade(w, r, nil)
+	defer wi.ws.Close()
+
+	if err != nil {
+		utils.LogE.Printf("error in websocket (%s)", err)
+	}
+
+	// read loop, if a message is recieved over the websocket
+	// then post it into the FromWeb communication channel
+	// this is configured not to block if the channel is unable to
+	// receive.
+	for {
+		wi.ws.ReadJSON(&m)
+		utils.LogI.Printf("%s recieved websocket message (%v)", utils.ReceiveFromWebTrace, m)
+
+		select {
+		case wi.FromWebChannel <- m:
+			utils.LogI.Printf("%s sent message to FromWebChannel (%v)", utils.ReceiveFromWebTrace, m)
+		default:
+		}
+	}
+}
+
+/****
+func (wi *WebInterface) socket(ws *websocket.Conn) {
+	var err error
+	var msg string
+	var m WebMsg
+
+	for {
+		// receive a message from web
+		if err = websocket.JSON.Receive(ws, &msg); err != nil {
+			json.Unmarshal([]byte(msg), &m)
+			select {
+			case wi.FromWebChannel <- m:
+				utils.LogI.Printf("%s recieved message %s %s on FromWebChannel", utils.ReceiveFromWebTrace, m.Action, m.Data)
+			default:
+			}
+		}
+
+		// send a message to web
+		select {
+		case m = <-wi.ToWebChannel:
+			msg, _ := json.Marshal(m)
+			websocket.JSON.Send(ws, string(msg))
+			utils.LogI.Printf("%s sent message %s %s on FromWebChannel", utils.SendToWebTrace, m.Action, m.Data)
+		default:
+			utils.LogW.Printf("%s unable to send message on FromWebChannel, blocked?", utils.SendToWebTrace)
+		}
+	}
+}
+
 // receive message handler to receive data sent over the websocket
 // these are messages that are to be passed from the web interface
 // to the backend application using the FromWebChannel
 func (wi *WebInterface) recieveMessageFromWebInterface(ws *websocket.Conn) {
 	var err error
 	var msg string
-	var m wsMsg
+	var m WebMsg
 
-	if wi.ws == nil {
-		wi.ws = ws
-	}
-
-	if err = websocket.Message.Receive(wi.ws, &msg); err != nil {
+	websocket.Message.Receive(ws, &msg)
+	if err = websocket.Message.Receive(ws, &msg); err != nil {
 		utils.LogE.Printf("%s websocket connection broken", utils.SendToWebTrace)
 	} else {
 		// parse the received message
@@ -175,39 +242,44 @@ func (wi *WebInterface) recieveMessageFromWebInterface(ws *websocket.Conn) {
 		// use select to ensure the weboscket receiver is not blocked
 		select {
 		case wi.FromWebChannel <- m:
-			utils.LogI.Printf("%s waiting to send message %s %s on FromWebChannel", utils.ReceiveFromWebTrace, m.Action, m.Data)
+			utils.LogI.Printf("%s waiting to send message %s %s on FromWebChannel", utils.SendToWebTrace, m.Action, m.Data)
 		default:
-			utils.LogW.Printf("%s unable to send messgae on FromWebChannel, blocked?", utils.ReceiveFromWebTrace)
+			utils.LogW.Printf("%s unable to send message on FromWebChannel, blocked?", utils.SendToWebTrace)
 		}
 	}
 }
+******/
 
 // send message to the web interface over the websocket
-func (wi *WebInterface) sendMessageToWebInterface(m wsMsg) {
-	msg, _ := json.Marshal(m)
-	websocket.Message.Send(wi.ws, string(msg))
-}
-
-// loop for listening for messages over the ToWebChannel
-// these are messages that are to be passed to the web interface over the websocket
-// from the backend application
-func (wi *WebInterface) listenToWebChannelLoop() {
-	for {
-		m := <-wi.ToWebChannel
-		wi.sendMessageToWebInterface(m)
-		utils.LogI.Printf("%s sent message %s %s on FromWebChannel", utils.SendToWebTrace, m.Action, m.Data)
+func (wi *WebInterface) sendMessageToWebInterface(m WebMsg) {
+	if wi.ws != nil {
+		wi.ws.WriteJSON(m)
+		utils.LogI.Printf("%s send message over websocket", utils.SendToWebTrace)
+	} else {
+		utils.LogW.Printf("%s unable to send message over websocket, connected?", utils.SendToWebTrace)
 	}
 }
 
-/*
+// ListenToWebChannelLoop loop for listening for messages over the ToWebChannel
+// these are messages that are to be passed to the web interface over the websocket
+// from the backend application
+// to be run as a go routine as the channel is coded to be non blocking
+func (wi *WebInterface) ListenToWebChannelLoop() {
+	for {
+		m := <-wi.ToWebChannel
+		wi.sendMessageToWebInterface(m)
+		utils.LogI.Printf("%s sent message '%s : %s' on ToWebChannel", utils.SendToWebTrace, m.Action, m.Data)
+	}
+}
+
 // loop for listening for messages over the FromWebChannel
 // these are messages received over the websocket that are from the web interface
 // to be passed to the backend application
+/*
 func (wi *WebInterface) listenFromWebChannelLoop() {
 	for {
-		utils.LogI.Printf("%s waiting to send message %s %s on FromWebChannel", utils.SendToWebTrace, m.Action, m.Data)
-		wi.FromWebChannel <- m
-		utils.LogI.Printf("%s sent message on FromWebChannel", utils.SendToWebTrace)
+		m := <-wi.FromWebChannel
+		utils.LogI.Printf("%s recieved message '%s : %s' on FromWebChannel", utils.ReceiveFromWebTrace, m.Action, m.Data)
 	}
 }
 */

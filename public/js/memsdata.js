@@ -15,6 +15,7 @@ window.onload = function() {
 
     sock.onopen = function() {
         console.log("connected to " + wsuri);
+        readConfig()
     }
 
     sock.onclose = function(e) {
@@ -281,6 +282,11 @@ function connectECU() {
     setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connecting..", "btn-warning", connectECU)
     // disable all buttons
     $(':button').prop('disabled', true);
+}
+
+function readConfig() {
+    var msg = formatSocketMessage('config', 'read')
+    sendSocketMessage(msg)   
 }
 
 function resetECU() {

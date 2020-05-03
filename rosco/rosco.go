@@ -68,9 +68,9 @@ func NewMemsConnection() *MemsConnection {
 }
 
 // ConnectAndInitialiseECU connect and initialise the ECU
-func (mems *MemsConnection) ConnectAndInitialiseECU(config *ReadmemsConfig) {
+func (mems *MemsConnection) ConnectAndInitialiseECU(port string) {
 	if !mems.Connected {
-		mems.connect(config.Port)
+		mems.connect(port)
 		if mems.Connected {
 			mems.initialise()
 		}

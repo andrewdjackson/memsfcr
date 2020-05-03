@@ -2,18 +2,15 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
-	"strconv"
-	"time"
 
 	"github.com/andrewdjackson/readmems/rosco"
 	"github.com/andrewdjackson/readmems/ui"
 	"github.com/andrewdjackson/readmems/utils"
 	"github.com/zserge/webview"
-	"go.bug.st/serial.v1"
 )
 
+/*
 const version = "v0.1.0"
 
 var header = fmt.Sprintf("\nMemsFCR %s\n", version)
@@ -28,9 +25,9 @@ func helpMessage() string {
 
     Usage:
 	memsfcr [flags]
-	  
+
     Flags:
-	-port		Name/path of the serial port 
+	-port		Name/path of the serial port
 	-command	Command to execute on the ECU {read}
 	-loop		Command execution loop count, use 'inf' for infinite
 	-output		Use 'stdout' to send response to console, 'file' to log in CSV format to a file {stdout | file}
@@ -49,7 +46,7 @@ func connectToECU(config *rosco.ReadmemsConfig) {
 
 	for count := 0; count < maxRetries; count++ {
 		// attempt to connect and initialise the ECU
-		mems.ConnectAndInitialiseECU(config)
+		mems.ConnectAndInitialiseECU(config.Port)
 
 		if mems.SerialPort == nil {
 			// serial port is not available
@@ -308,23 +305,6 @@ func getSerialPorts() []string {
 	return ports
 }
 
-func displayWebView(wi *ui.WebInterface) {
-	w := webview.New(true)
-	defer w.Destroy()
-
-	w.SetTitle("MEMS Fault Code Reader")
-	w.SetSize(1120, 920, webview.HintNone)
-
-	w.Bind("quit", func() {
-		w.Terminate()
-	})
-
-	url := fmt.Sprintf("http://127.0.0.1:%d/public/html/index.html", wi.HTTPPort)
-
-	w.Navigate(url)
-	w.Run()
-}
-
 func oldmain() {
 	var showHelp bool
 
@@ -372,19 +352,101 @@ func oldmain() {
 
 	//ShowWebView(config)
 }
+*/
 
-func main() {
+///////////////////////////////////////////
+
+// MemsReader structure
+type MemsReader struct {
+	wi  *ui.WebInterface
+	fcr *ui.MemsFCR
+}
+
+// NewMemsReader creates an instance of a MEMs Reader
+func NewMemsReader() *MemsReader {
+	r := &MemsReader{}
+
 	// create the Mems Fault Code Reader
-	fcr := ui.NewMemsFCR()
+	r.fcr = ui.NewMemsFCR()
 
 	// create a mems instance and assign it to the fault code reader instance
-	fcr.ECU = rosco.NewMemsConnection()
+	r.fcr.ECU = rosco.NewMemsConnection()
 
 	// create and run the web interfacce
-	wi := ui.NewWebInterface()
-	utils.LogI.Printf("running web server %d", wi.HTTPPort)
+	r.wi = ui.NewWebInterface()
+	utils.LogI.Printf("running web server %d", r.wi.HTTPPort)
 
-	go wi.RunHTTPServer()
+	return r
+}
 
-	displayWebView(wi)
+func (r *MemsReader) webLoop() {
+	// busy clearing channels
+	for {
+		m := <-r.wi.FromWebChannel
+		utils.LogI.Printf("%s received message FromWebChannel in main webLoop (%v)", utils.ReceiveFromWebTrace, m)
+
+		switch m.Action {
+		case ui.WebActionConfig:
+			// configuration settings requested
+			if m.Data == "read" {
+				r.sendConfigToWebView()
+			}
+		case ui.WebActionConnect:
+			// connect the ECU
+			utils.LogI.Printf("connecting ecu")
+			r.fcr.ConnectFCR()
+		default:
+		}
+	}
+}
+
+func (r *MemsReader) sendConfigToWebView() {
+	// pass configuration to the web interface
+	m := ui.WebMsg{}
+	m.Action = ui.WebActionConfig
+	data, _ := json.Marshal(r.fcr.Config)
+	m.Data = string(data)
+	r.wi.ToWebChannel <- m
+}
+
+func (r *MemsReader) fcrLoop() {
+	// busy clearing channels
+	for {
+		m := <-r.fcr.FromECUChannel
+		utils.LogI.Printf("%s received message FromECUChannel (%v)", utils.ReceiveFromWebTrace, m)
+	}
+}
+
+// displayWebView creates a webview
+// this must be run in the main thread
+func displayWebView(wi *ui.WebInterface) {
+	w := webview.New(true)
+	defer w.Destroy()
+
+	w.SetTitle("MEMS Fault Code Reader")
+	w.SetSize(1120, 920, webview.HintNone)
+
+	w.Bind("quit", func() {
+		w.Terminate()
+	})
+
+	url := fmt.Sprintf("http://127.0.0.1:%d/public/html/index.html", wi.HTTPPort)
+
+	w.Navigate(url)
+	w.Run()
+}
+
+func main() {
+	memsReader := NewMemsReader()
+
+	go memsReader.wi.RunHTTPServer()
+	go memsReader.webLoop()
+	go memsReader.fcrLoop()
+
+	// run the listener for messages sent to the web interface from
+	// the backend application
+	go memsReader.wi.ListenToWebChannelLoop()
+
+	// display the web interface
+	displayWebView(memsReader.wi)
 }
