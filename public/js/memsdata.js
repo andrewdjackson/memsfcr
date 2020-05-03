@@ -2,6 +2,7 @@ var sock = null;
 var minLambda = false
 var maxLambda = false
 var minIAC = false
+var dataframeLoop
 
 const WebActionConfig = "config"
 const WebActionConnection = "connection"
@@ -145,12 +146,30 @@ function updateConnected(connected) {
     if (connected) {
         // change the button operation to pause the data loop
         setConnectButtonStyle("<i class='fa fa-pause-circle'>&nbsp</i>Pause Data Loop", "btn-outline-info", pauseECUDataLoop)
-        // enable all buttons
+            // enable all buttons
         $(':button').prop('disabled', false);
+        // start the dataframe command loop
+        startDataframeLoop()
     } else {
         // enable connect button
         setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connect", "btn-outline-success", connectECU)
         $('#connectECUbtn').prop('disabled', false);
+    }
+}
+
+function startDataframeLoop() {
+    dataframeLoop = setInterval(getDataframe, 1000)
+}
+
+function stopDataframeLoop() {
+    clearInterval(dataframeLoop)
+}
+
+function getDataframe() {
+    paused = false
+    if (!paused) {
+        var msg = formatSocketMessage('command', 'dataframe')
+        sendSocketMessage(msg)
     }
 }
 
@@ -280,13 +299,13 @@ function connectECU() {
 
     // show connecting
     setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connecting..", "btn-warning", connectECU)
-    // disable all buttons
+        // disable all buttons
     $(':button').prop('disabled', true);
 }
 
 function readConfig() {
     var msg = formatSocketMessage('config', 'read')
-    sendSocketMessage(msg)   
+    sendSocketMessage(msg)
 }
 
 function resetECU() {
@@ -311,6 +330,9 @@ function pauseECUDataLoop() {
 
     // change the button operation to restart the data loop
     setConnectButtonStyle("<i class='fa fa-play-circle'>&nbsp</i>Restart Data Loop", "btn-outline-warning", restartECUDataLoop)
+
+    // stop the dataframe loop
+    stopDataframeLoop()
 }
 
 // Restart the Data Loop
@@ -320,6 +342,9 @@ function restartECUDataLoop() {
 
     // change the button operation back to pause the data loop
     setConnectButtonStyle("<i class='fa fa-pause-circle'>&nbsp</i>Pause Data Loop", "btn-outline-info", pauseECUDataLoop)
+
+    // restart the dataframe loop
+    startDataframeLoop()
 }
 
 function setConnectButtonStyle(name, style, f) {

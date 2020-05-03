@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 
@@ -9,118 +10,6 @@ import (
 	"github.com/andrewdjackson/readmems/utils"
 	"github.com/zserge/webview"
 )
-
-/*
-
-func memsCommandResponseLoop(config *rosco.ReadmemsConfig) {
-	const DataInterval = 500 * time.Millisecond
-	const HeartbeatInterval = 2000 * time.Millisecond
-	var logger *rosco.MemsDataLogger
-
-	// attempt to connect to the ECU
-	connectToECU(config)
-
-	// if the connection has been established and the ECU completed initialisation
-	// then start the loop to send commands and recieve responses from the ECU
-	if mems.Initialised == true {
-
-		// enable logging if configured
-		if config.Output == "file" {
-			logging = true
-			logger = rosco.NewMemsDataLogger()
-		}
-
-		for {
-			// get how many dataframe calls to make
-			maxDataFrameCalls, _ := strconv.Atoi(config.Loop)
-
-			// start a loop for listening for events from the web interface
-			go recieveMessageFromWebViewLoop()
-			// start a loop to listen for data responses from the ECU
-			go mems.ListenSendToECUChannelLoop()
-
-			// enter a command / response loop
-			for loop := 0; loop < maxDataFrameCalls; {
-				if paused {
-					// send a periodic heartbeat to keep the connection alive when paused
-					utils.LogI.Printf("%s memsCommandResponseLoop sending heatbeat", utils.ECUCommandTrace)
-					go sendCommandToMemsChannel(rosco.MEMS_Heartbeat)
-
-					// send heatbeats at a slower interval to data frame requests
-					time.Sleep(HeartbeatInterval)
-
-				} else {
-					// read data from the ECU
-					utils.LogI.Printf("%s memsCommandResponseLoop sending dataframe request to ECU", utils.ECUCommandTrace)
-					mems.ReadMemsData()
-
-					// wait for response, this is built into the sendCommand function
-					// but as we're reading the MemData we need to call this here
-					data := receiveResponseFromMemsChannel()
-
-					//utils.LogI.Printf("waiting for response from ECU")
-					//data := <-mems.ReceivedFromECU
-					//utils.LogI.Printf("received dataframe from ECU")
-
-					// send it to the web interface
-					sendDataToWebView(data.MemsDataFrame)
-
-					if logging {
-						// write to a log file if logging is enabled
-						go logger.WriteMemsDataToFile(data.MemsDataFrame)
-					}
-
-					// increment count of data calls
-					// don't increment if we're paused
-					loop = loop + 1
-
-					// sleep between calls to give the ECU time to catch up
-					// the ECU will get slower as load increases so this ensures
-					// a regular time series for the data set
-					time.Sleep(DataInterval)
-				}
-			}
-
-			// read loop complete, exit
-			break
-		}
-	}
-}
-
-// send a connection status message back to the web interface via a channel
-func sendConnectionStatusToWebView() {
-	var c rosco.MemsConnectionStatus
-	var m wsMsg
-
-	c.Connected = mems.Connected
-	c.Initialised = mems.Initialised
-
-	m.Action = WebActionConnection
-
-	data, _ := json.Marshal(c)
-	m.Data = string(data)
-
-	utils.LogI.Printf("%s waiting to send connection status to webview with memsToWebChannel channel", utils.SendToWebTrace)
-	memsToWebChannel <- m
-	utils.LogI.Printf("%s sent connection status to webview with memsToWebChannel channel", utils.SendToWebTrace)
-}
-
-// send a message back to the web interface via a channel
-func sendDataToWebView(memsdata rosco.MemsData) {
-	var m wsMsg
-
-	m.Action = WebActionData
-
-	data, _ := json.Marshal(memsdata)
-	m.Data = string(data)
-
-	utils.LogI.Printf("%s waiting to send data to webview with memsToWebChannel channel", utils.SendToWebTrace)
-	memsToWebChannel <- m
-	utils.LogI.Printf("%s sent data to webview with memsToWebChannel channel", utils.SendToWebTrace)
-}
-*/
-
-///////////////////////////////////////////
 
 // MemsReader structure
 type MemsReader struct {
@@ -145,8 +34,9 @@ func NewMemsReader() *MemsReader {
 	return r
 }
 
-func (r *MemsReader) webLoop() {
-	// busy clearing channels
+// webLoop services the channels processing messages send from the web interface
+// run as a goroutine
+func (r *MemsReader) webMainLoop() {
 	for {
 		m := <-r.wi.FromWebChannel
 		utils.LogI.Printf("%s received message FromWebChannel in main webLoop (%v)", utils.ReceiveFromWebTrace, m)
@@ -167,7 +57,8 @@ func (r *MemsReader) webLoop() {
 			if r.fcr.ConnectFCR() {
 				r.sendConnectionStatusToWebView()
 			}
-
+		case ui.Dataframe:
+			go r.fcr.TxECU(rosco.MEMS_DataFrame)
 		case ui.PauseDataLoop:
 			{
 				//paused = true
@@ -179,27 +70,27 @@ func (r *MemsReader) webLoop() {
 				utils.LogI.Printf("Resuming Data Loop")
 			}
 		case ui.ResetECU:
-			go r.fcr.SendToECU(rosco.MEMS_ResetECU)
+			go r.fcr.TxECU(rosco.MEMS_ResetECU)
 		case ui.ClearFaults:
-			go r.fcr.SendToECU(rosco.MEMS_ClearFaults)
+			go r.fcr.TxECU(rosco.MEMS_ClearFaults)
 		case ui.ResetAdjustments:
-			go r.fcr.SendToECU(rosco.MEMS_ResetAdj)
+			go r.fcr.TxECU(rosco.MEMS_ResetAdj)
 		case ui.IncreaseIdleSpeed:
-			go r.fcr.SendToECU(rosco.MEMS_IdleSpeed_Increment)
+			go r.fcr.TxECU(rosco.MEMS_IdleSpeed_Increment)
 		case ui.IncreaseIdleHot:
-			go r.fcr.SendToECU(rosco.MEMS_IdleDecay_Increment)
+			go r.fcr.TxECU(rosco.MEMS_IdleDecay_Increment)
 		case ui.IncreaseFuelTrim:
-			go r.fcr.SendToECU(rosco.MEMS_LTFT_Increment)
+			go r.fcr.TxECU(rosco.MEMS_LTFT_Increment)
 		case ui.IncreaseIgnitionAdvance:
-			go r.fcr.SendToECU(rosco.MEMS_IgnitionAdvanceOffset_Increment)
+			go r.fcr.TxECU(rosco.MEMS_IgnitionAdvanceOffset_Increment)
 		case ui.DecreaseIdleSpeed:
-			go r.fcr.SendToECU(rosco.MEMS_IdleSpeed_Decrement)
+			go r.fcr.TxECU(rosco.MEMS_IdleSpeed_Decrement)
 		case ui.DecreaseIdleHot:
-			go r.fcr.SendToECU(rosco.MEMS_IdleDecay_Decrement)
+			go r.fcr.TxECU(rosco.MEMS_IdleDecay_Decrement)
 		case ui.DecreaseFuelTrim:
-			go r.fcr.SendToECU(rosco.MEMS_LTFT_Decrement)
+			go r.fcr.TxECU(rosco.MEMS_LTFT_Decrement)
 		case ui.DecreaseIgnitionAdvance:
-			go r.fcr.SendToECU(rosco.MEMS_IgnitionAdvanceOffset_Decrement)
+			go r.fcr.TxECU(rosco.MEMS_IgnitionAdvanceOffset_Decrement)
 
 		default:
 		}
@@ -229,14 +120,35 @@ func (r *MemsReader) sendConnectionStatusToWebView() {
 	m.Data = string(data)
 
 	r.wi.ToWebChannel <- m
-	utils.LogI.Printf("%s sent connection status to webview with memsToWebChannel channel", utils.SendToWebTrace)
+	utils.LogI.Printf("%s sent connection status to web with ToWebChannel channel", utils.SendToWebTrace)
 }
 
-func (r *MemsReader) fcrLoop() {
+func (r *MemsReader) fcrMainLoop() {
+	var data []byte
+
 	// busy clearing channels
 	for {
-		m := <-r.fcr.FromECUChannel
-		utils.LogI.Printf("%s received message FromECUChannel (%v)", utils.ReceiveFromWebTrace, m)
+		m := <-r.fcr.ECUSendToFCR
+		utils.LogI.Printf("%s (Rx.3) received message ECUSendToFCR (%v)", utils.ReceiveFromWebTrace, m)
+
+		// send to the web
+		df := ui.WebMsg{}
+
+		if bytes.Compare(m.Command, rosco.MEMS_DataFrame) == 0 {
+			// dataframe command
+			df.Action = ui.WebActionData
+			data, _ = json.Marshal(m.MemsDataFrame)
+		} else {
+			df.Action = ui.WebActionECUResponse
+			data, _ = json.Marshal(m.Response)
+		}
+
+		df.Data = string(data)
+
+		select {
+		case r.wi.ToWebChannel <- df:
+		default:
+		}
 	}
 }
 
@@ -263,8 +175,8 @@ func main() {
 	memsReader := NewMemsReader()
 
 	go memsReader.wi.RunHTTPServer()
-	go memsReader.webLoop()
-	//go memsReader.fcrLoop()
+	go memsReader.webMainLoop()
+	go memsReader.fcrMainLoop()
 	go memsReader.fcr.TxRxECULoop()
 
 	// run the listener for messages sent to the web interface from

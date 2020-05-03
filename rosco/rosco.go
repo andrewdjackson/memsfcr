@@ -22,15 +22,15 @@ type MemsCommandResponse struct {
 // MemsConnection communtication structure for MEMS
 type MemsConnection struct {
 	// SerialPort the serial connection
-	SerialPort      *serial.Port
-	portReader      *bufio.Reader
-	ECUID           []byte
-	command         []byte
-	response        []byte
-	SendToECU       chan MemsCommandResponse
-	ReceivedFromECU chan MemsCommandResponse
-	Connected       bool
-	Initialised     bool
+	SerialPort  *serial.Port
+	portReader  *bufio.Reader
+	ECUID       []byte
+	command     []byte
+	response    []byte
+	TxECU       chan MemsCommandResponse
+	RxECU       chan MemsCommandResponse
+	Connected   bool
+	Initialised bool
 }
 
 // MemsConnectionStatus are we?
@@ -61,8 +61,8 @@ func NewMemsConnection() *MemsConnection {
 	m := &MemsConnection{}
 	m.Connected = false
 	m.Initialised = false
-	m.SendToECU = make(chan MemsCommandResponse)
-	m.ReceivedFromECU = make(chan MemsCommandResponse)
+	m.TxECU = make(chan MemsCommandResponse)
+	m.RxECU = make(chan MemsCommandResponse)
 
 	return m
 }
@@ -200,19 +200,28 @@ func (mems *MemsConnection) writeSerial(data []byte) {
 	}
 }
 
-// ListenSendToECUChannelLoop for commands to be sent to the ECU
-func (mems *MemsConnection) ListenSendToECUChannelLoop() {
+// ListenTxECUChannelLoop for commands to be sent to the ECU
+func (mems *MemsConnection) ListenTxECUChannelLoop() {
 	for {
 		// wait for messages to be sent to the ECU
-		utils.LogI.Printf("%s ListenSendToECUChannelLoop waiting for mems command from the SendToECU channel", utils.ECUCommandTrace)
-		m := <-mems.SendToECU
-		utils.LogI.Printf("%s ListenSendToECUChannelLoop mems command retrieved from the SendToECU channel", utils.ECUCommandTrace)
-		// send the command
-		response := mems.sendCommand(m.Command)
-		// send back on the channel
-		var r MemsCommandResponse
-		r.Response = response
-		mems.sendRecievedDataToChannel(r)
+		utils.LogI.Printf("%s ListenTxECUChannelLoop waiting for command from TxECU channel", utils.ECUCommandTrace)
+
+		m := <-mems.TxECU
+
+		if bytes.Compare(m.Command, MEMS_DataFrame) == 0 {
+			// DataFrame request so make 2 calls, x7d and x80 commands
+			utils.LogI.Printf("%s request for DataFrame from TxECU channel", utils.ECUCommandTrace)
+			mems.ReadMemsData()
+		} else {
+			utils.LogI.Printf("%s '%x' command retrieved from TxECU channel", utils.ECUCommandTrace, m.Command)
+			// send the command
+			response := mems.sendCommand(m.Command)
+			// send back on the channel
+			var r MemsCommandResponse
+			r.Command = m.Command
+			r.Response = response
+			mems.sendRecievedDataToChannel(r)
+		}
 	}
 }
 
@@ -306,19 +315,20 @@ func (mems *MemsConnection) ReadMemsData() {
 
 func (mems *MemsConnection) sendMemsDataToChannel(memsdata MemsData) {
 	var m MemsCommandResponse
+	m.Command = MEMS_DataFrame
 	m.MemsDataFrame = memsdata
 
-	utils.LogI.Printf("%s preparing MemsData to send to ReceivedFromECU channel", utils.ECUResponseTrace)
+	utils.LogI.Printf("%s preparing MemsData to send to RxECU channel", utils.ECUResponseTrace)
 	mems.sendRecievedDataToChannel(m)
 }
 
 func (mems *MemsConnection) sendRecievedDataToChannel(m MemsCommandResponse) {
-	utils.LogI.Printf("%s sending mems Response to the ReceivedFromECU channel", utils.ECUResponseTrace)
+	utils.LogI.Printf("%s sending mems Response to RxECU channel", utils.ECUResponseTrace)
 
 	select {
-	case mems.ReceivedFromECU <- m:
+	case mems.RxECU <- m:
 	default:
-		utils.LogE.Printf("%s unable to send to ReceivedFromECU channel", utils.ECUResponseTrace)
+		utils.LogE.Printf("%s unable to send to RxECU channel", utils.ECUResponseTrace)
 	}
 }
 

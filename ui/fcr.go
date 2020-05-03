@@ -21,10 +21,10 @@ type MemsFCR struct {
 	ECU *rosco.MemsConnection
 
 	// channel for communication to the ECU
-	ToECUChannel chan rosco.MemsCommandResponse
+	FCRSendToECU chan rosco.MemsCommandResponse
 
 	// channel for communication from the ECU
-	FromECUChannel chan rosco.MemsCommandResponse
+	ECUSendToFCR chan rosco.MemsCommandResponse
 }
 
 // NewMemsFCR creates an instance of a MEMs Fault Code Reader
@@ -32,8 +32,8 @@ func NewMemsFCR() *MemsFCR {
 	memsfcr := &MemsFCR{}
 
 	// set up the channels
-	memsfcr.ToECUChannel = make(chan rosco.MemsCommandResponse)
-	memsfcr.FromECUChannel = make(chan rosco.MemsCommandResponse)
+	memsfcr.FCRSendToECU = make(chan rosco.MemsCommandResponse)
+	memsfcr.ECUSendToFCR = make(chan rosco.MemsCommandResponse)
 
 	memsfcr.Paused = false
 	memsfcr.Logging = false
@@ -79,20 +79,35 @@ func (memsfcr *MemsFCR) getSerialPorts() []string {
 // ConnectFCR connects the FCR to the ECU
 // on successful connection the FCR runs the initialisation sequence
 func (memsfcr *MemsFCR) ConnectFCR() bool {
-	memsfcr.ECU.ConnectAndInitialiseECU(memsfcr.Config.Port)
+	// only connect and initialise if the ECU hasn't already been
+	// initialised. This seems to do odd things to the ECU if you
+	// run the sequence once initialised
+	if !memsfcr.ECU.Initialised {
+		memsfcr.ECU.ConnectAndInitialiseECU(memsfcr.Config.Port)
+
+		// start the ECU loop
+		go memsfcr.ECU.ListenTxECUChannelLoop()
+	}
+
 	return memsfcr.ECU.Initialised
 }
 
-// SendToECU send the command to the ECU from the FCR
-func (memsfcr *MemsFCR) SendToECU(cmd []byte) {
+// Get the MemsDataFrame from the ECU by sending commands
+// 0x7d and 0x80 and combining the results into a data frame
+func (memsfcr *MemsFCR) getECUDataFrame() {
+	memsfcr.TxECU(rosco.MEMS_DataFrame)
+}
+
+// TxECU send the command to the ECU from the FCR
+func (memsfcr *MemsFCR) TxECU(cmd []byte) {
 	var c rosco.MemsCommandResponse
 	c.Command = cmd
 
 	select {
-	case memsfcr.ToECUChannel <- c:
-		utils.LogI.Printf("%s FCR sent command to ECU", utils.ECUCommandTrace)
+	case memsfcr.FCRSendToECU <- c:
+		utils.LogI.Printf("%s FCR sent command '%x' to ECU", utils.ECUCommandTrace, cmd)
 	default:
-		utils.LogI.Printf("%s FCR unable to send command to ECU on ToECUChannel, blocked?", utils.ECUCommandTrace)
+		utils.LogW.Printf("%s FCR unable to send command to ECU on FCRSendToECU, blocked?", utils.ECUCommandTrace)
 	}
 }
 
@@ -106,19 +121,19 @@ func (memsfcr *MemsFCR) SendToECU(cmd []byte) {
 func (memsfcr *MemsFCR) TxRxECULoop() {
 	for {
 		// block waiting for an FCR command to send to the ECU
-		tx := <-memsfcr.ToECUChannel
-		utils.LogI.Printf("%s FCR received command to send to ECU", utils.ECUCommandTrace)
+		tx := <-memsfcr.FCRSendToECU
+		utils.LogI.Printf("%s (Tx.1) FCR received command from FCR FCRSendToECU to send to ECU", utils.ECUCommandTrace)
 
 		// block waiting for the command to be sent to the ECU
-		memsfcr.ECU.SendToECU <- tx
-		utils.LogI.Printf("%s FCR sent command to ECU", utils.ECUCommandTrace)
+		memsfcr.ECU.TxECU <- tx
+		utils.LogI.Printf("%s (Tx.2) FCR sent command to ECU TxECU channel", utils.ECUCommandTrace)
 
 		// block waiting for the response to be received from the ECU
-		rx := <-memsfcr.ECU.ReceivedFromECU
-		utils.LogI.Printf("%s FCR received response from ECU", utils.ECUResponseTrace)
+		rx := <-memsfcr.ECU.RxECU
+		utils.LogI.Printf("%s (Rx.1) FCR received response from ECU RxECU channel", utils.ECUResponseTrace)
 
 		// block waiting for the response to be collected for processing
-		memsfcr.FromECUChannel <- rx
-		utils.LogI.Printf("%s FCR forwarded ECU response for processing", utils.ECUResponseTrace)
+		memsfcr.ECUSendToFCR <- rx
+		utils.LogI.Printf("%s (Rx.2) ECU response sent to FCR ECUSendToFCR for processing", utils.ECUResponseTrace)
 	}
 }

@@ -10,6 +10,8 @@ const (
 	WebActionConnect = "connect"
 	// WebActionECUCommand data packet is an ecu command
 	WebActionECUCommand = "command"
+	// WebActionECUResponse data packet is ecu response
+	WebActionECUResponse = "response"
 	// WebActionECUCommandIncrease data packet is an increase adjustment command
 	WebActionECUCommandIncrease = "command"
 	// WebActionECUCommandDecrease data packet is an decrease adjustment command
@@ -20,24 +22,41 @@ const (
 
 const (
 	// Unknown command
-	Unknown                 = 0
-	ConnectECU              = 1
-	PauseDataLoop           = 2
-	StartDataLoop           = 3
-	ResetECU                = 4
-	ResetAdjustments        = 5
-	ClearFaults             = 6
-	IncreaseIdleSpeed       = 7
-	IncreaseIdleHot         = 8
-	IncreaseFuelTrim        = 9
+	Unknown = 0
+	// ConnectECU command
+	ConnectECU = 1
+	// PauseDataLoop command
+	PauseDataLoop = 2
+	// StartDataLoop command
+	StartDataLoop = 3
+	// ResetECU command
+	ResetECU = 4
+	// ResetAdjustments command
+	ResetAdjustments = 5
+	// ClearFaults command
+	ClearFaults = 6
+	// IncreaseIdleSpeed command
+	IncreaseIdleSpeed = 7
+	// IncreaseIdleHot command
+	IncreaseIdleHot = 8
+	// IncreaseFuelTrim command
+	IncreaseFuelTrim = 9
+	// IncreaseIgnitionAdvance command
 	IncreaseIgnitionAdvance = 10
-	DecreaseIdleSpeed       = 11
-	DecreaseIdleHot         = 12
-	DecreaseFuelTrim        = 13
+	// DecreaseIdleSpeed command
+	DecreaseIdleSpeed = 11
+	// DecreaseIdleHot command
+	DecreaseIdleHot = 12
+	// DecreaseFuelTrim command
+	DecreaseFuelTrim = 13
+	// DecreaseIgnitionAdvance command
 	DecreaseIgnitionAdvance = 14
-	ConfigRead              = 15
-	ConfigWrite             = 16
-	Dataframe               = 17
+	// ConfigRead command
+	ConfigRead = 15
+	// ConfigWrite command
+	ConfigWrite = 16
+	// Dataframe command
+	Dataframe = 17
 )
 
 // WebAction converts the JSON message from the
@@ -70,6 +89,8 @@ func EvaluateWebMsg(m WebMsg) WebAction {
 			return WebAction{m, PauseDataLoop}
 		case "start":
 			return WebAction{m, StartDataLoop}
+		case "dataframe":
+			return WebAction{m, Dataframe}
 		}
 	case "increase":
 		switch m.Data {

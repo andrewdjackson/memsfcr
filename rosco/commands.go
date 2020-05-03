@@ -5,6 +5,9 @@ package rosco
 // MEMS_Heartbeat command code for a communication heartbeat
 var MEMS_Heartbeat = []byte{0xf4}
 
+// MEMS_DataFrame request complete dataframe using 0x7d and 0x80 coomands
+var MEMS_DataFrame = []byte{0x80, 0x7d}
+
 // MEMS_ReqData80 command code for requesting data frame 0x80
 var MEMS_ReqData80 = []byte{0x80}
 
