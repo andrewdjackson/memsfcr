@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/andrewdjackson/readmems/utils"
+	"github.com/andrewdjackson/memsfcr/utils"
 )
 
 // MemsDataLogger logs the mems data to a CSV file

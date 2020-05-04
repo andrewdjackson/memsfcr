@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"github.com/andrewdjackson/readmems/rosco"
-	"github.com/andrewdjackson/readmems/utils"
+	"github.com/andrewdjackson/memsfcr/rosco"
+	"github.com/andrewdjackson/memsfcr/utils"
 	"go.bug.st/serial.v1"
 )
 

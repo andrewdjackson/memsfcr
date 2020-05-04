@@ -8,7 +8,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/andrewdjackson/readmems/utils"
+	"github.com/andrewdjackson/memsfcr/utils"
 	"github.com/tarm/serial"
 )
 

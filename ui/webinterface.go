@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/andrewdjackson/readmems/utils"
+	"github.com/andrewdjackson/memsfcr/utils"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )

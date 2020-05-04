@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/andrewdjackson/readmems/utils"
+	"github.com/andrewdjackson/memsfcr/utils"
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/ini.v1"
 )
