@@ -29,12 +29,16 @@ Any changes made to the adjustments can be reset by clicking this button.
 
 * Idle Speed
 Increases / decreases the idle running speed. Hot idle should settle arounf 850 RPM.
+This is a facility which is built into the MEMS ECU to overcome some situations during the service life of a vehicle where it might be wished to eradicate a problem such as a rattle or engine wear by slightly increasing the idle speed of the engine. This offset adds approximately 50 RPM to the Idle target speed. The function can be removed by resetting the adaptive values.
 
 * Idle Hot (Decay) Position
+ This is the number of IACV steps from fully closed (0) which the ECU has learned as the correct position to maintain the target idle speed with a fully warmed up engine. If this value is outside the range 10 - 50 steps, then this is an indication of a possible fault condition or poor adjustment. This value can be forced for a short time using this function.
 
 * Fuel Trim
+This allows the adjustment of the Long Term Fuel Trim (LTFT) which is used to offset fuel injection of rich or lean running
 
 * Ignition Advance
+This is a facility to overcome some situations during the service life of a vehicle where it might be wished to eradicate a problem such as a low octane fuel being constantly used or engine wear by slightly advancing the ignition timing the idle speed of the engine. The function can be removed by resetting the adaptive values.
 
 ### Dataframes
 ![Dataframes](./resources/screenshots/dataframes.png)
