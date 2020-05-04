@@ -53,8 +53,8 @@ const (
 	DecreaseIgnitionAdvance = 14
 	// ConfigRead command
 	ConfigRead = 15
-	// ConfigWrite command
-	ConfigWrite = 16
+	// Save command
+	Save = 16
 	// Dataframe command
 	Dataframe = 17
 )
@@ -114,14 +114,10 @@ func EvaluateWebMsg(m WebMsg) WebAction {
 		case "ignition":
 			return WebAction{m, DecreaseIgnitionAdvance}
 		}
+	case "save":
+		return WebAction{m, Save}
 	case "config":
-		switch m.Data {
-		case "read":
-			return WebAction{m, ConfigRead}
-		case "write":
-			return WebAction{m, ConfigWrite}
-		}
-	default:
+		return WebAction{m, ConfigRead}
 	}
 
 	return WebAction{m, Unknown}

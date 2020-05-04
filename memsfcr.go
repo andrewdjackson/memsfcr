@@ -50,13 +50,24 @@ func (r *MemsReader) webMainLoop() {
 		switch action.Value {
 		case ui.ConfigRead:
 			r.sendConfigToWebView()
+		case ui.Save:
+			cfg := rosco.ReadmemsConfig{}
+			json.Unmarshal([]byte(m.Data), &cfg)
+
+			utils.LogI.Printf("applying config (%v)", cfg)
+
+			r.fcr.Config.Port = cfg.Port
+			r.fcr.Config.LogFolder = cfg.LogFolder
+			r.fcr.Config.Output = cfg.Output
+			rosco.WriteConfig(r.fcr.Config)
 
 		case ui.ConnectECU:
 			// connect the ECU
 			utils.LogI.Printf("connecting ecu")
-			if r.fcr.ConnectFCR() {
-				r.sendConnectionStatusToWebView()
-			}
+			r.fcr.ConnectFCR()
+			utils.LogI.Printf("sending connection status")
+			r.sendConnectionStatusToWebView()
+
 		case ui.Dataframe:
 			go r.fcr.TxECU(rosco.MEMS_DataFrame)
 		case ui.PauseDataLoop:

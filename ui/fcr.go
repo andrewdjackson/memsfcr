@@ -86,7 +86,11 @@ func (memsfcr *MemsFCR) ConnectFCR() bool {
 		memsfcr.ECU.ConnectAndInitialiseECU(memsfcr.Config.Port)
 
 		// start the ECU loop
-		go memsfcr.ECU.ListenTxECUChannelLoop()
+		if memsfcr.ECU.Initialised {
+			go memsfcr.ECU.ListenTxECUChannelLoop()
+		} else {
+			utils.LogW.Printf("ECU not initialised")
+		}
 	}
 
 	return memsfcr.ECU.Initialised

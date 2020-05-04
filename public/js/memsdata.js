@@ -4,6 +4,7 @@ var maxLambda = false
 var minIAC = false
 var dataframeLoop
 
+const WebActionSave = "save"
 const WebActionConfig = "config"
 const WebActionConnection = "connection"
 const WebActionData = "data"
@@ -144,23 +145,35 @@ function updateConnected(connected) {
     console.log("connected " + connected)
 
     if (connected) {
-        // change the button operation to pause the data loop
+        setStatusLED(true, "ecudata", "status")
+            // change the button operation to pause the data loop
         setConnectButtonStyle("<i class='fa fa-pause-circle'>&nbsp</i>Pause Data Loop", "btn-outline-info", pauseECUDataLoop)
             // enable all buttons
         $(':button').prop('disabled', false);
         // start the dataframe command loop
         startDataframeLoop()
     } else {
-        // enable connect button
+        setStatusLED(true, "ecudata", "fault")
+            // enable connect button
         setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connect", "btn-outline-success", connectECU)
         $('#connectECUbtn').prop('disabled', false);
     }
 }
 
-function updateConfig() {
-    logToFile = true
-    port = ""
-    logFolder = ""
+function Save() {
+    folder = document.getElementById('logfolder').value
+    configPort = document.getElementById('port').value
+
+    if (document.getElementById('logtofile').checked == true) {
+        logToFile = "file"
+    } else {
+        logToFile = "stdout"
+    }
+
+    var data = { Port: configPort, logFolder: folder, Output: logToFile };
+    var msg = formatSocketMessage('save', JSON.stringify(data))
+
+    sendSocketMessage(msg)
 }
 
 function startDataframeLoop() {
@@ -247,6 +260,12 @@ function setStatusLED(status, id, statustype = "status") {
     }
 
     id = "#" + id
+    $(id).removeClass('led-green');
+    $(id).removeClass('led-red');
+    $(id).removeClass('led-yellow');
+    $(id).removeClass('led-green-off');
+    $(id).removeClass('led-red-off');
+    $(id).removeClass('led-yellow-off');
     $(id).removeClass('led-' + led);
     $(id).removeClass('led-' + led + '-off');
     $(id).addClass(c);
@@ -372,10 +391,11 @@ function setConnectButtonStyle(name, style, f) {
 }
 
 function sendSocketMessage(msg) {
+    console.log("sending socket message: " + msg)
     sock.send(msg)
 }
 
-function formatSocketMessage(action, data) {
-    var msg = '{"action":"' + action + '", "data":"' + data + '"}'
-    return msg
+function formatSocketMessage(a, d) {
+    var msg = { action: a, data: d }
+    return JSON.stringify(msg)
 }
