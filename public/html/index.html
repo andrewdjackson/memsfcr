@@ -49,13 +49,14 @@
 
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <form class="form-inline my-2 my-lg-0">
-                    <input class="form-control mr-sm-2" type="search" id="port" placeholder="/dev/usb.serial" aria-label="Serial Port">
+                    <input class="form-control mr-sm-3" type="search" id="port" placeholder="/dev/usb.serial" aria-label="Serial Port">
                     <button class="btn btn-outline-success my-2 my-sm-0" id="connectECUbtn" type="button"><i class="fa fa-plug">&nbsp</i>Connect</button> &nbsp;
                 </form>
             </div>
 
-            <div>
-                <button type="button" class="btn btn-success" onclick="clearFaultCodes();"><i class="fa fa-stethoscope">&nbsp</i>Clear Faults</button>
+            <div class="led-box">
+                <div class="led-green-off" id="ecudata"></div>
+                <p>ECU Connected</p>
             </div>
 
             <div class="led-box">
@@ -87,6 +88,9 @@
             </div>
             <div class="card bg-light mb-1 mt-1">
                 <div class="card-body">
+                    <div class="float-right">
+                        <button type="button" class="btn btn-success" onclick="clearFaultCodes();"><i class="fa fa-stethoscope">&nbsp</i>Clear Faults</button>
+                    </div>
                     <span>
                     <div class="led-box"><div class="led-green-off" id="idleswitch"></div><p>Idle Switch</p></div>
                     <div class="led-box"><div class="led-green-off" id="parkswitch"></div><p>Park / Neutral Switch</p></div>
@@ -516,7 +520,7 @@
                                     <input type="text" class="form-control" id="logfolder" aria-label="Log folder..">
                                 </div>
 
-                                <button class="btn btn-outline-success my-2 my-sm-0" id="applySettings" type="button">Apply</button>
+                                <button class="btn btn-outline-success my-2 my-sm-0" id="applySettings" onclick="applyConfig();" type="button">Apply</button>
                             </div>
                         </form>
                     </div>

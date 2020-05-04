@@ -157,6 +157,12 @@ function updateConnected(connected) {
     }
 }
 
+function updateConfig() {
+    logToFile = true
+    port = ""
+    logFolder = ""
+}
+
 function startDataframeLoop() {
     dataframeLoop = setInterval(getDataframe, 1000)
 }

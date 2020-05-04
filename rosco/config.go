@@ -36,6 +36,27 @@ func NewConfig() *ReadmemsConfig {
 	return &config
 }
 
+func createFolder(path string) {
+	_, err := os.Stat(path)
+
+	if os.IsNotExist(err) {
+		errDir := os.MkdirAll(path, 0755)
+		if errDir != nil {
+			utils.LogE.Panicf("unable to create folder %s (%s)", path, err)
+		}
+	}
+}
+
+func createDataFolders(home string) string {
+	appFolder := fmt.Sprintf("%s/memsfcr", home)
+	createFolder(appFolder)
+
+	logFolder := fmt.Sprintf("%s/logs", appFolder)
+	createFolder(logFolder)
+
+	return appFolder
+}
+
 // reads a whole file into memory and returns a slice of its lines.
 func readLines(path string) ([]string, error) {
 	file, err := os.Open(path)
@@ -57,8 +78,12 @@ func readLines(path string) ([]string, error) {
 
 // WriteConfig write the config file
 func WriteConfig(c *ReadmemsConfig) {
-	folder, _ := homedir.Dir()
-	filename := fmt.Sprintf("%s/.memsfcr.cfg", folder)
+	home, _ := homedir.Dir()
+
+	// create the folders if they don't exist
+	appFolder := createDataFolders(home)
+
+	filename := fmt.Sprintf("%s/memsfcr.cfg", appFolder)
 
 	os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
 
@@ -86,12 +111,19 @@ func WriteConfig(c *ReadmemsConfig) {
 // ReadConfig readsthe config file
 func ReadConfig() *ReadmemsConfig {
 	folder, _ := homedir.Dir()
-	filename := fmt.Sprintf("%s/.memsfcr.cfg", folder)
+	appFolder := fmt.Sprintf("%s/memsfcr", folder)
+
+	filename := fmt.Sprintf("%s/memsfcr.cfg", appFolder)
+
 	c := NewConfig()
+	c.LogFolder = fmt.Sprintf("%s/logs", appFolder)
 
 	cfg, err := ini.Load(filename)
 	if err != nil {
 		utils.LogI.Printf("failed to read file: %v", err)
+		// couldn't read the config so write a new file
+		WriteConfig(c)
+		// return the default config
 		return c
 	}
 
