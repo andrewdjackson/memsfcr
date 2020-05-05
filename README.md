@@ -85,6 +85,7 @@ When looking for the diagnostic connector on the vehicle, note that cars with a 
 Pin assignment for USB PC interface cable
 
 Pin number|FTDI wire color	|Pin assignment	|Wire color on mating connector in car
+----------|-----------------|---------------|-------------------------------------
 C549-1| Black	|Signal ground	|Pink w/ black
 C549-2|	Yellow	|Rx (car ECU to PC)	|White w/ yellow
 C549-3|	Orange	|Tx (PC to car ECU)	|Black w/ green
