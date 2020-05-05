@@ -99,7 +99,7 @@ func (memsfcr *MemsFCR) ConnectFCR() bool {
 // Get the MemsDataFrame from the ECU by sending commands
 // 0x7d and 0x80 and combining the results into a data frame
 func (memsfcr *MemsFCR) getECUDataFrame() {
-	memsfcr.TxECU(rosco.MEMS_DataFrame)
+	memsfcr.TxECU(rosco.MEMSDataFrame)
 }
 
 // TxECU send the command to the ECU from the FCR

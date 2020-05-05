@@ -69,7 +69,7 @@ func (r *MemsReader) webMainLoop() {
 			r.sendConnectionStatusToWebView()
 
 		case ui.Dataframe:
-			go r.fcr.TxECU(rosco.MEMS_DataFrame)
+			go r.fcr.TxECU(rosco.MEMSDataFrame)
 		case ui.PauseDataLoop:
 			{
 				//paused = true
@@ -81,27 +81,27 @@ func (r *MemsReader) webMainLoop() {
 				utils.LogI.Printf("Resuming Data Loop")
 			}
 		case ui.ResetECU:
-			go r.fcr.TxECU(rosco.MEMS_ResetECU)
+			go r.fcr.TxECU(rosco.MEMSResetECU)
 		case ui.ClearFaults:
-			go r.fcr.TxECU(rosco.MEMS_ClearFaults)
+			go r.fcr.TxECU(rosco.MEMSClearFaults)
 		case ui.ResetAdjustments:
-			go r.fcr.TxECU(rosco.MEMS_ResetAdj)
+			go r.fcr.TxECU(rosco.MEMSResetAdj)
 		case ui.IncreaseIdleSpeed:
-			go r.fcr.TxECU(rosco.MEMS_IdleSpeed_Increment)
+			go r.fcr.TxECU(rosco.MEMSIdleSpeedIncrement)
 		case ui.IncreaseIdleHot:
-			go r.fcr.TxECU(rosco.MEMS_IdleDecay_Increment)
+			go r.fcr.TxECU(rosco.MEMSIdleDecayIncrement)
 		case ui.IncreaseFuelTrim:
-			go r.fcr.TxECU(rosco.MEMS_LTFT_Increment)
+			go r.fcr.TxECU(rosco.MEMSLTFTIncrement)
 		case ui.IncreaseIgnitionAdvance:
-			go r.fcr.TxECU(rosco.MEMS_IgnitionAdvanceOffset_Increment)
+			go r.fcr.TxECU(rosco.MEMSIgnitionAdvanceOffsetIncrement)
 		case ui.DecreaseIdleSpeed:
-			go r.fcr.TxECU(rosco.MEMS_IdleSpeed_Decrement)
+			go r.fcr.TxECU(rosco.MEMSIdleSpeedDecrement)
 		case ui.DecreaseIdleHot:
-			go r.fcr.TxECU(rosco.MEMS_IdleDecay_Decrement)
+			go r.fcr.TxECU(rosco.MEMSIdleDecayDecrement)
 		case ui.DecreaseFuelTrim:
-			go r.fcr.TxECU(rosco.MEMS_LTFT_Decrement)
+			go r.fcr.TxECU(rosco.MEMSLTFTDecrement)
 		case ui.DecreaseIgnitionAdvance:
-			go r.fcr.TxECU(rosco.MEMS_IgnitionAdvanceOffset_Decrement)
+			go r.fcr.TxECU(rosco.MEMSIgnitionAdvanceOffsetDecrement)
 
 		default:
 		}
@@ -145,7 +145,7 @@ func (r *MemsReader) fcrMainLoop() {
 		// send to the web
 		df := ui.WebMsg{}
 
-		if bytes.Compare(m.Command, rosco.MEMS_DataFrame) == 0 {
+		if bytes.Compare(m.Command, rosco.MEMSDataFrame) == 0 {
 			// dataframe command
 			df.Action = ui.WebActionData
 			data, _ = json.Marshal(m.MemsDataFrame)

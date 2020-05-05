@@ -119,16 +119,16 @@ func (mems *MemsConnection) initialise() {
 	if mems.SerialPort != nil {
 		mems.SerialPort.Flush()
 
-		mems.writeSerial(MEMS_InitCommandA)
+		mems.writeSerial(MEMSInitCommandA)
 		mems.readSerial()
 
-		mems.writeSerial(MEMS_InitCommandB)
+		mems.writeSerial(MEMSInitCommandB)
 		mems.readSerial()
 
-		mems.writeSerial(MEMS_Heartbeat)
+		mems.writeSerial(MEMSHeartbeat)
 		mems.readSerial()
 
-		mems.writeSerial(MEMS_InitECUID)
+		mems.writeSerial(MEMSInitECUID)
 		mems.ECUID = mems.readSerial()
 	}
 
@@ -208,7 +208,7 @@ func (mems *MemsConnection) ListenTxECUChannelLoop() {
 
 		m := <-mems.TxECU
 
-		if bytes.Compare(m.Command, MEMS_DataFrame) == 0 {
+		if bytes.Compare(m.Command, MEMSDataFrame) == 0 {
 			// DataFrame request so make 2 calls, x7d and x80 commands
 			utils.LogI.Printf("%s request for DataFrame from TxECU channel", utils.ECUCommandTrace)
 			mems.ReadMemsData()
@@ -315,7 +315,7 @@ func (mems *MemsConnection) ReadMemsData() {
 
 func (mems *MemsConnection) sendMemsDataToChannel(memsdata MemsData) {
 	var m MemsCommandResponse
-	m.Command = MEMS_DataFrame
+	m.Command = MEMSDataFrame
 	m.MemsDataFrame = memsdata
 
 	utils.LogI.Printf("%s preparing MemsData to send to RxECU channel", utils.ECUResponseTrace)
@@ -334,10 +334,10 @@ func (mems *MemsConnection) sendRecievedDataToChannel(m MemsCommandResponse) {
 
 // readRaw reads dataframe 80 and then dataframe 7d as raw byte arrays
 func (mems *MemsConnection) readRaw() ([]byte, []byte) {
-	mems.writeSerial(MEMS_ReqData80)
+	mems.writeSerial(MEMSReqData80)
 	dataframe80 := mems.readSerial()
 
-	mems.writeSerial(MEMS_ReqData7D)
+	mems.writeSerial(MEMSReqData7D)
 	dataframe7d := mems.readSerial()
 
 	return dataframe80, dataframe7d
