@@ -58,7 +58,6 @@ Useful information on the operating characteristics of the MEMS ECU
 Still to do - the command / response loop can get blocked if multiple overlapping commands are sent. I need to disable the buttons whilst a command is in progress.
 
 ### How to build a cable
-[See here on how to build a cable!](https://colinbourassa.github.io/car_stuff/mems_interface/#building-a-cable)
 
 To build a cable that will connect to the ECU's diagnostic port, you will need three things:
 
