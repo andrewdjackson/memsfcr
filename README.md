@@ -1,9 +1,12 @@
 # MemsFCR 
-The Mems FCR supports Mac and Windows. The application connects using the serial interface and supports the serial FTDI cables you can purchase for the Android MemsDiag application. Instructions on how to create this cable or alternatively build a bluetooth wireless interface are also included.
+MemsFCR is a MEMS 1.6 - 1.9 Fault Code Reader and Analytics application.
 
+MemsFCR allows you to connect to your MEMS ECU and monitor the diagnostic parameters.
 All MEMS data points are read and can be viewed directly. If any faults have been detected these will be displayed and can be cleared.
-
 The data can be logged to a CSV file for easy analysis using Excel or Google Sheets.
+
+The Make file supports building on Mac and Windows, although I have included pre-build binaries for Windows (64bit) and MacOS.
+The application connects using the serial interface and supports the serial FTDI cables you can purchase for the Android MemsDiag application. Instructions on how to create this cable or alternatively build a bluetooth wireless interface are also included.
 
 ### The Dashboard
 ![Dashboard](./resources/screenshots/dashboard.png)
@@ -49,3 +52,10 @@ Useful information on the operating characteristics of the MEMS ECU
 
 ### To Do..
 Still to do - the command / response loop can get blocked if multiple overlapping commands are sent. I need to disable the buttons whilst a command is in progress.
+
+### How to build a cable
+[See here on how to build a cable!](https://colinbourassa.github.io/car_stuff/mems_interface/#building-a-cable)
+You can buy a pre-built cable, when I find the link I'll add it here
+
+I use an HC-05 TTL Serial / Bluetooth board which you can connect to wirelessly, when I have a bit of time I'll add the instructions here as well.
+It's very easy but needs the round connection parts in Colin's instructions.
