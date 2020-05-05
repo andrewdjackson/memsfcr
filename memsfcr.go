@@ -170,7 +170,7 @@ func displayWebView(wi *ui.WebInterface) {
 	defer w.Destroy()
 
 	w.SetTitle("MEMS Fault Code Reader")
-	w.SetSize(1120, 920, webview.HintNone)
+	w.SetSize(1200, 920, webview.HintNone)
 
 	w.Bind("quit", func() {
 		w.Terminate()

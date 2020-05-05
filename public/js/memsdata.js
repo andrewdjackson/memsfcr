@@ -297,8 +297,14 @@ function updateAdjustmentValue(id, value) {
 function setSerialPortSelection(ports) {
 	$.each(ports, function (key, value) {
 		console.log("serial port added " + key + " : " + value);
-		$("#serialports").append($("<option></option>").attr("value", value).text(value));
+        //$("#serialports").append($("<option></option>").attr("value", value).text(value));
+        $("#ports").append('<a class="dropdown-item" href="#" onclick="selectPort(this)">' + value + '</a>');
 	});
+}
+
+function selectPort(item) {
+    console.log('selected ' + item.text)
+    setPort(item.text)
 }
 
 function setLogToFile(logsetting, logfolder) {
