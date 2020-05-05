@@ -8,6 +8,9 @@ The data can be logged to a CSV file for easy analysis using Excel or Google She
 The Make file supports building on Mac and Windows, although I have included pre-build binaries for Windows (64bit) and MacOS.
 The application connects using the serial interface and supports the serial FTDI cables you can purchase for the Android MemsDiag application. Instructions on how to create this cable or alternatively build a bluetooth wireless interface are also included.
 
+[Download MacOS MemsFCR!](./dist/MacOs-MemsFCR.zip)
+[Download Windows MemFCR!](./dist/Windows-MemsFCR.zip)
+
 ### The Dashboard
 ![Dashboard](./resources/screenshots/dashboard.png)
 This tab shows the live running parameters from the ECU. If a fault is detected the ECU Fault indicator will light. The list of detected fault codes is displayed below the gauges. Any faults detected can be cleared by clicking Clear Faults.
