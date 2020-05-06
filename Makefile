@@ -55,6 +55,7 @@ buildapp:
 	hdiutil convert /tmp/tmp.dmg -format UDZO -o "$(DARWINDISTPATH)/$(APPNAME).dmg"
 	Rez -append resources/icons/icns.rsrc -o "$(DARWINDISTPATH)/$(APPNAME).dmg"
 	SetFile -a C "$(DARWINDISTPATH)/$(APPNAME).dmg"
+	mv "$(DARWINDISTPATH)/$(APPNAME).dmg" dist/$(APPNAME).dmg
 
 clean: ## Remove previous build
 	rm -f $(WINDOWS) $(LINUX) $(DARWIN)

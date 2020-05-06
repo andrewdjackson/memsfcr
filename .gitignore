@@ -110,3 +110,5 @@ Temporary Items
 .apdisk
 readmems
 logs
+dist/darwin
+dist/windows
