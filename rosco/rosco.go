@@ -150,7 +150,6 @@ func (mems *MemsConnection) readSerial() []byte {
 	data := make([]byte, 0)
 
 	if mems.SerialPort != nil {
-
 		// read all the expected bytes before returning the data
 		for count := 0; count < size; {
 			// wait for a response from MEMS

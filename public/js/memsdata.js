@@ -8,6 +8,7 @@ const WebActionSave = "save";
 const WebActionConfig = "config";
 const WebActionConnection = "connection";
 const WebActionData = "data";
+const ecuQueryInterval = 900
 
 window.onload = function () {
 	wsuri = window.location.href.split("/").slice(0, 3).join("/");
@@ -144,23 +145,47 @@ function updateDataFrameValue(metric, data) {
 function updateConnected(connected) {
 	console.log("connected " + connected);
 
+	setConnectionStatusMessage(connected)
+
 	if (connected) {
 		setStatusLED(true, "ecudata", "status");
+
 		// change the button operation to pause the data loop
 		setConnectButtonStyle(
 			"<i class='fa fa-pause-circle'>&nbsp</i>Pause Data Loop",
 			"btn-outline-info",
 			pauseECUDataLoop
 		);
+		
 		// enable all buttons
 		$(":button").prop("disabled", false);
 		// start the dataframe command loop
 		startDataframeLoop();
 	} else {
 		setStatusLED(true, "ecudata", "fault");
+		
 		// enable connect button
 		setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connect", "btn-outline-success", connectECU);
 		$("#connectECUbtn").prop("disabled", false);
+	}
+}
+
+function setConnectionStatusMessage(connected) {
+	id = "connectionMessage"
+
+	$('#' + id).removeClass("alert-light");
+	$('#' + id).removeClass("alert-danger");
+	$('#' + id).removeClass("alert-success");
+
+	$('#' + id).removeClass("invisible");
+	$('#' + id).addClass("visible");
+
+	if (connected == true) {
+		document.getElementById(id).textContent = "connected to " +  document.getElementById("port").value
+		$('#' + id).addClass("alert-success");
+	} else {
+		document.getElementById(id).textContent = "unable to connect to " +  document.getElementById("port").value
+		$('#' + id).addClass("alert-danger");
 	}
 }
 
@@ -181,7 +206,7 @@ function Save() {
 }
 
 function startDataframeLoop() {
-	dataframeLoop = setInterval(getDataframe, 1000);
+	dataframeLoop = setInterval(getDataframe, ecuQueryInterval);
 }
 
 function stopDataframeLoop() {
@@ -189,11 +214,8 @@ function stopDataframeLoop() {
 }
 
 function getDataframe() {
-	paused = false;
-	if (!paused) {
-		var msg = formatSocketMessage("command", "dataframe");
-		sendSocketMessage(msg);
-	}
+	var msg = formatSocketMessage("command", "dataframe");
+	sendSocketMessage(msg);
 }
 
 function updateLEDs(data) {
