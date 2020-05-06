@@ -11,6 +11,7 @@ The application connects using the serial interface and supports the serial FTDI
 ## Stable Releases
 [![Download MEMS Fault Code Reader and Analyser](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/memsfcr/files/latest/download)
 
+## Development Builds
 [Download MemsFCR (Mac 10.15+)](https://github.com/andrewdjackson/memsfcr/raw/master/dist/MemsFCR.dmg)
 * Open the DMG and drag the icon to Applications
 * You will need to Security in System Preferences and choose Open Anyway when you first start the application
