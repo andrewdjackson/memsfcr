@@ -8,9 +8,13 @@ The data can be logged to a CSV file for easy analysis using Excel or Google She
 The Make file supports building on Mac and Windows, although I have included pre-build binaries for Windows (64bit) and MacOS.
 The application connects using the serial interface and supports the serial FTDI cables you can purchase for the Android MemsDiag application. Instructions on how to create this cable or alternatively build a bluetooth wireless interface are also included.
 
-[Download MacOS MemsFCR](https://github.com/andrewdjackson/memsfcr/raw/master/dist/MacOS-MemsFCR.zip)
+[Download MemsFCR (Mac 10.15+)](https://github.com/andrewdjackson/memsfcr/raw/master/dist/MemsFCR.dmg)
+* Open the DMG and drag the icon to Applications
+* You will need to Security in System Preferences and choose Open Anyway when you first start the application
 
 [Download Windows MemFCR](https://github.com/andrewdjackson/memsfcr/raw/master/dist/Windows-MemsFCR.zip)
+* Unzip the application and packaged DLL
+* Run the EXE
 
 ### The Dashboard
 ![Dashboard](./resources/screenshots/dashboard.png)
