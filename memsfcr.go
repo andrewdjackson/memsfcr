@@ -13,8 +13,9 @@ import (
 
 // MemsReader structure
 type MemsReader struct {
-	wi  *ui.WebInterface
-	fcr *ui.MemsFCR
+	wi         *ui.WebInterface
+	fcr        *ui.MemsFCR
+	dataLogger *rosco.MemsDataLogger
 }
 
 // NewMemsReader creates an instance of a MEMs Reader
@@ -30,6 +31,9 @@ func NewMemsReader() *MemsReader {
 	// create and run the web interfacce
 	r.wi = ui.NewWebInterface()
 	utils.LogI.Printf("running web server %d", r.wi.HTTPPort)
+
+	// create the data logger
+	r.dataLogger = rosco.NewMemsDataLogger(r.fcr.Config.LogFolder)
 
 	return r
 }
@@ -48,8 +52,10 @@ func (r *MemsReader) webMainLoop() {
 		utils.LogI.Printf("evaluated action (%v) as %d", action.Msg, action.Value)
 
 		switch action.Value {
+
 		case ui.ConfigRead:
 			r.sendConfigToWebView()
+
 		case ui.Save:
 			cfg := rosco.ReadmemsConfig{}
 			json.Unmarshal([]byte(m.Data), &cfg)
@@ -58,7 +64,12 @@ func (r *MemsReader) webMainLoop() {
 
 			r.fcr.Config.Port = cfg.Port
 			r.fcr.Config.LogFolder = cfg.LogFolder
-			r.fcr.Config.Output = cfg.Output
+			r.fcr.Config.LogToFile = cfg.LogToFile
+
+			if r.fcr.Config.LogToFile == "true" {
+				r.fcr.Logging = false
+			}
+
 			rosco.WriteConfig(r.fcr.Config)
 
 		case ui.ConnectECU:
@@ -70,36 +81,49 @@ func (r *MemsReader) webMainLoop() {
 
 		case ui.Dataframe:
 			go r.fcr.TxECU(rosco.MEMSDataFrame)
+
 		case ui.PauseDataLoop:
 			{
 				//paused = true
 				utils.LogI.Printf("Paused Data Loop, sending heartbeats to keep connection alive")
 			}
+
 		case ui.StartDataLoop:
 			{
 				//paused = false
 				utils.LogI.Printf("Resuming Data Loop")
 			}
+
 		case ui.ResetECU:
 			go r.fcr.TxECU(rosco.MEMSResetECU)
+
 		case ui.ClearFaults:
 			go r.fcr.TxECU(rosco.MEMSClearFaults)
+
 		case ui.ResetAdjustments:
 			go r.fcr.TxECU(rosco.MEMSResetAdj)
+
 		case ui.IncreaseIdleSpeed:
 			go r.fcr.TxECU(rosco.MEMSIdleSpeedIncrement)
+
 		case ui.IncreaseIdleHot:
 			go r.fcr.TxECU(rosco.MEMSIdleDecayIncrement)
+
 		case ui.IncreaseFuelTrim:
 			go r.fcr.TxECU(rosco.MEMSLTFTIncrement)
+
 		case ui.IncreaseIgnitionAdvance:
 			go r.fcr.TxECU(rosco.MEMSIgnitionAdvanceOffsetIncrement)
+
 		case ui.DecreaseIdleSpeed:
 			go r.fcr.TxECU(rosco.MEMSIdleSpeedDecrement)
+
 		case ui.DecreaseIdleHot:
 			go r.fcr.TxECU(rosco.MEMSIdleDecayDecrement)
+
 		case ui.DecreaseFuelTrim:
 			go r.fcr.TxECU(rosco.MEMSLTFTDecrement)
+
 		case ui.DecreaseIgnitionAdvance:
 			go r.fcr.TxECU(rosco.MEMSIgnitionAdvanceOffsetDecrement)
 
@@ -149,6 +173,10 @@ func (r *MemsReader) fcrMainLoop() {
 			// dataframe command
 			df.Action = ui.WebActionData
 			data, _ = json.Marshal(m.MemsDataFrame)
+			if r.fcr.Logging {
+				// write data to log file
+				r.dataLogger.WriteMemsDataToFile(m.MemsDataFrame)
+			}
 		} else {
 			df.Action = ui.WebActionECUResponse
 			data, _ = json.Marshal(m.Response)

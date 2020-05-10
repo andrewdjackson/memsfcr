@@ -13,25 +13,24 @@ import (
 // ReadmemsConfig readmems configuration
 type ReadmemsConfig struct {
 	// Config
-	Port       string
-	Command    string
-	Output     string
-	LogFolder  string
-	Loop       string
-	Connection string
-	Ports      []string
+	Port      string
+	LogToFile string
+	LogFolder string
+	Loop      string
+	Ports     []string
 }
 
 var config ReadmemsConfig
+var homeFolder string
+var appFolder string
+var logFolder string
 
 // NewConfig creates a new instance of readmems config
 func NewConfig() *ReadmemsConfig {
-	config.Port = "ttycodereader"
-	config.Command = "read"
-	config.Loop = "inf"
-	config.Output = "stdout"
-	config.Connection = "wait"
-	config.LogFolder = "./logs"
+	config.Port = "/dev/tty.serial"
+	config.LogFolder = ""
+	config.LogToFile = "true"
+	config.Loop = "100000000"
 
 	return &config
 }
@@ -47,14 +46,14 @@ func createFolder(path string) {
 	}
 }
 
-func createDataFolders(home string) string {
-	appFolder := fmt.Sprintf("%s/memsfcr", home)
+func createDataFolders(home string) {
+	homeFolder, _ = homedir.Dir()
+
+	appFolder = fmt.Sprintf("%s/memsfcr", homeFolder)
 	createFolder(appFolder)
 
-	logFolder := fmt.Sprintf("%s/logs", appFolder)
+	logFolder = fmt.Sprintf("%s/logs", appFolder)
 	createFolder(logFolder)
-
-	return appFolder
 }
 
 // reads a whole file into memory and returns a slice of its lines.
@@ -78,10 +77,8 @@ func readLines(path string) ([]string, error) {
 
 // WriteConfig write the config file
 func WriteConfig(c *ReadmemsConfig) {
-	home, _ := homedir.Dir()
-
 	// create the folders if they don't exist
-	appFolder := createDataFolders(home)
+	createDataFolders(homeFolder)
 
 	filename := fmt.Sprintf("%s/memsfcr.cfg", appFolder)
 
@@ -93,11 +90,9 @@ func WriteConfig(c *ReadmemsConfig) {
 	}
 
 	cfg.Section("").Key("port").SetValue(c.Port)
-	cfg.Section("").Key("command").SetValue(c.Command)
 	cfg.Section("").Key("loop").SetValue(c.Loop)
-	cfg.Section("").Key("output").SetValue(c.Output)
+	cfg.Section("").Key("logtofile").SetValue(c.LogToFile)
 	cfg.Section("").Key("logfolder").SetValue(c.LogFolder)
-	cfg.Section("").Key("connection").SetValue(c.Connection)
 
 	err = cfg.SaveTo(filename)
 
@@ -110,13 +105,13 @@ func WriteConfig(c *ReadmemsConfig) {
 
 // ReadConfig readsthe config file
 func ReadConfig() *ReadmemsConfig {
-	folder, _ := homedir.Dir()
-	appFolder := fmt.Sprintf("%s/memsfcr", folder)
+	// create the folders if they don't exist
+	createDataFolders(homeFolder)
 
 	filename := fmt.Sprintf("%s/memsfcr.cfg", appFolder)
 
 	c := NewConfig()
-	c.LogFolder = fmt.Sprintf("%s/logs", appFolder)
+	c.LogFolder = logFolder
 
 	cfg, err := ini.Load(filename)
 	if err != nil {
@@ -128,11 +123,9 @@ func ReadConfig() *ReadmemsConfig {
 	}
 
 	c.Port = cfg.Section("").Key("port").String()
-	c.Command = cfg.Section("").Key("command").String()
 	c.Loop = cfg.Section("").Key("loop").String()
-	c.Output = cfg.Section("").Key("output").String()
+	c.LogToFile = cfg.Section("").Key("logtofile").String()
 	c.LogFolder = cfg.Section("").Key("logfolder").String()
-	c.Connection = cfg.Section("").Key("connection").String()
 
 	utils.LogI.Println("MemsFCR Config", c)
 	return c

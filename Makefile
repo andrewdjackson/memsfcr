@@ -15,7 +15,7 @@ VERSION=$(shell git describe --tags --always --long --dirty)
 
 all: build
 
-build: darwin windows   ## Build binaries
+build: darwin   ## Build binaries
 	@echo version: $(VERSION)
 
 darwin: $(DARWIN) buildapp ## Build for Darwin (macOS 10.15+)

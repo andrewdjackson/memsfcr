@@ -11,14 +11,16 @@ import (
 
 // MemsDataLogger logs the mems data to a CSV file
 type MemsDataLogger struct {
-	Filename string
-	Logfile  *os.File
-	IsOpen   bool
+	logFolder string
+	Filename  string
+	logfile   *os.File
+	isOpen    bool
 }
 
 // NewMemsDataLogger logs the mems data to a CSV file
-func NewMemsDataLogger() *MemsDataLogger {
+func NewMemsDataLogger(folder string) *MemsDataLogger {
 	logger := &MemsDataLogger{}
+	logger.logFolder = folder
 	logger.setFilename()
 
 	// check if this is a new file
@@ -43,7 +45,7 @@ func (logger *MemsDataLogger) WriteMemsDataToFile(memsdata MemsData) {
 func (logger *MemsDataLogger) setFilename() {
 	currentTime := time.Now()
 
-	filename := fmt.Sprintf("logs/%s.csv", currentTime.Format("2006-01-02 15:04:05"))
+	filename := fmt.Sprintf("%s/%s.csv", logger.logFolder, currentTime.Format("2006-01-02 15:04:05"))
 	filename = strings.ReplaceAll(filename, ":", "")
 	filename = strings.ReplaceAll(filename, " ", "-")
 
@@ -71,13 +73,13 @@ func (logger *MemsDataLogger) openFile() {
 	var err error
 
 	utils.LogI.Printf("opening log file '%s'", logger.Filename)
-	logger.Logfile, err = os.OpenFile(logger.Filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+	logger.logfile, err = os.OpenFile(logger.Filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 
 	if err != nil {
 		utils.LogE.Printf("%s", err)
-		logger.IsOpen = false
+		logger.isOpen = false
 	} else {
-		logger.IsOpen = true
+		logger.isOpen = true
 	}
 }
 
@@ -86,14 +88,14 @@ func (logger *MemsDataLogger) openFile() {
 func (logger *MemsDataLogger) writeToFile(data string) error {
 	var err error
 
-	if _, err = logger.Logfile.WriteString(data); err != nil {
+	if _, err = logger.logfile.WriteString(data); err != nil {
 		utils.LogE.Printf("%s", err)
 		return err
 	}
 
 	utils.LogI.Printf("%s", data)
 
-	return logger.Logfile.Sync()
+	return logger.logfile.Sync()
 }
 
 func (logger *MemsDataLogger) writeCSVHeader() {
@@ -103,7 +105,7 @@ func (logger *MemsDataLogger) writeCSVHeader() {
 		"80x19_crankshaft_position_sensor,80x1A_uk4,80x1B_uk5," +
 		"7dx01_ignition_switch,7dx02_throttle_angle,7dx03_uk6,7dx04_air_fuel_ratio,7dx05_dtc2,7dx06_lambda_voltage,7dx07_lambda_sensor_frequency,7dx08_lambda_sensor_dutycycle,7dx09_lambda_sensor_status,7dx0A_closed_loop," +
 		"7dx0B_long_term_fuel_trim,7dx0C_short_term_fuel_trim,7dx0D_carbon_canister_dutycycle,7dx0E_dtc3,7dx0F_idle_base_pos,7dx10_uk7,7dx11_dtc4,7dx12_ignition_advance2,7dx13_idle_speed_offset,7dx14_idle_error2," +
-		"7dx14-15_uk10,7dx16_dtc5,7dx17_uk11,7dx18_uk12,7dx19_uk13,7dx1A_uk14,7dx1B_uk15,7dx1C_uk16,7dx1D_uk17,7dx1E_uk18,7dx1F_uk19\n"
+		"7dx14-15_uk10,7dx16_dtc5,7dx17_uk11,7dx18_uk12,7dx19_uk13,7dx1A_uk14,7dx1B_uk15,7dx1C_uk16,7dx1D_uk17,7dx1E_uk18,7dx1F_uk19,0x7d_raw,0x80_raw\n"
 
 	s := fmt.Sprintf("%s", header)
 	logger.writeToFile(s)
@@ -116,7 +118,8 @@ func (logger *MemsDataLogger) writeCSVData(data MemsData) {
 		"%t,%d,%d,"+
 		"%t,%d,%d,%d,%d,%d,%d,%d,%d,%t,"+
 		"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,"+
-		"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+		"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,"+
+		"%s,%s\n",
 		data.Time,
 		data.EngineRPM,
 		data.CoolantTemp,
@@ -171,7 +174,9 @@ func (logger *MemsDataLogger) writeCSVData(data MemsData) {
 		data.Uk7d1c,
 		data.Uk7d1d,
 		data.Uk7d1e,
-		data.JackCount)
+		data.JackCount,
+		data.Dataframe7d,
+		data.Dataframe80)
 
 	logger.writeToFile(s)
 }

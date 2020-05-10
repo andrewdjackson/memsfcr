@@ -36,7 +36,7 @@ func NewMemsFCR() *MemsFCR {
 	memsfcr.ECUSendToFCR = make(chan rosco.MemsCommandResponse)
 
 	memsfcr.Paused = false
-	memsfcr.Logging = false
+	memsfcr.Logging = true
 
 	// read and apply the configuration
 	memsfcr.readConfig()
@@ -51,6 +51,10 @@ func (memsfcr *MemsFCR) readConfig() {
 	if memsfcr.Config.Loop == "inf" {
 		// infitite loop, so set loop count to a very big number
 		memsfcr.Config.Loop = "100000000"
+	}
+
+	if memsfcr.Config.LogToFile == "true" {
+		memsfcr.Logging = true
 	}
 
 	// get the list of ports available
