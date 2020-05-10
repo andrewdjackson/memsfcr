@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"log"
 	"path/filepath"
 	"runtime"
@@ -48,6 +49,8 @@ func (f LogWriter) Write(p []byte) (n int, err error) {
 		fnName = strings.TrimLeft(dotName, ".") + "()"
 	}
 
-	log.Printf("%s\r \u001b[38;5;38m↵ %s: %d %s\u001b[0m", p, filepath.Base(file), line, fnName)
+	logEntry := fmt.Sprintf("%s\r \u001b[38;5;38m↵ %s: %d %s\u001b[0m", p, filepath.Base(file), line, fnName)
+	log.Printf("%s", logEntry)
+
 	return len(p), nil
 }

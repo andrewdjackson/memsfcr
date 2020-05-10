@@ -32,9 +32,6 @@ func NewMemsReader() *MemsReader {
 	r.wi = ui.NewWebInterface()
 	utils.LogI.Printf("running web server %d", r.wi.HTTPPort)
 
-	// create the data logger
-	r.dataLogger = rosco.NewMemsDataLogger(r.fcr.Config.LogFolder)
-
 	return r
 }
 
@@ -160,6 +157,9 @@ func (r *MemsReader) sendConnectionStatusToWebView() {
 
 func (r *MemsReader) fcrMainLoop() {
 	var data []byte
+
+	// create the data logger
+	r.dataLogger = rosco.NewMemsDataLogger(r.fcr.Config.LogFolder)
 
 	// busy clearing channels
 	for {

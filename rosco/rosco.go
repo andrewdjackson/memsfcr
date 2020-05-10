@@ -9,7 +9,8 @@ import (
 	"time"
 
 	"github.com/andrewdjackson/memsfcr/utils"
-	"github.com/tarm/serial"
+	//"github.com/tarm/serial"
+	"go.bug.st/serial.v1"
 )
 
 // MemsCommandResponse communication pair
@@ -22,7 +23,7 @@ type MemsCommandResponse struct {
 // MemsConnection communtication structure for MEMS
 type MemsConnection struct {
 	// SerialPort the serial connection
-	SerialPort  *serial.Port
+	SerialPort  serial.Port
 	portReader  *bufio.Reader
 	ECUID       []byte
 	command     []byte
@@ -79,12 +80,24 @@ func (mems *MemsConnection) ConnectAndInitialiseECU(port string) {
 
 // connect to MEMS via serial port
 func (mems *MemsConnection) connect(port string) {
+	// go.bug.st/serial.v1
+	mode := &serial.Mode{
+		BaudRate: 9600,
+		Parity:   serial.NoParity,
+		DataBits: 8,
+		StopBits: serial.OneStopBit,
+	}
+
+	s, err := serial.Open(port, mode)
+
 	// connect to the ecu
-	c := &serial.Config{Name: port, Baud: 9600}
+	/*
+		c := &serial.Config{Name: port, Baud: 9600}
 
-	utils.LogI.Println("opening ", port)
+		utils.LogI.Println("opening ", port)
 
-	s, err := serial.OpenPort(c)
+		s, err := serial.OpenPort(c)
+	*/
 
 	if s == nil {
 		utils.LogE.Printf("error opening port (%s)", err)
@@ -94,7 +107,7 @@ func (mems *MemsConnection) connect(port string) {
 		utils.LogI.Println("connected to ", port)
 
 		mems.SerialPort = s
-		mems.SerialPort.Flush()
+		//mems.SerialPort.Flush()
 
 		mems.Connected = true
 	}
@@ -117,7 +130,7 @@ func (mems *MemsConnection) isCommandEcho() bool {
 //
 func (mems *MemsConnection) initialise() {
 	if mems.SerialPort != nil {
-		mems.SerialPort.Flush()
+		//mems.SerialPort.Flush()
 
 		mems.writeSerial(MEMSInitCommandA)
 		mems.readSerial()
