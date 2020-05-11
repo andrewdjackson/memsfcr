@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 
@@ -178,8 +179,10 @@ func (r *MemsReader) fcrMainLoop() {
 				r.dataLogger.WriteMemsDataToFile(m.MemsDataFrame)
 			}
 		} else {
+			// send the response from the ECU to the web interface
 			df.Action = ui.WebActionECUResponse
-			data, _ = json.Marshal(m.Response)
+			ecuResponse := hex.EncodeToString(m.Response)
+			data, _ = json.Marshal(ecuResponse)
 		}
 
 		df.Data = string(data)
