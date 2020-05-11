@@ -4,17 +4,28 @@ var maxLambda = false;
 var minIAC = false;
 var dataframeLoop;
 
+// web actions over the websocket protocol
 const WebActionSave = "save";
 const WebActionConfig = "config";
 const WebActionConnection = "connection";
 const WebActionData = "data";
 const WebActionResponse = "response"
 
+// duration in milliseconds between calls to the ECU for
+// dataframes. the ECU will struggle to respond with a 
+// value less than 450ms
 const ECUQueryInterval = 900
 
+// LED statuses 
 const LEDFault = "fault"
 const LEDStatus = "status"
 const LEDWarning = "warning"
+
+// chart labels - must match id's used in the html
+const ChartRPM = "rpmchart"
+const ChartLambda = "lambdachart"
+const ChartLoopIndicator = "loopchart"
+const ChartCoolant = "coolantchart"
 
 window.onload = function() {
     wsuri = window.location.href.split("/").slice(0, 3).join("/");
@@ -48,10 +59,10 @@ window.onload = function() {
     gaugeFuelTrim.draw();
     gaugeIgnition.draw();
 
-    rpmChart = createChart("rpmchart", "Engine RPM", 850, 1200);
-    lambdaChart = createChart("lambdachart", "Lambda Voltage (mV)");
-    loopChart = createChart("loopchart", "Loop Indicator");
-    coolantChart = createChart("coolantchart", "Coolant Temp (°C)", 80, 105);
+    rpmChart = createChart(ChartRPM, "Engine RPM", 850, 1200);
+    lambdaChart = createChart(ChartLambda, "Lambda Voltage (mV)");
+    loopChart = createChart(ChartLoopIndicator, "Loop Indicator");
+    coolantChart = createChart(ChartCoolant, "Coolant Temp (°C)", 80, 105);
 
     $("#connectECUbtn").click(this.connectECU);
 };
