@@ -9,8 +9,7 @@ import (
 	"time"
 
 	"github.com/andrewdjackson/memsfcr/utils"
-	//"github.com/tarm/serial"
-	"go.bug.st/serial.v1"
+	"github.com/tarm/serial"
 )
 
 // MemsCommandResponse communication pair
@@ -23,7 +22,7 @@ type MemsCommandResponse struct {
 // MemsConnection communtication structure for MEMS
 type MemsConnection struct {
 	// SerialPort the serial connection
-	SerialPort  serial.Port
+	SerialPort  *serial.Port
 	portReader  *bufio.Reader
 	ECUID       []byte
 	command     []byte
@@ -54,6 +53,7 @@ func init() {
 	responseMap["d0"] = []byte{0xD0, 0x99, 0x00, 0x03, 0x03}
 
 	// generic response, expect command and single byte response
+	responseMap["0f"] = []byte{0x0f, 0x00}
 	responseMap["00"] = []byte{0x00, 0x00}
 }
 
@@ -80,24 +80,13 @@ func (mems *MemsConnection) ConnectAndInitialiseECU(port string) {
 
 // connect to MEMS via serial port
 func (mems *MemsConnection) connect(port string) {
-	// go.bug.st/serial.v1
-	mode := &serial.Mode{
-		BaudRate: 9600,
-		Parity:   serial.NoParity,
-		DataBits: 8,
-		StopBits: serial.OneStopBit,
-	}
 
-	s, err := serial.Open(port, mode)
+	// connect to the ecu, timeout if we don't get data after a couple of seconds
+	c := &serial.Config{Name: port, Baud: 9600, ReadTimeout: time.Second * 2}
 
-	// connect to the ecu
-	/*
-		c := &serial.Config{Name: port, Baud: 9600}
+	utils.LogI.Println("opening ", port)
 
-		utils.LogI.Println("opening ", port)
-
-		s, err := serial.OpenPort(c)
-	*/
+	s, err := serial.OpenPort(c)
 
 	if s == nil {
 		utils.LogE.Printf("error opening port (%s)", err)
@@ -105,10 +94,7 @@ func (mems *MemsConnection) connect(port string) {
 		mems.Initialised = false
 	} else {
 		utils.LogI.Println("connected to ", port)
-
 		mems.SerialPort = s
-		//mems.SerialPort.Flush()
-
 		mems.Connected = true
 	}
 }
@@ -130,7 +116,7 @@ func (mems *MemsConnection) isCommandEcho() bool {
 //
 func (mems *MemsConnection) initialise() {
 	if mems.SerialPort != nil {
-		//mems.SerialPort.Flush()
+		mems.SerialPort.Flush()
 
 		mems.writeSerial(MEMSInitCommandA)
 		mems.readSerial()
@@ -157,7 +143,7 @@ func (mems *MemsConnection) readSerial() []byte {
 	size := mems.getResponseSize(mems.command)
 
 	// serial read buffer
-	b := make([]byte, 100)
+	b := make([]byte, size)
 
 	//  data frame buffer
 	data := make([]byte, 0)
@@ -169,7 +155,11 @@ func (mems *MemsConnection) readSerial() []byte {
 			n, e = mems.SerialPort.Read(b)
 
 			if e != nil {
-				utils.LogW.Printf("serial port read error %s", e)
+				utils.LogW.Printf("serial port read error %s, timeout?", e)
+				// drop out of loop, send back a 0x00 byte array response
+				// this prevents the loop getting blocked on a read error
+				count = size
+				data = append(data, b...)
 			} else {
 				// append the read bytes to the data frame
 				data = append(data, b[:n]...)
