@@ -8,7 +8,13 @@ const WebActionSave = "save";
 const WebActionConfig = "config";
 const WebActionConnection = "connection";
 const WebActionData = "data";
-const ecuQueryInterval = 900
+const WebActionResponse = "response"
+
+const ECUQueryInterval = 900
+
+const LEDFault = "fault"
+const LEDStatus = "status"
+const LEDWarning = "warning"
 
 window.onload = function() {
     wsuri = window.location.href.split("/").slice(0, 3).join("/");
@@ -66,7 +72,13 @@ function parseMessage(m) {
         updateConnected(data.Initialised);
     }
 
+    if (msg.action == WebActionResponse) {
+        enableAllButtons()
+    }
+
     if (msg.action == WebActionData) {
+        enableAllButtons()
+
         console.log(data);
 
         //memsdata = computeMemsData(data)
@@ -148,7 +160,7 @@ function updateConnected(connected) {
     setConnectionStatusMessage(connected)
 
     if (connected) {
-        setStatusLED(true, "ecudata", "status");
+        setStatusLED(true, "ecudata", LEDStatus);
 
         // change the button operation to pause the data loop
         setConnectButtonStyle(
@@ -158,16 +170,27 @@ function updateConnected(connected) {
         );
 
         // enable all buttons
-        $(":button").prop("disabled", false);
+        enableAllButtons()
+
         // start the dataframe command loop
         startDataframeLoop();
     } else {
-        setStatusLED(true, "ecudata", "fault");
+        setStatusLED(true, "ecudata", LEDFault);
 
         // enable connect button
         setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connect", "btn-outline-success", connectECU);
         $("#connectECUbtn").prop("disabled", false);
     }
+}
+
+function disableAllButtons() {
+       // disable all buttons
+       $(":button").prop("disabled", true);
+}
+
+function enableAllButtons() {
+       // enable all buttons
+       $(":button").prop("disabled", false);
 }
 
 function setConnectionStatusMessage(connected) {
@@ -206,7 +229,7 @@ function Save() {
 }
 
 function startDataframeLoop() {
-    dataframeLoop = setInterval(getDataframe, ecuQueryInterval);
+    dataframeLoop = setInterval(getDataframe, ECUQueryInterval);
 }
 
 function stopDataframeLoop() {
@@ -214,22 +237,24 @@ function stopDataframeLoop() {
 }
 
 function getDataframe() {
+    disableAllButtons()
+
     var msg = formatSocketMessage("command", "dataframe");
     sendSocketMessage(msg);
 }
 
 function updateLEDs(data) {
     if (data.DTC0 != 0 && data.DTC1 != 0 && data.DTC2 != 0) {
-        setStatusLED(true, "ecufault", "fault");
-        setStatusLED(data.CoolantTempSensorFault, "coolantfault", "fault");
-        setStatusLED(data.AirIntakeTempSensorFault, "airfault", "fault");
-        setStatusLED(data.ThrottlePotCircuitFault, "throttleault", "fault");
-        setStatusLED(data.FuelPumpCircuitFault, "fuelfault", "fault");
+        setStatusLED(true, "ecufault", LEDFault);
+        setStatusLED(data.CoolantTempSensorFault, "coolantfault", LEDFault);
+        setStatusLED(data.AirIntakeTempSensorFault, "airfault", LEDFault);
+        setStatusLED(data.ThrottlePotCircuitFault, "throttlefault", LEDFault);
+        setStatusLED(data.FuelPumpCircuitFault, "fuelfault", LEDFault);
     }
 
-    setStatusLED(data.ClosedLoop, "closedloop", "status");
-    setStatusLED(data.IdleSwitch, "idleswitch", "status");
-    setStatusLED(data.ParkNeutralSwitch, "parkswitch", "status");
+    setStatusLED(data.ClosedLoop, "closedloop", LEDStatus);
+    setStatusLED(data.IdleSwitch, "idleswitch", LEDStatus);
+    setStatusLED(data.ParkNeutralSwitch, "parkswitch", LEDStatus);
 
     // derived warnings
     if (data.IACPosition == 0 && data.IdleError >= 50 && data.IdleSwitch == false) {
@@ -255,25 +280,25 @@ function updateLEDs(data) {
         // this must be evaluated before we set the maxLamda warning to ensure
         // we have at least one occurence first
         if (maxLambda && data.LambdaVoltage >= 900) {
-            setStatusLED(true, "lambdahighfault", "fault");
+            setStatusLED(true, "lambdahighfault", LEDFault);
         }
         if (data.LambdaVoltage >= 900) {
             maxLambda = true;
         }
     }
 
-    setStatusLED(data.Uk7d03 == 1, "rpmsensor", "warning");
-    setStatusLED(minLambda, "lambdalow", "warning");
-    setStatusLED(maxLambda, "lambdahigh", "warning");
-    setStatusLED(minIAC, "iaclow", "warning");
+    setStatusLED(data.Uk7d03 == 1, "rpmsensor", LEDWarning);
+    setStatusLED(minLambda, "lambdalow", LEDWarning);
+    setStatusLED(maxLambda, "lambdahigh", LEDWarning);
+    setStatusLED(minIAC, "iaclow", LEDWarning);
 }
 
-function setStatusLED(status, id, statustype = "status") {
+function setStatusLED(status, id, statustype = LEDStatus) {
     led = "green";
 
-    if (statustype == "warning") led = "yellow";
+    if (statustype == LEDWarning) led = "yellow";
 
-    if (statustype == "fault") led = "red";
+    if (statustype == LEDFault) led = "red";
 
     console.log(id + " : " + status);
 
@@ -296,11 +321,15 @@ function setStatusLED(status, id, statustype = "status") {
 }
 
 function increase(id) {
+    disableAllButtons()
+
     var msg = formatSocketMessage("increase", id);
     sendSocketMessage(msg);
 }
 
 function decrease(id) {
+    disableAllButtons()
+
     var msg = formatSocketMessage("decrease", id);
     sendSocketMessage(msg);
 }
@@ -351,8 +380,9 @@ function connectECU() {
 
     // show connecting
     setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connecting..", "btn-warning", connectECU);
+
     // disable all buttons
-    $(":button").prop("disabled", true);
+    disableAllButtons()
 }
 
 function readConfig() {
@@ -361,16 +391,22 @@ function readConfig() {
 }
 
 function resetECU() {
+    disableAllButtons()
+
     var msg = formatSocketMessage("command", "resetecu");
     sendSocketMessage(msg);
 }
 
 function resetAdj() {
+    disableAllButtons()
+
     var msg = formatSocketMessage("command", "resetadj");
     sendSocketMessage(msg);
 }
 
 function clearFaultCodes() {
+    disableAllButtons()
+
     var msg = formatSocketMessage("command", "clearfaults");
     sendSocketMessage(msg);
 }
