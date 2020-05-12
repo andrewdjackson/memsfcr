@@ -72,11 +72,14 @@ const ChartLambda = "lambdachart"
 const ChartLoopIndicator = "loopchart"
 const ChartCoolant = "coolantchart"
 
-
+// this function gets called as soon as the page load has completed
 window.onload = function() {
+    // get the url of the current page to build the websocket url
     wsuri = window.location.href.split("/").slice(0, 3).join("/");
     wsuri = wsuri.replace("http:", "ws:");
 
+    // open the websock and set up listeners for
+    // open, close and message events
     sock = new WebSocket(wsuri);
 
     sock.onopen = function() {
@@ -93,6 +96,7 @@ window.onload = function() {
         parseMessage(e.data);
     };
 
+    // draw the gauges
     gaugeRPM.draw();
     gaugeMap.draw();
     gaugeThrottlePos.draw();
@@ -105,18 +109,29 @@ window.onload = function() {
     gaugeFuelTrim.draw();
     gaugeIgnition.draw();
 
+    // create the profiling line charts
     rpmChart = createChart(ChartRPM, "Engine RPM", 850, 1200);
     lambdaChart = createChart(ChartLambda, "Lambda Voltage (mV)");
     loopChart = createChart(ChartLoopIndicator, "Loop Indicator");
     coolantChart = createChart(ChartCoolant, "Coolant Temp (°C)", 80, 105);
 
+    // wire the connect button to the relevant function
+    // we have to do this in javascript, so we can change the onclick
+    // event function programmatically
     $("#connectECUbtn").click(this.connectECU);
 };
 
+// parseMessage receives the websocket message as a json object
+// in general the ECU operates in a synchronous command / response model
+// as such once a command is sent, buttons are disabled until a response
+// has been received. The serial interface has a timeout of a couple seconds
+// so buttons may be disabled for this period of time if no response is
+// received.
 function parseMessage(m) {
     var msg = JSON.parse(m);
     var data = JSON.parse(msg.data);
 
+    // config received
     if (msg.action == WebActionConfig) {
         console.log(data);
         setPort(data.Port);
@@ -124,21 +139,23 @@ function parseMessage(m) {
         setLogToFile(data.LogToFile, data.LogFolder);
     }
 
+    // connection status message received
     if (msg.action == WebActionConnection) {
         connected = data.Connnected & data.Initialised;
         updateConnected(data.Initialised);
     }
 
+    // response received from a command sent to the ECU
     if (msg.action == WebActionResponse) {
         enableAllButtons()
     }
 
+    // new data received from the ECU, update the
+    // gauges, graphs and status indicators 
     if (msg.action == WebActionData) {
         enableAllButtons()
 
         console.log(data);
-
-        //memsdata = computeMemsData(data)
 
         updateGauges(data);
         updateLEDs(data);
@@ -146,33 +163,6 @@ function parseMessage(m) {
         updateDataFrameValues(data);
         updateAdjustmentValues(data);
     }
-}
-
-function computeMemsData(memsdata) {
-    var d = Object.create(memsdata);
-
-    // Dataframe 0x7d Compute Values
-    d.ThrottleAngle = ((memsdata.ThrottleAngle * 6) / 10).toFixed(2);
-    d.AirFuelRatio = (memsdata.AirFuelRatio / 10).toFixed(1);
-    d.LambdaVoltage = (memsdata.LambdaVoltage * 5).toFixed(1);
-    d.IgnitionAdvanceOffset7d = memsdata.IgnitionAdvanceOffset7d - 48;
-    d.IdleSpeedOffset = ((memsdata.IdleSpeedOffset - 128) * 25).toFixed(2);
-
-    // Dataframe 0x80 Compute Values
-    d.CoolantTemp = (memsdata.CoolantTemp - 55).toFixed(1);
-    d.AmbientTemp = (memsdata.AmbientTemp - 55).toFixed(1);
-    d.IntakeAirTemp = (memsdata.IntakeAirTemp - 55).toFixed(1);
-    d.FuelTemp = (memsdata.FuelTemp - 55).toFixed(1);
-    d.BatteryVoltage = (memsdata.BatteryVoltage / 10).toFixed(1);
-    d.ThrottlePotSensor = (memsdata.ThrottlePotSensor * 0.02).toFixed(2);
-    d.IACPosition = (memsdata.IACPosition / 1.8).toFixed(2);
-    d.IgnitionAdvance = (memsdata.IgnitionAdvance / 2 - 24).toFixed(2);
-    d.CoilTime = (memsdata.CoilTime * 0.002).toFixed(2);
-
-    // Additional Compute Values
-    d.FuelTrimCorrection = memsdata.ShortTermFuelTrim - 100;
-
-    return d;
 }
 
 function updateGauges(memsdata) {
@@ -269,6 +259,7 @@ function setConnectionStatusMessage(connected) {
     }
 }
 
+// save the configuration settings
 function Save() {
     folder = document.getElementById(SettingLogFolder).value;
     configPort = document.getElementById(SettingPort).value;
@@ -285,14 +276,18 @@ function Save() {
     sendSocketMessage(msg);
 }
 
+// startDataframeLoop configures a timer interval to make
+// a call to retieve the ECU dataframe
 function startDataframeLoop() {
     dataframeLoop = setInterval(getDataframe, ECUQueryInterval);
 }
 
+// stop the interval timer when paused
 function stopDataframeLoop() {
     clearInterval(dataframeLoop);
 }
 
+// make a request for a Dataframe from the ECU
 function getDataframe() {
     disableAllButtons()
 
