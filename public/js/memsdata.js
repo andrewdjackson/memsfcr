@@ -8,13 +8,58 @@ var dataframeLoop;
 const WebActionSave = "save";
 const WebActionConfig = "config";
 const WebActionConnection = "connection";
+const WebActionConnect = "connect"
 const WebActionData = "data";
+const WebActionCommand = "command"
 const WebActionResponse = "response"
+const WebActionIncrease = "increase"
+const WebActionDecrease = "decrease"
+
+// WebActionCommand commands
+const CommandStart = "start"
+const CommandPause = "pause"
+const CommandReadConfig = "read"
+const CommandResetECU = "resetecu"
+const CommandResetAdjustments = "resetadj"
+const CommandClearFaults = "clearfaults"
+const CommandDataFrame = "dataframe"
+
+// adjustments
+const AdjustmentIdleSpeed = "idlespeed"
+const AdjustmentIdleHot = "idlehot"
+const AdjustmentIgnitionAdvance = "ignitionadvance"
+const AdjustmentFuelTrim = "fueltrim"
+
+// settings
+const SettingLogFolder = "logfolder"
+const SettingLogToFile = "logtofile"
+const LogToFileEnabled = "true"
+const LogToFileDisabled = "false"
+const SettingPort = "port"
+const SettingPortList = "ports"
 
 // duration in milliseconds between calls to the ECU for
 // dataframes. the ECU will struggle to respond with a 
 // value less than 450ms
 const ECUQueryInterval = 900
+
+// Indicators and Labels
+const IndicatorConnectionMessage = "connectionMessage"
+const IndicatorECUConnected = "ecudata"
+const IndicatorECUFault = "ecufault"
+const IndicatorCoolantFault = "coolantfault"
+const IndicatorAirFault = "airfault"
+const IndicatorThrottleFault = "throttlefault"
+const IndicatorFuelFault = "fuelfault"
+const IndicatorClosedLoop = "closedloop"
+const IndicatorIdleSwitch = "idleswitch"
+const IndicatorParkSwitch = "parkswitch"
+const IndicatorLambdaLowFault = "lambdalowfault"
+const IndicatorLambdaHighFault = "lambdahighfault"
+const IndicatorLambdaLow = "lambdalow"
+const IndicatorLambdaHigh = "lambdahigh"
+const IndicatorRPMSensor = "rpmsensor"
+const IndicatorIACLow = "iaclow"
 
 // LED statuses 
 const LEDFault = "fault"
@@ -26,6 +71,7 @@ const ChartRPM = "rpmchart"
 const ChartLambda = "lambdachart"
 const ChartLoopIndicator = "loopchart"
 const ChartCoolant = "coolantchart"
+
 
 window.onload = function() {
     wsuri = window.location.href.split("/").slice(0, 3).join("/");
@@ -171,7 +217,7 @@ function updateConnected(connected) {
     setConnectionStatusMessage(connected)
 
     if (connected) {
-        setStatusLED(true, "ecudata", LEDStatus);
+        setStatusLED(true, IndicatorECUConnected, LEDStatus);
 
         // change the button operation to pause the data loop
         setConnectButtonStyle(
@@ -186,7 +232,7 @@ function updateConnected(connected) {
         // start the dataframe command loop
         startDataframeLoop();
     } else {
-        setStatusLED(true, "ecudata", LEDFault);
+        setStatusLED(true, IndicatorECUConnected, LEDFault);
 
         // enable connect button
         setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connect", "btn-outline-success", connectECU);
@@ -205,7 +251,7 @@ function enableAllButtons() {
 }
 
 function setConnectionStatusMessage(connected) {
-    id = "connectionMessage"
+    id = IndicatorConnectionMessage
 
     $('#' + id).removeClass("alert-light");
     $('#' + id).removeClass("alert-danger");
@@ -224,17 +270,17 @@ function setConnectionStatusMessage(connected) {
 }
 
 function Save() {
-    folder = document.getElementById("logfolder").value;
-    configPort = document.getElementById("port").value;
+    folder = document.getElementById(SettingLogFolder).value;
+    configPort = document.getElementById(SettingPort).value;
 
-    if (document.getElementById("logtofile").checked == true) {
-        logToFile = "true";
+    if (document.getElementById(SettingLogToFile).checked == true) {
+        logToFile = LogToFileEnabled;
     } else {
-        logToFile = "false";
+        logToFile = LogToFileDisabled;
     }
 
     var data = { Port: configPort, logFolder: folder, logtofile: logToFile };
-    var msg = formatSocketMessage("save", JSON.stringify(data));
+    var msg = formatSocketMessage(WebActionSave, JSON.stringify(data));
 
     sendSocketMessage(msg);
 }
@@ -250,22 +296,22 @@ function stopDataframeLoop() {
 function getDataframe() {
     disableAllButtons()
 
-    var msg = formatSocketMessage("command", "dataframe");
+    var msg = formatSocketMessage(WebActionCommand, CommandDataFrame);
     sendSocketMessage(msg);
 }
 
 function updateLEDs(data) {
     if (data.DTC0 != 0 && data.DTC1 != 0 && data.DTC2 != 0) {
-        setStatusLED(true, "ecufault", LEDFault);
-        setStatusLED(data.CoolantTempSensorFault, "coolantfault", LEDFault);
-        setStatusLED(data.AirIntakeTempSensorFault, "airfault", LEDFault);
-        setStatusLED(data.ThrottlePotCircuitFault, "throttlefault", LEDFault);
-        setStatusLED(data.FuelPumpCircuitFault, "fuelfault", LEDFault);
+        setStatusLED(true, IndicatorECUFault, LEDFault);
+        setStatusLED(data.CoolantTempSensorFault, IndicatorCoolantFault, LEDFault);
+        setStatusLED(data.AirIntakeTempSensorFault, IndicatorAirFault, LEDFault);
+        setStatusLED(data.ThrottlePotCircuitFault, IndicatorThrottleFault, LEDFault);
+        setStatusLED(data.FuelPumpCircuitFault, IndicatorFuelFault, LEDFault);
     }
-
-    setStatusLED(data.ClosedLoop, "closedloop", LEDStatus);
-    setStatusLED(data.IdleSwitch, "idleswitch", LEDStatus);
-    setStatusLED(data.ParkNeutralSwitch, "parkswitch", LEDStatus);
+    
+    setStatusLED(data.ClosedLoop, IndicatorClosedLoop, LEDStatus);
+    setStatusLED(data.IdleSwitch, IndicatorIdleSwitch, LEDStatus);
+    setStatusLED(data.ParkNeutralSwitch, IndicatorParkSwitch, LEDStatus);    
 
     // derived warnings
     if (data.IACPosition == 0 && data.IdleError >= 50 && data.IdleSwitch == false) {
@@ -280,7 +326,7 @@ function updateLEDs(data) {
         // this must be evaluated before we set the minLamda warning to ensure
         // we have at least one occurence first
         if (minLambda && data.LambdaVoltage <= 10) {
-            setStatusLED(true, "lambdalowfault", "fault");
+            setStatusLED(true, IndicatorLambdaLowFault, LEDFault);
         }
         if (data.LambdaVoltage <= 10) {
             minLambda = true;
@@ -291,17 +337,17 @@ function updateLEDs(data) {
         // this must be evaluated before we set the maxLamda warning to ensure
         // we have at least one occurence first
         if (maxLambda && data.LambdaVoltage >= 900) {
-            setStatusLED(true, "lambdahighfault", LEDFault);
+            setStatusLED(true, IndicatorLambdaHighFault, LEDFault);
         }
         if (data.LambdaVoltage >= 900) {
             maxLambda = true;
         }
     }
 
-    setStatusLED(data.Uk7d03 == 1, "rpmsensor", LEDWarning);
-    setStatusLED(minLambda, "lambdalow", LEDWarning);
-    setStatusLED(maxLambda, "lambdahigh", LEDWarning);
-    setStatusLED(minIAC, "iaclow", LEDWarning);
+    setStatusLED(data.Uk7d03 == 1, IndicatorRPMSensor, LEDWarning);
+    setStatusLED(minLambda, IndicatorLambdaLow, LEDWarning);
+    setStatusLED(maxLambda, IndicatorLambdaHigh, LEDWarning);
+    setStatusLED(minIAC, IndicatorIACLow, LEDWarning);
 }
 
 function setStatusLED(status, id, statustype = LEDStatus) {
@@ -334,22 +380,22 @@ function setStatusLED(status, id, statustype = LEDStatus) {
 function increase(id) {
     disableAllButtons()
 
-    var msg = formatSocketMessage("increase", id);
+    var msg = formatSocketMessage(WebActionIncrease, id);
     sendSocketMessage(msg);
 }
 
 function decrease(id) {
     disableAllButtons()
 
-    var msg = formatSocketMessage("decrease", id);
+    var msg = formatSocketMessage(WebActionDecrease, id);
     sendSocketMessage(msg);
 }
 
 function updateAdjustmentValues(memsdata) {
-    updateAdjustmentValue("idlespeed", memsdata.IdleSpeedOffset);
-    updateAdjustmentValue("idlehot", memsdata.IdleHot);
-    updateAdjustmentValue("ignitionadvance", memsdata.IgnitionAdvance);
-    updateAdjustmentValue("fueltrim", memsdata.LongTermFuelTrim);
+    updateAdjustmentValue(AdjustmentIdleSpeed, memsdata.IdleSpeedOffset);
+    updateAdjustmentValue(AdjustmentIdleHot, memsdata.IdleHot);
+    updateAdjustmentValue(AdjustmentIgnitionAdvance, memsdata.IgnitionAdvance);
+    updateAdjustmentValue(AdjustmentFuelTrim, memsdata.LongTermFuelTrim);
 }
 
 function updateAdjustmentValue(id, value) {
@@ -370,23 +416,23 @@ function selectPort(item) {
 }
 
 function setLogToFile(logsetting, logfolder) {
-    if (logsetting != "false") {
+    if (logsetting != LogToFileDisabled) {
         $("#logtofile").attr("checked", true);
     } else {
         $("#logtofile").attr("checked", false);
     }
 
-    document.getElementById("logfolder").value = logfolder;
+    document.getElementById(SettingLogFolder).value = logfolder;
 }
 
 function setPort(port) {
-    document.getElementById("port").value = port;
+    document.getElementById(SettingPort).value = port;
 }
 
 // Connect to the ECU
 function connectECU() {
-    var port = document.getElementById("port").value;
-    var msg = formatSocketMessage("connect", port);
+    var port = document.getElementById(SettingPort).value;
+    var msg = formatSocketMessage(WebActionConnect, port);
     sendSocketMessage(msg);
 
     // show connecting
@@ -397,34 +443,34 @@ function connectECU() {
 }
 
 function readConfig() {
-    var msg = formatSocketMessage("config", "read");
+    var msg = formatSocketMessage(WebActionConfig, CommandReadConfig);
     sendSocketMessage(msg);
 }
 
 function resetECU() {
     disableAllButtons()
 
-    var msg = formatSocketMessage("command", "resetecu");
+    var msg = formatSocketMessage(WebActionCommand, CommandResetECU);
     sendSocketMessage(msg);
 }
 
 function resetAdj() {
     disableAllButtons()
 
-    var msg = formatSocketMessage("command", "resetadj");
+    var msg = formatSocketMessage(WebActionCommand, CommandResetAdjustments);
     sendSocketMessage(msg);
 }
 
 function clearFaultCodes() {
     disableAllButtons()
 
-    var msg = formatSocketMessage("command", "clearfaults");
+    var msg = formatSocketMessage(WebActionCommand, CommandClearFaults);
     sendSocketMessage(msg);
 }
 
 // Pause the Data Loop
 function pauseECUDataLoop() {
-    var msg = formatSocketMessage("command", "pause");
+    var msg = formatSocketMessage(WebActionCommand, CommandPause);
     sendSocketMessage(msg);
 
     // change the button operation to restart the data loop
@@ -440,7 +486,7 @@ function pauseECUDataLoop() {
 
 // Restart the Data Loop
 function restartECUDataLoop() {
-    var msg = formatSocketMessage("command", "start");
+    var msg = formatSocketMessage(WebActionCommand, CommandStart);
     sendSocketMessage(msg);
 
     // change the button operation back to pause the data loop
@@ -472,11 +518,18 @@ function setConnectButtonStyle(name, style, f) {
     $(id).off().click(f);
 }
 
+// send the formatted message over the websocket
 function sendSocketMessage(msg) {
     console.log("sending socket message: " + msg);
     sock.send(msg);
 }
 
+// format messages to be sent over the websocket
+// in json format as:
+// {
+//    action: '<verb>'
+//    data: '<data payload'    
+// }
 function formatSocketMessage(a, d) {
     var msg = { action: a, data: d };
     return JSON.stringify(msg);
