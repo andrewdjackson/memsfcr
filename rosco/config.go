@@ -18,6 +18,7 @@ type ReadmemsConfig struct {
 	LogFolder string
 	Loop      string
 	Ports     []string
+	Debug     string
 }
 
 var config ReadmemsConfig
@@ -31,6 +32,7 @@ func NewConfig() *ReadmemsConfig {
 	config.LogFolder = ""
 	config.LogToFile = "true"
 	config.Loop = "100000000"
+	config.Debug = "false"
 
 	return &config
 }
@@ -93,6 +95,7 @@ func WriteConfig(c *ReadmemsConfig) {
 	cfg.Section("").Key("loop").SetValue(c.Loop)
 	cfg.Section("").Key("logtofile").SetValue(c.LogToFile)
 	cfg.Section("").Key("logfolder").SetValue(c.LogFolder)
+	cfg.Section("").Key("debug").SetValue(c.Debug)
 
 	err = cfg.SaveTo(filename)
 
@@ -126,6 +129,7 @@ func ReadConfig() *ReadmemsConfig {
 	c.Loop = cfg.Section("").Key("loop").String()
 	c.LogToFile = cfg.Section("").Key("logtofile").String()
 	c.LogFolder = cfg.Section("").Key("logfolder").String()
+	c.Debug = cfg.Section("").Key("debug").String()
 
 	utils.LogI.Println("MemsFCR Config", c)
 	return c

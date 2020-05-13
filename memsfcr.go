@@ -253,7 +253,7 @@ func main() {
 	// the backend application
 	go memsReader.wi.ListenToWebChannelLoop()
 
-	// display the web interface
+	// display the web interface, wait for the HTTP Server to start
 	for {
 		if memsReader.wi.ServerRunning {
 			break
@@ -261,5 +261,19 @@ func main() {
 	}
 
 	utils.LogI.Printf("starting webview.. (%v)", memsReader.wi.HTTPPort)
-	displayWebView(memsReader.wi, false)
+
+	// show the app in a local go webview window rather than in the web browser
+	showLocal := true
+
+	// use default browser on Windows until I can get the Webview to work
+	if runtime.GOOS == "windows" {
+		showLocal = false
+	}
+
+	// if debug enabled use the full browser
+	if memsReader.fcr.Config.Debug == "true" {
+		showLocal = false
+	}
+
+	displayWebView(memsReader.wi, showLocal)
 }
