@@ -78,7 +78,7 @@ func (wi *WebInterface) newRouter() *mux.Router {
 	// Create a file server which serves files out of the "./ui/static" directory.
 	// Note that the path given to the http.Dir function is relative to the project
 	// directory root.
-	fileServer := http.FileServer(http.Dir("./public"))
+	fileServer := http.FileServer(http.Dir(wi.httpDir))
 	r.Handle("/", fileServer)
 	r.PathPrefix("/").Handler(fileServer).Methods("GET")
 
