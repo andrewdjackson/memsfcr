@@ -34,7 +34,7 @@ type (
 		IgnitionSwitch           bool
 		ThrottleAngle            uint8
 		Uk7d03                   uint8
-		AirFuelRatio             uint8
+		AirFuelRatio             float32
 		DTC2                     uint8
 		LambdaVoltage            uint8
 		LambdaFrequency          uint8

@@ -116,7 +116,7 @@ func (logger *MemsDataLogger) writeCSVData(data MemsData) {
 		"%d,%d,%d,%d,%d,%f,%f,%f,%t,%t,"+
 		"%t,%d,%d,%d,%d,%d,%d,%d,%f,%f,"+
 		"%t,%d,%d,"+
-		"%t,%d,%d,%d,%d,%d,%d,%d,%d,%t,"+
+		"%t,%d,%d,%f,%d,%d,%d,%d,%d,%t,"+
 		"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,"+
 		"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,"+
 		"%s,%s\n",

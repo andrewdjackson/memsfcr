@@ -289,7 +289,7 @@ func (mems *MemsConnection) ReadMemsData() {
 		ThrottlePotCircuitFault:  df80.Dtc1&0x80 != 0,
 		IgnitionSwitch:           df7d.IgnitionSwitch != 0,
 		ThrottleAngle:            df7d.ThrottleAngle * 6 / 10,
-		AirFuelRatio:             df7d.AirFuelRatio / 10,
+		AirFuelRatio:             float32(df7d.AirFuelRatio / 10),
 		DTC2:                     df7d.Dtc2,
 		LambdaVoltage:            df7d.LambdaVoltage * 5,
 		LambdaFrequency:          df7d.LambdaFrequency,
