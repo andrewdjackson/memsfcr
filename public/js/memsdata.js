@@ -80,7 +80,7 @@ window.onload = function() {
 
     // open the websock and set up listeners for
     // open, close and message events
-    sock = new WebSocket(wsuri);
+    sock = new WebSocket(wsuri + "/ws");
 
     sock.onopen = function() {
         console.log("connected to " + wsuri);

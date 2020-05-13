@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"os/exec"
+	"runtime"
 
 	"github.com/andrewdjackson/memsfcr/rosco"
 	"github.com/andrewdjackson/memsfcr/ui"
@@ -194,23 +196,49 @@ func (r *MemsReader) fcrMainLoop() {
 	}
 }
 
+func openBrowser(url string) {
+	var err error
+
+	switch runtime.GOOS {
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	default:
+		err = fmt.Errorf("unsupported platform")
+	}
+
+	if err != nil {
+		utils.LogE.Printf("%s", err)
+	}
+
+	for {
+	}
+}
+
 // displayWebView creates a webview
 // this must be run in the main thread
-func displayWebView(wi *ui.WebInterface) {
-	w := webview.New(true)
-	defer w.Destroy()
+func displayWebView(wi *ui.WebInterface, localView bool) {
+	url := fmt.Sprintf("http://127.0.0.1:%d/index.html", wi.HTTPPort)
 
-	w.SetTitle("MEMS Fault Code Reader")
-	w.SetSize(1200, 1024, webview.HintNone)
+	if localView {
+		w := webview.New(true)
+		defer w.Destroy()
 
-	w.Bind("quit", func() {
-		w.Terminate()
-	})
+		w.SetTitle("MEMS Fault Code Reader")
+		w.SetSize(1200, 1024, webview.HintNone)
 
-	url := fmt.Sprintf("http://127.0.0.1:%d/public/html/index.html", wi.HTTPPort)
+		w.Bind("quit", func() {
+			w.Terminate()
+		})
 
-	w.Navigate(url)
-	w.Run()
+		w.Navigate(url)
+		w.Run()
+	} else {
+		openBrowser(url)
+	}
 }
 
 func main() {
@@ -226,5 +254,12 @@ func main() {
 	go memsReader.wi.ListenToWebChannelLoop()
 
 	// display the web interface
-	displayWebView(memsReader.wi)
+	for {
+		if memsReader.wi.ServerRunning {
+			break
+		}
+	}
+
+	utils.LogI.Printf("starting webview.. (%v)", memsReader.wi.HTTPPort)
+	displayWebView(memsReader.wi, false)
 }
