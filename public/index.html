@@ -1,8 +1,9 @@
-<html>
+<html lang="en" xml:lang="en">
 
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
+    <meta name="google" content="notranslate" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
@@ -52,7 +53,7 @@
                 <form class="form-inline my-2 my-lg-0">
                     <button class="btn btn-outline-success my-2 my-sm-0" id="connectECUbtn" type="button"><i class="fa fa-plug">&nbsp</i>Connect</button> &nbsp;
                     <div class="alert alert-light my-2 my-sm-0 invisible" role="alert" id="connectionMessage">
-                        
+
                     </div>
                 </form>
             </div>
@@ -459,47 +460,47 @@
             <div class="card mt-1">
                 <div class="card bg-light mb-3" style="border: none;">
                     <div class="card-body">
-                        <div class="row justify-content-center mb-3">  
-                        <button type="button" class="btn btn-danger mb-3" onclick="resetECU();"><i class="fa fa-exclamation-triangle">&nbsp</i>Reset ECU</button>
-                        <div class="mb-3 col-mb-1">&nbsp;</div>
-                        <button type="button" class="btn btn-warning mb-3" onclick="resetAdj();"><i class="fa fa-undo">&nbsp</i>Reset Adjustments</button>
+                        <div class="row justify-content-center mb-3">
+                            <button type="button" class="btn btn-danger mb-3" onclick="resetECU();"><i class="fa fa-exclamation-triangle">&nbsp</i>Reset ECU</button>
+                            <div class="mb-3 col-mb-1">&nbsp;</div>
+                            <button type="button" class="btn btn-warning mb-3" onclick="resetAdj();"><i class="fa fa-undo">&nbsp</i>Reset Adjustments</button>
                         </div>
                     </div>
                 </div>
-                
-                <div class="row justify-content-center">        
-                <div class="card mb-3" style="border: none;">
-                    <div class="card-body">
-                        <table class="table">
-                            <tbody>
-                                <tr>
-                                    <td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('idlespeed');">Slower&nbsp<i class="fa fa-angle-left"></i></button></td>
-                                    <td><i class="fa fa-tachometer-alt">&nbsp</i>Idle Speed</td>
-                                    <td class="adjustment" id="idlespeed">0</td>
-                                    <td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('idlespeed');"><i class="fa fa-angle-right">&nbsp</i>Faster</button></td>
-                                </tr>
-                                <tr>
-                                    <td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('idlehot');">Decrease&nbsp<i class="fa fa-angle-left"></i></button></td>
-                                    <td><i class="fa fa-thermometer-full">&nbsp</i>Hot Idle Position</td>
-                                    <td class="adjustment" id="hotidle">0</td>
-                                    <td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('idlehot');"><i class="fa fa-angle-right">&nbsp</i>Increase</button></td>
-                                </tr>
-                                <tr>
-                                    <td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('fueltrim');">Leaner&nbsp<i class="fas fa-angle-left"></i></button></td>
-                                    <td><i class="far fa-gas-pump">&nbsp</i>Fuel Trim</td>
-                                    <td class="adjustment" id="fueltrim">0</td>
-                                    <td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('fueltrim');"><i class="far fa-angle-right">&nbsp</i>Richer</button></td>
-                                </tr>
-                                <tr>
-                                    <td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('ignitionadvance');">Earlier&nbsp<i class="fa fa-backward"></i></button></td>
-                                    <td><i class="fa fa-stopwatch20">&nbsp</i>Ignition Advance</td>
-                                    <td class="adjustment" id="ignitionadvance">0</td>
-                                    <td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('ignitionadvance');"><i class="fa fa-forward">&nbsp</i>Later</button></td>
-                                </tr>
-                            </tbody>
-                        </table>
+
+                <div class="row justify-content-center">
+                    <div class="card mb-3" style="border: none;">
+                        <div class="card-body">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('idlespeed');">Slower&nbsp<i class="fa fa-angle-left"></i></button></td>
+                                        <td><i class="fa fa-tachometer-alt">&nbsp</i>Idle Speed</td>
+                                        <td class="adjustment" id="idlespeed">0</td>
+                                        <td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('idlespeed');"><i class="fa fa-angle-right">&nbsp</i>Faster</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('idlehot');">Decrease&nbsp<i class="fa fa-angle-left"></i></button></td>
+                                        <td><i class="fa fa-thermometer-full">&nbsp</i>Hot Idle Position</td>
+                                        <td class="adjustment" id="hotidle">0</td>
+                                        <td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('idlehot');"><i class="fa fa-angle-right">&nbsp</i>Increase</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('fueltrim');">Leaner&nbsp<i class="fas fa-angle-left"></i></button></td>
+                                        <td><i class="far fa-gas-pump">&nbsp</i>Fuel Trim</td>
+                                        <td class="adjustment" id="fueltrim">0</td>
+                                        <td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('fueltrim');"><i class="far fa-angle-right">&nbsp</i>Richer</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('ignitionadvance');">Earlier&nbsp<i class="fa fa-backward"></i></button></td>
+                                        <td><i class="fa fa-stopwatch20">&nbsp</i>Ignition Advance</td>
+                                        <td class="adjustment" id="ignitionadvance">0</td>
+                                        <td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('ignitionadvance');"><i class="fa fa-forward">&nbsp</i>Later</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
                 </div>
             </div>
         </div>
@@ -512,15 +513,15 @@
                                 <!-- serial port selection -->
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend">
-                                      <button type="button" class="btn btn-outline-secondary">Serial Port</button>
-                                      <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <button type="button" class="btn btn-outline-secondary">Serial Port</button>
+                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         <span class="sr-only">Toggle Dropdown</span>
                                       </button>
-                                      <div class="dropdown-menu" id="ports">
-                                      </div>
+                                        <div class="dropdown-menu" id="ports">
+                                        </div>
                                     </div>
                                     <input type="text" class="form-control" id="port" placeholder="/dev/usb.serial" aria-label="Serial Port">
-                                  </div>                  
+                                </div>
 
                                 <!-- log to file -->
                                 <div class="input-group mb-3">
@@ -542,8 +543,7 @@
         </div>
         <div class="tab-pane fade" id="nav-info" role="tabpanel" aria-labelledby="nav-info-tab">
             <p>
-                MemsFCR Version 1.0.0
-                by Andrew Jackson
+                MemsFCR Version 1.0.0 by Andrew Jackson
             </p>
         </div>
 
@@ -555,4 +555,5 @@
         <script type="text/javascript" src="/js/dashboard.js"></script>
     </div>
 </footer>
+
 </html>
