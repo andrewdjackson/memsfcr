@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os/exec"
 	"runtime"
@@ -228,7 +229,7 @@ func displayWebView(wi *ui.WebInterface, localView bool) {
 		defer w.Destroy()
 
 		w.SetTitle("MEMS Fault Code Reader")
-		w.SetSize(1200, 1024, webview.HintNone)
+		w.SetSize(1280, 1024, webview.HintNone)
 
 		w.Bind("quit", func() {
 			w.Terminate()
@@ -242,6 +243,10 @@ func displayWebView(wi *ui.WebInterface, localView bool) {
 }
 
 func main() {
+	var debug bool
+	flag.BoolVar(&debug, "debug", false, "enable debug")
+	flag.Parse()
+
 	memsReader := NewMemsReader()
 
 	go memsReader.wi.RunHTTPServer()
@@ -263,7 +268,8 @@ func main() {
 	utils.LogI.Printf("starting webview.. (%v)", memsReader.wi.HTTPPort)
 
 	// show the app in a local go webview window rather than in the web browser
-	showLocal := true
+	// unless debug is enabled
+	showLocal := !debug
 
 	// use default browser on Windows until I can get the Webview to work
 	if runtime.GOOS == "windows" {

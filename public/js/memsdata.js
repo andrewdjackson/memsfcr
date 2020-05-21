@@ -95,7 +95,7 @@ window.onload = function() {
         console.log("message received: " + e.data);
         parseMessage(e.data);
     };
-
+    
     // draw the gauges
     gaugeRPM.draw();
     gaugeMap.draw();
