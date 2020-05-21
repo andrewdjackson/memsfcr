@@ -3,6 +3,7 @@ var minLambda = false;
 var maxLambda = false;
 var minIAC = false;
 var dataframeLoop;
+var waitingForResponse = false;
 
 // web actions over the websocket protocol
 const WebActionSave = "save";
@@ -71,6 +72,7 @@ const ChartRPM = "rpmchart"
 const ChartLambda = "lambdachart"
 const ChartLoopIndicator = "loopchart"
 const ChartCoolant = "coolantchart"
+const ChartAFR = "afrchart"
 
 // this function gets called as soon as the page load has completed
 window.onload = function() {
@@ -95,7 +97,7 @@ window.onload = function() {
         console.log("message received: " + e.data);
         parseMessage(e.data);
     };
-    
+
     // draw the gauges
     gaugeRPM.draw();
     gaugeMap.draw();
@@ -110,9 +112,10 @@ window.onload = function() {
     gaugeIgnition.draw();
 
     // create the profiling line charts
-    rpmChart = createChart(ChartRPM, "Engine RPM", 850, 1200);
+    rpmChart = createChart(ChartRPM, "Engine (RPM)", 850, 1200);
     lambdaChart = createChart(ChartLambda, "Lambda Voltage (mV)");
-    loopChart = createChart(ChartLoopIndicator, "Loop Indicator");
+    loopChart = createChart(ChartLoopIndicator, "Loop Indicator (0 Closed, 1 Open)");
+    afrChart = createChart(ChartAFR, "Air : Fuel Ratio");
     coolantChart = createChart(ChartCoolant, "Coolant Temp (°C)", 80, 105);
 
     // wire the connect button to the relevant function
@@ -141,19 +144,22 @@ function parseMessage(m) {
 
     // connection status message received
     if (msg.action == WebActionConnection) {
+        waitingForResponse = false;
         connected = data.Connnected & data.Initialised;
         updateConnected(data.Initialised);
     }
 
     // response received from a command sent to the ECU
     if (msg.action == WebActionResponse) {
-        enableAllButtons()
+        waitingForResponse = false
+            //enableAllButtons()
     }
 
     // new data received from the ECU, update the
     // gauges, graphs and status indicators 
     if (msg.action == WebActionData) {
-        enableAllButtons()
+        waitingForResponse = false;
+        //enableAllButtons()
 
         console.log(data);
 
@@ -182,6 +188,7 @@ function updateGraphs(memsdata) {
     addData(rpmChart, memsdata.Time, memsdata.EngineRPM);
     addData(lambdaChart, memsdata.Time, memsdata.LambdaVoltage);
     addData(loopChart, memsdata.Time, memsdata.ClosedLoop);
+    addData(afrChart, memsdata.Time, memsdata.AirFuelRatio);
     addData(coolantChart, memsdata.Time, memsdata.CoolantTemp);
 }
 
@@ -204,6 +211,9 @@ function updateDataFrameValue(metric, data) {
 function updateConnected(connected) {
     console.log("connected " + connected);
 
+    // enable all buttons
+    enableAllButtons()
+
     setConnectionStatusMessage(connected)
 
     if (connected) {
@@ -215,9 +225,6 @@ function updateConnected(connected) {
             "btn-outline-info",
             pauseECUDataLoop
         );
-
-        // enable all buttons
-        enableAllButtons()
 
         // start the dataframe command loop
         startDataframeLoop();
@@ -231,13 +238,13 @@ function updateConnected(connected) {
 }
 
 function disableAllButtons() {
-       // disable all buttons
-       $(":button").prop("disabled", true);
+    // disable all buttons
+    $(":button").prop("disabled", true);
 }
 
 function enableAllButtons() {
-       // enable all buttons
-       $(":button").prop("disabled", false);
+    // enable all buttons
+    $(":button").prop("disabled", false);
 }
 
 function setConnectionStatusMessage(connected) {
@@ -276,25 +283,6 @@ function Save() {
     sendSocketMessage(msg);
 }
 
-// startDataframeLoop configures a timer interval to make
-// a call to retieve the ECU dataframe
-function startDataframeLoop() {
-    dataframeLoop = setInterval(getDataframe, ECUQueryInterval);
-}
-
-// stop the interval timer when paused
-function stopDataframeLoop() {
-    clearInterval(dataframeLoop);
-}
-
-// make a request for a Dataframe from the ECU
-function getDataframe() {
-    disableAllButtons()
-
-    var msg = formatSocketMessage(WebActionCommand, CommandDataFrame);
-    sendSocketMessage(msg);
-}
-
 function updateLEDs(data) {
     if (data.DTC0 != 0 && data.DTC1 != 0 && data.DTC2 != 0) {
         setStatusLED(true, IndicatorECUFault, LEDFault);
@@ -303,10 +291,10 @@ function updateLEDs(data) {
         setStatusLED(data.ThrottlePotCircuitFault, IndicatorThrottleFault, LEDFault);
         setStatusLED(data.FuelPumpCircuitFault, IndicatorFuelFault, LEDFault);
     }
-    
+
     setStatusLED(data.ClosedLoop, IndicatorClosedLoop, LEDStatus);
     setStatusLED(data.IdleSwitch, IndicatorIdleSwitch, LEDStatus);
-    setStatusLED(data.ParkNeutralSwitch, IndicatorParkSwitch, LEDStatus);    
+    setStatusLED(data.ParkNeutralSwitch, IndicatorParkSwitch, LEDStatus);
 
     // derived warnings
     if (data.IACPosition == 0 && data.IdleError >= 50 && data.IdleSwitch == false) {
@@ -372,18 +360,22 @@ function setStatusLED(status, id, statustype = LEDStatus) {
     $(id).addClass(c);
 }
 
-function increase(id) {
-    disableAllButtons()
+function setConnectButtonStyle(name, style, f) {
+    id = "#connectECUbtn";
 
-    var msg = formatSocketMessage(WebActionIncrease, id);
-    sendSocketMessage(msg);
-}
+    // remove all styles and handlers
+    $(id).removeClass("btn-success");
+    $(id).removeClass("btn-info");
+    $(id).removeClass("btn-warning");
+    $(id).removeClass("btn-outline-success");
+    $(id).removeClass("btn-outline-info");
+    $(id).removeClass("btn-outline-warning");
 
-function decrease(id) {
-    disableAllButtons()
+    // assign new ones
+    $(id).addClass(style);
+    $(id).html(name);
 
-    var msg = formatSocketMessage(WebActionDecrease, id);
-    sendSocketMessage(msg);
+    $(id).off().click(f);
 }
 
 function updateAdjustmentValues(memsdata) {
@@ -424,6 +416,16 @@ function setPort(port) {
     document.getElementById(SettingPort).value = port;
 }
 
+// request the config
+function readConfig() {
+    var msg = formatSocketMessage(WebActionConfig, CommandReadConfig);
+    sendSocketMessage(msg);
+}
+
+//-------------------------------------
+// ECU Command Requests 
+//-------------------------------------
+
 // Connect to the ECU
 function connectECU() {
     var port = document.getElementById(SettingPort).value;
@@ -437,30 +439,70 @@ function connectECU() {
     disableAllButtons()
 }
 
-function readConfig() {
-    var msg = formatSocketMessage(WebActionConfig, CommandReadConfig);
-    sendSocketMessage(msg);
+// startDataframeLoop configures a timer interval to make
+// a call to retieve the ECU dataframe
+function startDataframeLoop() {
+    dataframeLoop = setInterval(getDataframe, ECUQueryInterval);
+}
+
+// stop the interval timer when paused
+function stopDataframeLoop() {
+    clearInterval(dataframeLoop);
+}
+
+// make a request for a Dataframe from the ECU
+function getDataframe() {
+    // if we're not waiting for a response then send the dataframe request
+    if (!waitingForResponse) {
+        waitingForResponse = true
+        var msg = formatSocketMessage(WebActionCommand, CommandDataFrame);
+        sendSocketMessage(msg);
+    }
+}
+
+function increase(id) {
+    // if we're not waiting for a response then send the ecu command
+    if (!waitingForResponse) {
+        waitingForResponse = true
+        var msg = formatSocketMessage(WebActionIncrease, id);
+        sendSocketMessage(msg);
+    }
+}
+
+function decrease(id) {
+    // if we're not waiting for a response then send the ecu command
+    if (!waitingForResponse) {
+        waitingForResponse = true
+        var msg = formatSocketMessage(WebActionDecrease, id);
+        sendSocketMessage(msg);
+    }
 }
 
 function resetECU() {
-    disableAllButtons()
-
-    var msg = formatSocketMessage(WebActionCommand, CommandResetECU);
-    sendSocketMessage(msg);
+    // if we're not waiting for a response then send the ecu command
+    if (!waitingForResponse) {
+        waitingForResponse = true
+        var msg = formatSocketMessage(WebActionCommand, CommandResetECU);
+        sendSocketMessage(msg);
+    }
 }
 
 function resetAdj() {
-    disableAllButtons()
-
-    var msg = formatSocketMessage(WebActionCommand, CommandResetAdjustments);
-    sendSocketMessage(msg);
+    // if we're not waiting for a response then send the ecu command
+    if (!waitingForResponse) {
+        waitingForResponse = true
+        var msg = formatSocketMessage(WebActionCommand, CommandResetAdjustments);
+        sendSocketMessage(msg);
+    }
 }
 
 function clearFaultCodes() {
-    disableAllButtons()
-
-    var msg = formatSocketMessage(WebActionCommand, CommandClearFaults);
-    sendSocketMessage(msg);
+    // if we're not waiting for a response then send the ecu command
+    if (!waitingForResponse) {
+        waitingForResponse = true
+        var msg = formatSocketMessage(WebActionCommand, CommandClearFaults);
+        sendSocketMessage(msg);
+    }
 }
 
 // Pause the Data Loop
@@ -493,24 +535,6 @@ function restartECUDataLoop() {
 
     // restart the dataframe loop
     startDataframeLoop();
-}
-
-function setConnectButtonStyle(name, style, f) {
-    id = "#connectECUbtn";
-
-    // remove all styles and handlers
-    $(id).removeClass("btn-success");
-    $(id).removeClass("btn-info");
-    $(id).removeClass("btn-warning");
-    $(id).removeClass("btn-outline-success");
-    $(id).removeClass("btn-outline-info");
-    $(id).removeClass("btn-outline-warning");
-
-    // assign new ones
-    $(id).addClass(style);
-    $(id).html(name);
-
-    $(id).off().click(f);
 }
 
 // send the formatted message over the websocket

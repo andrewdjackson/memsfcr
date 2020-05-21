@@ -1,72 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<!-- Required meta tags -->
-		<meta charset="utf-8" />
-		<meta name="google" content="notranslate" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-		<!-- CSS -->
-		<link href="/css/bootstrap.css" rel="stylesheet" />
-		<link href="/fontawesome/css/all.css" rel="stylesheet" />
-		<link href="/css/pro-sidebar.css" rel="stylesheet" />
-		<link href="/css/sidebar-themes.css" rel="stylesheet" />
-		<link href="/css/led.css" rel="stylesheet" />
-		<link href="/css/Chart.css" rel="stylesheet">
-		<link href="/css/memsfcr.css" rel="stylesheet">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="google" content="notranslate" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-		<title>MEMSFCR - MEMS Fault Code Reader</title>
-	</head>
+    <!-- CSS -->
+    <link href="/css/bootstrap.css" rel="stylesheet" />
+    <link href="/fontawesome/css/all.css" rel="stylesheet" />
+    <link href="/css/pro-sidebar.css" rel="stylesheet" />
+    <link href="/css/sidebar-themes.css" rel="stylesheet" />
+    <link href="/css/led.css" rel="stylesheet" />
+    <link href="/css/Chart.css" rel="stylesheet">
+    <link href="/css/memsfcr.css" rel="stylesheet">
 
-	<body>
-		<div class="page-wrapper light-theme toggled">
-			<a id="show-sidebar" class="btn btn-sm btn-dark" href="#">
-				<i class="fas fa-caret-square-right"></i>
-			</a>
-			<nav id="sidebar" class="sidebar-wrapper">
-				<div class="sidebar-content">
-					<div class="sidebar-brand">
-						<a href="#"><i class="fa fa-stethoscope">&nbsp</i>MemsFCR</a>
-						<div id="close-sidebar">
-							<i class="fas fa-caret-square-left"></i>
-						</div>
-					</div>
+    <title>MEMSFCR - MEMS Fault Code Reader</title>
+</head>
 
-					<div class="sidebar-header">
-						<div class="d-flex justify-content-center mb-3">
-							<button class="btn btn-outline-success" id="connectECUbtn" type="button">
+<body>
+    <div class="page-wrapper light-theme toggled">
+        <a id="show-sidebar" class="btn btn-sm btn-dark" href="#">
+            <i class="fas fa-caret-square-right"></i>
+        </a>
+        <nav id="sidebar" class="sidebar-wrapper">
+            <div class="sidebar-content">
+                <div class="sidebar-brand">
+                    <a href="#"><i class="fa fa-stethoscope">&nbsp</i>MemsFCR</a>
+                    <div id="close-sidebar">
+                        <i class="fas fa-caret-square-left"></i>
+                    </div>
+                </div>
+
+                <div class="sidebar-header">
+                    <div class="d-flex justify-content-center mb-3">
+                        <button class="btn btn-outline-success" id="connectECUbtn" type="button">
 								<i class="fa fa-plug">&nbsp</i>Connect
-							</button>
-							&nbsp;
-						</div>
-						<div class="overflow-hidden">
-							<div class="alert alert-light invisible font-weight-light text-wrap" role="alert" id="connectionMessage">
-							</div>
-						</div>
+							</button> &nbsp;
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="alert alert-light invisible font-weight-light text-wrap" role="alert" id="connectionMessage">
+                        </div>
+                    </div>
 
-						<div class="d-flex justify-content-center mb-3">
-							<div class="led-box">
-								<div class="led-green-off" id="ecudata"></div>
-								<p>ECU Connection</p>
-							</div>
+                    <div class="d-flex justify-content-center mb-3">
+                        <div class="led-box">
+                            <div class="led-green-off" id="ecudata"></div>
+                            <p>ECU Connection</p>
+                        </div>
 
-							<div class="led-box">
-								<div class="led-red-off" id="ecufault"></div>
-								<p>ECU Fault</p>
-							</div>
-						</div>
-					</div>
+                        <div class="led-box">
+                            <div class="led-red-off" id="ecufault"></div>
+                            <p>ECU Fault</p>
+                        </div>
+                    </div>
+                </div>
 
-					<div class="sidebar-menu">
-						<ul class="flex-column nav">
-							<li class="header-menu">
-								<span>MEMS Fault Code Reader</span>
-							</li>
+                <div class="sidebar-menu">
+                    <ul class="flex-column nav">
+                        <li class="header-menu">
+                            <span>MEMS Fault Code Reader</span>
+                        </li>
 
-							<li class="nav-item">
-								<a href="#dashboard" data-toggle="tab" class="active nav-link"
-									><i class="fa fa-tachometer-alt">&nbsp;</i>Dashboard</a
+                        <li class="nav-item">
+                            <a href="#dashboard" data-toggle="tab" class="active nav-link"><i class="fa fa-tachometer-alt">&nbsp;</i>Dashboard</a
 								>
 							</li>
 							<li class="nav-item">
@@ -134,16 +133,19 @@
 							<h2>Running Performance</h2>
 							<div class="card">
 								<div class="card-body">
-									<div class="chart-container" style="position: relative; height:200px;">
+									<div class="chart-container">
 										<canvas id="rpmchart"></canvas>
 									</div>
-									<div class="chart-container" style="position: relative; height:200px;">
+									<div class="chart-container">
 										<canvas id="lambdachart"></canvas>
 									</div>
-									<div class="chart-container" style="position: relative; height:200px;">
+									<div class="chart-container">
 										<canvas id="loopchart"></canvas>
+                                    </div>
+                                    <div class="chart-container">
+										<canvas id="afrchart"></canvas>
 									</div>
-									<div class="chart-container" style="position: relative; height:200px;">
+									<div class="chart-container">
 										<canvas id="coolantchart"></canvas>
 									</div>
 								</div>
@@ -478,28 +480,28 @@
 									<table class="table">
 										<tbody>
 											<tr>
-												<td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('idlespeed');">Slower&nbsp<i class="fa fa-angle-left"></i></button></td>
-												<td><i class="fa fa-tachometer-alt">&nbsp</i>Idle Speed</td>
-												<td class="adjustment" id="idlespeed">0</td>
-												<td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('idlespeed');"><i class="fa fa-angle-right">&nbsp</i>Faster</button></td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('idlespeed');">Slower&nbsp<i class="fa fa-angle-left"></i></button></td>
+												<td class="adjustment"><i class="fa fa-tachometer-alt" style="width:50px"></i>Idle Speed</td>
+												<td class="adjustment text-left" id="idlespeed">0</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left" onclick="increase('idlespeed');"><i class="fa fa-angle-right">&nbsp</i>Faster</button></td>
 											</tr>
 											<tr>
-												<td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('idlehot');">Decrease&nbsp<i class="fa fa-angle-left"></i></button></td>
-												<td><i class="fa fa-thermometer-full">&nbsp</i>Hot Idle Position</td>
-												<td class="adjustment" id="hotidle">0</td>
-												<td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('idlehot');"><i class="fa fa-angle-right">&nbsp</i>Increase</button></td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('idlehot');">Decrease&nbsp<i class="fa fa-angle-left"></i></button></td>
+												<td class="adjustment"><i class="fa fa-thermometer-full" style="width:50px"></i>Hot Idle Position</td>
+												<td class="adjustment text-left" id="hotidle">0</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left" onclick="increase('idlehot');"><i class="fa fa-angle-right">&nbsp</i>Increase</button></td>
 											</tr>
 											<tr>
-												<td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('fueltrim');">Leaner&nbsp<i class="fas fa-angle-left"></i></button></td>
-												<td><i class="far fa-gas-pump">&nbsp</i>Fuel Trim</td>
-												<td class="adjustment" id="fueltrim">0</td>
-												<td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('fueltrim');"><i class="far fa-angle-right">&nbsp</i>Richer</button></td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('fueltrim');">Leaner&nbsp<i class="fas fa-angle-left"></i></button></td>
+												<td class="adjustment"><i class="far fa-gas-pump" style="width:50px"></i>Fuel Trim</td>
+												<td class="adjustment text-left" id="fueltrim">0</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left" onclick="increase('fueltrim');"><i class="far fa-angle-right">&nbsp</i>Richer</button></td>
 											</tr>
 											<tr>
-												<td><button type="button" style="width:150px" class="btn btn-light" onclick="decrease('ignitionadvance');">Earlier&nbsp<i class="fa fa-backward"></i></button></td>
-												<td><i class="fa fa-stopwatch20">&nbsp</i>Ignition Advance</td>
-												<td class="adjustment" id="ignitionadvance">0</td>
-												<td><button type="button" style="width:150px" class="btn btn-light" onclick="increase('ignitionadvance');"><i class="fa fa-forward">&nbsp</i>Later</button></td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('ignitionadvance');">Earlier&nbsp<i class="fa fa-angle-left"></i></button></td>
+												<td class="adjustment"><i class="fa fa-stopwatch" style="width:50px"></i>Ignition Advance</td>
+												<td class="adjustment text-left" id="ignitionadvance">0</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left" onclick="increase('ignitionadvance');"><i class="fa fa-angle-right">&nbsp</i>Later</button></td>
 											</tr>
 										</tbody>
 									</table>
