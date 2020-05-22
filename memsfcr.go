@@ -15,6 +15,8 @@ import (
 	"github.com/zserge/webview"
 )
 
+var version string
+
 // MemsReader structure
 type MemsReader struct {
 	wi         *ui.WebInterface
@@ -243,6 +245,8 @@ func displayWebView(wi *ui.WebInterface, localView bool) {
 }
 
 func main() {
+	utils.LogI.Printf("MemsFCR Version %s", version)
+
 	var debug bool
 	flag.BoolVar(&debug, "debug", false, "enable debug")
 	flag.Parse()

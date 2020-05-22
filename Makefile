@@ -9,7 +9,7 @@ DARWINDISTPATH=dist/darwin
 DARWIN=$(DARWINDISTPATH)/$(EXECUTABLE)
 ARMDISTPATH=dist/arm
 ARM=$(ARMDISTPATH)/$(EXECUTABLE)-arm
-VERSION=$(shell git describe --tags --always --long --dirty)
+VERSION=$(shell git describe --always)
 
 .PHONY: all clean
 
