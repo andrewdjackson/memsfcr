@@ -9,7 +9,9 @@ DARWINDISTPATH=dist/darwin
 DARWIN=$(DARWINDISTPATH)/$(EXECUTABLE)
 ARMDISTPATH=dist/arm
 ARM=$(ARMDISTPATH)/$(EXECUTABLE)-arm
-VERSION=$(shell git describe --always)
+#VERSION=$(shell git describe --tags)
+VERSION="V1.0.0"
+BUILD=$(shell date +%FT%T%z)
 
 .PHONY: all clean
 
@@ -30,7 +32,7 @@ $(LINUX):
 	env GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -i -v -o $(LINUX) -ldflags="-s -w -X main.version=$(VERSION)"
 
 $(DARWIN):
-	env GOOS=darwin GOARCH=amd64 go build -i -v -o $(DARWIN) -ldflags="-s -w -X main.version=$(VERSION)"
+	env GOOS=darwin GOARCH=amd64 go build -i -v -o $(DARWIN) -ldflags="-s -w -X main.Version=$(VERSION) -X main.Build=$(BUILD)"
 
 $(ARM):
 	env GOOS=android GOARCH=arm GOARM=5 CGO_ENABLED=1 go build -i -v -o $(DARWIN) -ldflags="-extldflags=-Wl,-z,norelro"

@@ -15,7 +15,12 @@ import (
 	"github.com/zserge/webview"
 )
 
-var version string
+var (
+	// Version of the application
+	Version string
+	// Build date
+	Build string
+)
 
 // MemsReader structure
 type MemsReader struct {
@@ -245,7 +250,7 @@ func displayWebView(wi *ui.WebInterface, localView bool) {
 }
 
 func main() {
-	utils.LogI.Printf("MemsFCR Version %s", version)
+	utils.LogI.Printf("\nMemsFCR\nVersion %s (Build %s)\n\n", Version, Build)
 
 	var debug bool
 	flag.BoolVar(&debug, "debug", false, "enable debug")
