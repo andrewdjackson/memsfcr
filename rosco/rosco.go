@@ -233,6 +233,10 @@ func (mems *MemsConnection) sendCommand(cmd []byte) []byte {
 	return mems.readSerial()
 }
 
+func roundTo2DecimalPoints(x float32) float32 {
+	return float32(math.Round(float64(x)*100) / 100)
+}
+
 // ReadMemsData reads the raw dataframes and returns structured data
 func (mems *MemsConnection) ReadMemsData() {
 	utils.LogI.Printf("%s getting x7d and x80 dataframes", utils.ECUCommandTrace)
@@ -268,11 +272,11 @@ func (mems *MemsConnection) ReadMemsData() {
 		IntakeAirTemp:            df80.IntakeAirTemp - 55,
 		FuelTemp:                 df80.FuelTemp - 55,
 		ManifoldAbsolutePressure: float32(df80.ManifoldAbsolutePressure),
-		BatteryVoltage:           float32(df80.BatteryVoltage / 10),
-		ThrottlePotSensor:        float32(df80.ThrottlePotSensor) * 0.02,
-		IdleSwitch:               df80.IdleSwitch == 1,
-		AirconSwitch:             df80.AirconSwitch == 1,
-		ParkNeutralSwitch:        df80.ParkNeutralSwitch == 1,
+		BatteryVoltage:           float32(df80.BatteryVoltage) / 10,
+		ThrottlePotSensor:        roundTo2DecimalPoints(float32(df80.ThrottlePotSensor) * 0.02),
+		IdleSwitch:               bool(df80.IdleSwitch == 1),
+		AirconSwitch:             bool(df80.AirconSwitch == 1),
+		ParkNeutralSwitch:        bool(df80.ParkNeutralSwitch == 1),
 		DTC0:                     df80.Dtc0,
 		DTC1:                     df80.Dtc1,
 		IdleSetPoint:             df80.IdleSetPoint,
@@ -281,21 +285,21 @@ func (mems *MemsConnection) ReadMemsData() {
 		IdleSpeedDeviation:       df80.IdleSpeedDeviation,
 		IgnitionAdvanceOffset80:  df80.IgnitionAdvanceOffset80,
 		IgnitionAdvance:          (float32(df80.IgnitionAdvance) / 2) - 24,
-		CoilTime:                 float32(df80.CoilTime) * 0.002,
-		CrankshaftPositionSensor: df80.CrankshaftPositionSensor != 0,
-		CoolantTempSensorFault:   df80.Dtc0&0x01 != 0,
-		IntakeAirTempSensorFault: df80.Dtc0&0x02 != 0,
-		FuelPumpCircuitFault:     df80.Dtc1&0x02 != 0,
-		ThrottlePotCircuitFault:  df80.Dtc1&0x80 != 0,
-		IgnitionSwitch:           df7d.IgnitionSwitch != 0,
-		ThrottleAngle:            df7d.ThrottleAngle * 6 / 10,
-		AirFuelRatio:             float32(df7d.AirFuelRatio / 10),
+		CoilTime:                 roundTo2DecimalPoints(float32(df80.CoilTime) * 0.002),
+		CrankshaftPositionSensor: bool(df80.CrankshaftPositionSensor != 0),
+		CoolantTempSensorFault:   bool(df80.Dtc0&CoolantSensorFaultCode != 0),
+		IntakeAirTempSensorFault: bool(df80.Dtc0&AirSensorFaultCode != 0),
+		FuelPumpCircuitFault:     bool(df80.Dtc1&FuelPumpFaultCode != 0),
+		ThrottlePotCircuitFault:  bool(df80.Dtc1&ThrottlePotFaultCode != 0),
+		IgnitionSwitch:           bool(df7d.IgnitionSwitch != 0),
+		ThrottleAngle:            uint8(math.Round(float64(df7d.ThrottleAngle * 6 / 10))),
+		AirFuelRatio:             float32(df7d.AirFuelRatio) / 10,
 		DTC2:                     df7d.Dtc2,
 		LambdaVoltage:            df7d.LambdaVoltage * 5,
 		LambdaFrequency:          df7d.LambdaFrequency,
 		LambdaDutycycle:          df7d.LambdaDutyCycle,
 		LambdaStatus:             df7d.LambdaStatus,
-		ClosedLoop:               df7d.LoopIndicator != 0,
+		ClosedLoop:               bool(df7d.LoopIndicator != 0),
 		LongTermFuelTrim:         df7d.LongTermFuelTrim,
 		ShortTermFuelTrim:        df7d.ShortTermFuelTrim,
 		FuelTrimCorrection:       df7d.ShortTermFuelTrim - 100,
@@ -310,6 +314,8 @@ func (mems *MemsConnection) ReadMemsData() {
 		Dataframe80:              hex.EncodeToString(d80),
 		Dataframe7d:              hex.EncodeToString(d7d),
 	}
+
+	utils.LogI.Printf("%s built mems dataframe %v", utils.ECUCommandTrace, memsdata)
 
 	// run as a go routine so it doesn't block this function completing
 	go mems.sendMemsDataToChannel(memsdata)

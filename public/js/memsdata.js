@@ -5,6 +5,11 @@ var minIAC = false;
 var dataframeLoop;
 var waitingForResponse = false;
 
+const AirSensorFaultCode = 0b00000001
+const CoolantSensorFaultCode = 0b00000010
+const FuelPumpFaultCode = 0b00000001
+const ThrottlePotFaultCode = 0b01000000
+
 // web actions over the websocket protocol
 const WebActionSave = "save";
 const WebActionConfig = "config";
@@ -284,12 +289,13 @@ function Save() {
 }
 
 function updateLEDs(data) {
-    if (data.DTC0 != 0 && data.DTC1 != 0 && data.DTC2 != 0) {
+    if (data.DTC0 > 0 || data.DTC1 > 0) {
         setStatusLED(true, IndicatorECUFault, LEDFault);
         setStatusLED(data.CoolantTempSensorFault, IndicatorCoolantFault, LEDFault);
         setStatusLED(data.AirIntakeTempSensorFault, IndicatorAirFault, LEDFault);
         setStatusLED(data.ThrottlePotCircuitFault, IndicatorThrottleFault, LEDFault);
         setStatusLED(data.FuelPumpCircuitFault, IndicatorFuelFault, LEDFault);
+        setFaultStatusOnMenu(data);
     }
 
     setStatusLED(data.ClosedLoop, IndicatorClosedLoop, LEDStatus);
@@ -331,6 +337,21 @@ function updateLEDs(data) {
     setStatusLED(minLambda, IndicatorLambdaLow, LEDWarning);
     setStatusLED(maxLambda, IndicatorLambdaHigh, LEDWarning);
     setStatusLED(minIAC, IndicatorIACLow, LEDWarning);
+}
+
+function setFaultStatusOnMenu(data) {
+    var count = 0
+
+    if (data.CoolantTempSensorFault == true) count++
+    if (data.AirIntakeTempSensorFault == true) count++
+    if (data.ThrottlePotCircuitFault == true) count++
+    if (data.FuelPumpCircuitFault == true) count++
+
+    if (count > 0) {
+        $("#ecu-fault-status").html(count.toString());
+    } else {
+        $("#ecu-fault-status").html('');
+    }
 }
 
 function setStatusLED(status, id, statustype = LEDStatus) {

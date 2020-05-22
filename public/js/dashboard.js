@@ -420,7 +420,7 @@ var gaugeCoolant = new RadialGauge({
     title: 'Coolant Temperature',
     width: 200,
     height: 200,
-    units: 'C',
+    units: '°C',
     minValue: 0,
     maxValue: 120,
     majorTicks: [
@@ -506,7 +506,7 @@ var gaugeAir = new RadialGauge({
     title: 'Air Intake Temperature',
     width: 200,
     height: 200,
-    units: 'C',
+    units: '°C',
     minValue: -20,
     maxValue: 80,
     majorTicks: [
@@ -759,7 +759,7 @@ var gaugeIgnition = new RadialGauge({
     title: 'Ignition Advance',
     width: 200,
     height: 200,
-    units: 'deg',
+    units: '°',
     minValue: 0,
     maxValue: 40,
     majorTicks: [
