@@ -3,12 +3,27 @@ var minLambda = false;
 var maxLambda = false;
 var minIAC = false;
 var dataframeLoop;
+
 var waitingForResponse = false;
+var waitingForResponseTimeout;
+const WaitForResponseInterval = 500
 
 const AirSensorFaultCode = 0b00000001
 const CoolantSensorFaultCode = 0b00000010
 const FuelPumpFaultCode = 0b00000001
 const ThrottlePotFaultCode = 0b01000000
+
+
+const ResponseSTFTDecrement = "7a"
+const ResponseSTFTIncrement = "79"
+const ResponseLTFTDecrement = "7c"
+const ResponseLTFTIncrement = "7b"
+const ResponseIdleDecayDecrement = "7c"
+const ResponseIdleDecayIncrement = "7b"
+const ResponseIdleSpeedDecrement = "92"
+const ResponseIdleSpeedIncrement = "93"
+const ResponseIgnitionAdvanceOffsetDecrement = "94"
+const ResponseIgnitionAdvanceOffsetIncrement = "93"
 
 // web actions over the websocket protocol
 const WebActionSave = "save";
@@ -100,6 +115,7 @@ window.onload = function() {
 
     sock.onmessage = function(e) {
         console.log("message received: " + e.data);
+        clearWaitForResponse()
         parseMessage(e.data);
     };
 
@@ -157,15 +173,13 @@ function parseMessage(m) {
     // response received from a command sent to the ECU
     if (msg.action == WebActionResponse) {
         waitingForResponse = false
-            //enableAllButtons()
+        parseECUResponse(data)
     }
 
     // new data received from the ECU, update the
     // gauges, graphs and status indicators 
     if (msg.action == WebActionData) {
         waitingForResponse = false;
-        //enableAllButtons()
-
         console.log(data);
 
         updateGauges(data);
@@ -176,29 +190,58 @@ function parseMessage(m) {
     }
 }
 
-function updateGauges(memsdata) {
-    gaugeRPM.value = memsdata.EngineRPM;
-    gaugeMap.value = memsdata.ManifoldAbsolutePressure;
-    gaugeThrottlePos.value = memsdata.ThrottlePotSensor;
-    gaugeIACPos.value = memsdata.IACPosition;
-    gaugeBattery.value = memsdata.BatteryVoltage;
-    gaugeCoolant.value = memsdata.CoolantTemp;
-    gaugeAir.value = memsdata.IntakeAirTemp;
-    gaugeLambda.value = memsdata.LambdaVoltage;
-    gaugeFuelTrim.value = memsdata.FuelTrimCorrection;
-    gaugeIgnition.value = memsdata.IgnitionAdvance;
+function parseECUResponse(response) {
+    var cmd = response.slice(0,2)
+    var value = response.slice(2,)
+    console.log("parsing response cmd : " + cmd + ", val : " + value)
+
+    switch (cmd) {
+        case ResponseIdleSpeedIncrement: 
+        case ResponseIdleSpeedDecrement: 
+            updateAdjustmentValue(AdjustmentIdleSpeed, value);
+            break;
+        case ResponseIgnitionAdvanceOffsetIncrement:
+        case ResponseIgnitionAdvanceOffsetDecrement:
+            updateAdjustmentValue(AdjustmentIgnitionAdvance, value);
+            break;
+        case ResponseIdleDecayIncrement:
+        case ResponseIdleDecayDecrement:
+            updateAdjustmentValue(AdjustmentIdleHot, value);
+            break;
+        case ResponseLTFTIncrement:
+        case ResponseLTFTDecrement:
+            updateAdjustmentValue(AdjustmentFuelTrim, value);
+            break;
+        case ResponseSTFTIncrement:
+        case ResponseSTFTDecrement:
+            updateAdjustmentValue(AdjustmentFuelTrim, value);
+            break;
+    }
 }
 
-function updateGraphs(memsdata) {
-    addData(rpmChart, memsdata.Time, memsdata.EngineRPM);
-    addData(lambdaChart, memsdata.Time, memsdata.LambdaVoltage);
-    addData(loopChart, memsdata.Time, memsdata.ClosedLoop);
-    addData(afrChart, memsdata.Time, memsdata.AirFuelRatio);
-    addData(coolantChart, memsdata.Time, memsdata.CoolantTemp);
+function updateGauges(Responsedata) {
+    gaugeRPM.value = Responsedata.EngineRPM;
+    gaugeMap.value = Responsedata.ManifoldAbsolutePressure;
+    gaugeThrottlePos.value = Responsedata.ThrottlePotSensor;
+    gaugeIACPos.value = Responsedata.IACPosition;
+    gaugeBattery.value = Responsedata.BatteryVoltage;
+    gaugeCoolant.value = Responsedata.CoolantTemp;
+    gaugeAir.value = Responsedata.IntakeAirTemp;
+    gaugeLambda.value = Responsedata.LambdaVoltage;
+    gaugeFuelTrim.value = Responsedata.FuelTrimCorrection;
+    gaugeIgnition.value = Responsedata.IgnitionAdvance;
 }
 
-function updateDataFrameValues(memsdata) {
-    Object.entries(memsdata).forEach((entry) => {
+function updateGraphs(Responsedata) {
+    addData(rpmChart, Responsedata.Time, Responsedata.EngineRPM);
+    addData(lambdaChart, Responsedata.Time, Responsedata.LambdaVoltage);
+    addData(loopChart, Responsedata.Time, Responsedata.ClosedLoop);
+    addData(afrChart, Responsedata.Time, Responsedata.AirFuelRatio);
+    addData(coolantChart, Responsedata.Time, Responsedata.CoolantTemp);
+}
+
+function updateDataFrameValues(Responsedata) {
+    Object.entries(Responsedata).forEach((entry) => {
         let key = entry[0];
         let value = entry[1];
         updateDataFrameValue(key, value);
@@ -399,21 +442,23 @@ function setConnectButtonStyle(name, style, f) {
     $(id).off().click(f);
 }
 
-function updateAdjustmentValues(memsdata) {
-    updateAdjustmentValue(AdjustmentIdleSpeed, memsdata.IdleSpeedOffset);
-    updateAdjustmentValue(AdjustmentIdleHot, memsdata.IdleHot);
-    updateAdjustmentValue(AdjustmentIgnitionAdvance, memsdata.IgnitionAdvance);
-    updateAdjustmentValue(AdjustmentFuelTrim, memsdata.LongTermFuelTrim);
+function updateAdjustmentValues(Responsedata) {
+    updateAdjustmentValue(AdjustmentIdleSpeed, Responsedata.IdleSpeedOffset);
+    updateAdjustmentValue(AdjustmentIdleHot, Responsedata.IdleHot);
+    updateAdjustmentValue(AdjustmentIgnitionAdvance, Responsedata.IgnitionAdvance);
+    updateAdjustmentValue(AdjustmentFuelTrim, Responsedata.LongTermFuelTrim);
 }
 
 function updateAdjustmentValue(id, value) {
-    $("td#" + id + ".adjustment").html(value.toString());
+    console.log("updating "+ id + " to new value " + value.toString())
+
+    $("input#" + id + ".range-slider__range").val(value);
+    $("span#" + id + ".range-slider__value").html(value.toString());
 }
 
 function setSerialPortSelection(ports) {
     $.each(ports, function(key, value) {
         console.log("serial port added " + key + " : " + value);
-        //$("#serialports").append($("<option></option>").attr("value", value).text(value));
         $("#ports").append('<a class="dropdown-item" href="#" onclick="selectPort(this)">' + value + '</a>');
     });
 }
@@ -471,59 +516,53 @@ function stopDataframeLoop() {
     clearInterval(dataframeLoop);
 }
 
+function startWaitForResponse() {
+    waitingForResponse = true
+    waitingForResponseTimeout = setInterval(clearWaitForResponse, WaitForResponseInterval)
+}
+
+// fail back if we don't get a response, so that the UI doesn't get blocked
+function clearWaitForResponse() {
+    waitingForResponse = false
+    clearInterval(waitingForResponseTimeout);
+}
+
 // make a request for a Dataframe from the ECU
 function getDataframe() {
     // if we're not waiting for a response then send the dataframe request
-    if (!waitingForResponse) {
-        waitingForResponse = true
-        var msg = formatSocketMessage(WebActionCommand, CommandDataFrame);
-        sendSocketMessage(msg);
-    }
+    var msg = formatSocketMessage(WebActionCommand, CommandDataFrame);
+    sendSocketMessage(msg);
 }
 
 function increase(id) {
     // if we're not waiting for a response then send the ecu command
-    if (!waitingForResponse) {
-        waitingForResponse = true
-        var msg = formatSocketMessage(WebActionIncrease, id);
-        sendSocketMessage(msg);
-    }
+    var msg = formatSocketMessage(WebActionIncrease, id);
+    sendSocketMessage(msg);
 }
 
 function decrease(id) {
     // if we're not waiting for a response then send the ecu command
-    if (!waitingForResponse) {
-        waitingForResponse = true
-        var msg = formatSocketMessage(WebActionDecrease, id);
-        sendSocketMessage(msg);
-    }
+    var msg = formatSocketMessage(WebActionDecrease, id);
+    sendSocketMessage(msg);
 }
 
 function resetECU() {
     // if we're not waiting for a response then send the ecu command
-    if (!waitingForResponse) {
-        waitingForResponse = true
-        var msg = formatSocketMessage(WebActionCommand, CommandResetECU);
-        sendSocketMessage(msg);
-    }
+    var msg = formatSocketMessage(WebActionCommand, CommandResetECU);
+    sendSocketMessage(msg);
 }
 
 function resetAdj() {
     // if we're not waiting for a response then send the ecu command
-    if (!waitingForResponse) {
-        waitingForResponse = true
-        var msg = formatSocketMessage(WebActionCommand, CommandResetAdjustments);
-        sendSocketMessage(msg);
-    }
+    var msg = formatSocketMessage(WebActionCommand, CommandResetAdjustments);
+    sendSocketMessage(msg); 
 }
 
 function clearFaultCodes() {
     // if we're not waiting for a response then send the ecu command
-    if (!waitingForResponse) {
-        waitingForResponse = true
-        var msg = formatSocketMessage(WebActionCommand, CommandClearFaults);
-        sendSocketMessage(msg);
-    }
+    var msg = formatSocketMessage(WebActionCommand, CommandClearFaults);
+    sendSocketMessage(msg);
+
 }
 
 // Pause the Data Loop
@@ -560,8 +599,14 @@ function restartECUDataLoop() {
 
 // send the formatted message over the websocket
 function sendSocketMessage(msg) {
-    console.log("sending socket message: " + msg);
-    sock.send(msg);
+    if (!waitingForResponse) {
+        console.log("sending socket message: " + msg);
+        
+        startWaitForResponse()
+        sock.send(msg);
+    } else {
+        console.log("can't send whilst waiting for a response")
+    }
 }
 
 // format messages to be sent over the websocket

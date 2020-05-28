@@ -481,27 +481,43 @@
 										<tbody>
 											<tr>
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('idlespeed');">Slower&nbsp<i class="fa fa-angle-left"></i></button></td>
-												<td class="adjustment"><i class="fa fa-tachometer-alt" style="width:50px"></i>Idle Speed</td>
-												<td class="adjustment text-left" id="idlespeed">0</td>
-												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left" onclick="increase('idlespeed');"><i class="fa fa-angle-right">&nbsp</i>Faster</button></td>
+												<td class="adjustment"><i class="fa fa-tachometer-alt" style="width:50px"></i>Idle Speed
+													<div class="range-slider">
+													<input id="idlespeed" class="range-slider__range" type="range" value="128" min="120" max="136" disabled>
+														<span id="idlespeed" class="range-slider__value">0</span>
+													</div>
+												</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('idlespeed');"><i class="fa fa-angle-right">&nbsp</i>Faster</button></td>
 											</tr>
 											<tr>
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('idlehot');">Decrease&nbsp<i class="fa fa-angle-left"></i></button></td>
-												<td class="adjustment"><i class="fa fa-thermometer-full" style="width:50px"></i>Hot Idle Position</td>
-												<td class="adjustment text-left" id="hotidle">0</td>
-												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left" onclick="increase('idlehot');"><i class="fa fa-angle-right">&nbsp</i>Increase</button></td>
+												<td class="adjustment"><i class="fa fa-thermometer-full" style="width:50px"></i>Hot Idle
+													<div class="range-slider">
+														<input id="hotidle" class="range-slider__range" type="range" value="35" min="10" max="60" disabled aria-disabled="true">
+														<span id="hotidle" class="range-slider__value">0</span>
+													</div>
+												</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('idlehot');"><i class="fa fa-angle-right">&nbsp</i>Increase</button></td>
 											</tr>
 											<tr>
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('fueltrim');">Leaner&nbsp<i class="fas fa-angle-left"></i></button></td>
-												<td class="adjustment"><i class="far fa-gas-pump" style="width:50px"></i>Fuel Trim</td>
-												<td class="adjustment text-left" id="fueltrim">0</td>
-												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left" onclick="increase('fueltrim');"><i class="far fa-angle-right">&nbsp</i>Richer</button></td>
+												<td class="adjustment"><i class="far fa-gas-pump" style="width:50px"></i>Fuel Trim
+													<div class="range-slider">
+														<input id="fueltrim" class="range-slider__range" type="range" value="138" min="0" max="254" disabled aria-disabled="true">
+														<span id="fueltrim" class="range-slider__value">0</span>
+													</div>
+												</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('fueltrim');"><i class="far fa-angle-right">&nbsp</i>Richer</button></td>
 											</tr>
 											<tr>
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('ignitionadvance');">Earlier&nbsp<i class="fa fa-angle-left"></i></button></td>
-												<td class="adjustment"><i class="fa fa-stopwatch" style="width:50px"></i>Ignition Advance</td>
-												<td class="adjustment text-left" id="ignitionadvance">0</td>
-												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left" onclick="increase('ignitionadvance');"><i class="fa fa-angle-right">&nbsp</i>Later</button></td>
+												<td class="adjustment"><i class="fa fa-stopwatch" style="width:50px"></i>Ignition Advance
+													<div class="range-slider">
+														<input id="ignitionadvance" class="range-slider__range" type="range" value="128" min="116" max="140" disabled>
+														<span id="ignitionadvance" class="range-slider__value">0</span>
+													</div>
+												</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('ignitionadvance');"><i class="fa fa-angle-right">&nbsp</i>Later</button></td>
 											</tr>
 										</tbody>
 									</table>
@@ -606,6 +622,7 @@
 		<script type="text/javascript" src="/js/gauge.min.js"></script>
 		<script type="text/javascript" src="/js/Chart.js"></script>
 		<script type="text/javascript" src="/js/constants.js"></script>
+		<script type="text/javascript" src="/js/memsfcr.js"></script>
         <script type="text/javascript" src="/js/memsdata.js"></script>
         <script type="text/javascript" src="/js/historical.js"></script>
         <script type="text/javascript" src="/js/dashboard.js"></script>
