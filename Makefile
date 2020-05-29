@@ -10,7 +10,7 @@ DARWIN=$(DARWINDISTPATH)/$(EXECUTABLE)
 ARMDISTPATH=dist/arm
 ARM=$(ARMDISTPATH)/$(EXECUTABLE)-arm
 #VERSION=$(shell git describe --tags)
-VERSION="V1.0.0"
+VERSION="V1.0.1"
 BUILD=$(shell date +%FT%T%z)
 
 .PHONY: all clean
