@@ -69,7 +69,7 @@ func (wi *WebInterface) newRouter() *mux.Router {
 		utils.LogE.Printf("unable to find the current path to the local html files (%s)", err)
 	}
 
-	wi.httpDir = fmt.Sprintf("%s/public", path)
+	wi.httpDir = fmt.Sprintf("%s/../Resources", path)
 
 	// set a router and a hander to accept messages over the websocket
 	r := mux.NewRouter()

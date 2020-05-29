@@ -38,6 +38,19 @@ $(ARM):
 	env GOOS=android GOARCH=arm GOARM=5 CGO_ENABLED=1 go build -i -v -o $(DARWIN) -ldflags="-extldflags=-Wl,-z,norelro"
 
 buildapp:
+	./macapp -assets "public" -bin $(EXECUTABLE) -icon "resources/icons/icon.png" -identifier "com.github.andrewdjackson.memsfcr" -name "$(APPNAME)" -o "$(DARWINDISTPATH)"
+	ln -s /Applications "$(DARWINDISTPATH)/Applications"
+
+	sips -i resources/icons/icon.png
+	DeRez -only icns resources/icons/icon.png > resources/icons/icns.rsrc
+	hdiutil create /tmp/tmp.dmg -ov -volname "MemsFCR" -fs HFS+ -srcfolder "$(DARWINDISTPATH)" 
+	hdiutil convert /tmp/tmp.dmg -format UDZO -o "$(DARWINDISTPATH)/$(APPNAME).dmg"
+	Rez -append resources/icons/icns.rsrc -o "$(DARWINDISTPATH)/$(APPNAME).dmg"
+	SetFile -a C "$(DARWINDISTPATH)/$(APPNAME).dmg"
+	mv "$(DARWINDISTPATH)/$(APPNAME).dmg" dist/$(APPNAME).dmg
+
+
+oldmacapp:
 	mkdir "$(DARWINDISTPATH)/$(APPNAME).app"
 	mkdir "$(DARWINDISTPATH)/$(APPNAME).app/Contents"
 	mkdir "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS"
@@ -49,15 +62,6 @@ buildapp:
 	mv $(DARWIN) "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/$(EXECUTABLE)"
 	cp memsfcr.cfg "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS"
 	cp -r ./public "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS"
-	ln -s /Applications "$(DARWINDISTPATH)/Applications"
-
-	sips -i resources/icons/icon.png
-	DeRez -only icns resources/icons/icon.png > resources/icons/icns.rsrc
-	hdiutil create /tmp/tmp.dmg -ov -volname "MemsFCR" -fs HFS+ -srcfolder "$(DARWINDISTPATH)" 
-	hdiutil convert /tmp/tmp.dmg -format UDZO -o "$(DARWINDISTPATH)/$(APPNAME).dmg"
-	Rez -append resources/icons/icns.rsrc -o "$(DARWINDISTPATH)/$(APPNAME).dmg"
-	SetFile -a C "$(DARWINDISTPATH)/$(APPNAME).dmg"
-	mv "$(DARWINDISTPATH)/$(APPNAME).dmg" dist/$(APPNAME).dmg
 
 clean: ## Remove previous build
 	rm -f $(WINDOWS) $(LINUX) $(DARWIN)
