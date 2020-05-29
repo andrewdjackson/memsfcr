@@ -262,26 +262,34 @@ func (mems *MemsConnection) ReadMemsData() {
 
 	t := time.Now()
 
+	// calculate IAC postion, 0 closed - 180 fully open
+	// convert to %
+	iac := math.Round(float64(df80.IacPosition) / 1.8)
+	if iac > 100 {
+		// if value is > 100% then cap it
+		iac = 100
+	}
+
 	// build the Mems Data frame using the raw data and applying the relevant
 	// adjustments and calculations
 	memsdata := MemsData{
 		Time:                     t.Format("15:04:05.000"),
 		EngineRPM:                df80.EngineRpm,
-		CoolantTemp:              df80.CoolantTemp - 55,
-		AmbientTemp:              df80.AmbientTemp - 55,
-		IntakeAirTemp:            df80.IntakeAirTemp - 55,
-		FuelTemp:                 df80.FuelTemp - 55,
+		CoolantTemp:              int8(df80.CoolantTemp) - 55,
+		AmbientTemp:              int8(df80.AmbientTemp) - 55,
+		IntakeAirTemp:            int8(df80.IntakeAirTemp) - 55,
+		FuelTemp:                 int8(df80.FuelTemp) - 55,
 		ManifoldAbsolutePressure: float32(df80.ManifoldAbsolutePressure),
 		BatteryVoltage:           float32(df80.BatteryVoltage) / 10,
 		ThrottlePotSensor:        roundTo2DecimalPoints(float32(df80.ThrottlePotSensor) * 0.02),
-		IdleSwitch:               bool(df80.IdleSwitch == 1),
+		IdleSwitch:               bool(df80.IdleSwitch&IdleSwitchActive != 0),
 		AirconSwitch:             bool(df80.AirconSwitch == 1),
 		ParkNeutralSwitch:        bool(df80.ParkNeutralSwitch == 1),
 		DTC0:                     df80.Dtc0,
 		DTC1:                     df80.Dtc1,
 		IdleSetPoint:             df80.IdleSetPoint,
-		IdleHot:                  df80.IdleHot,
-		IACPosition:              (uint8(math.Round(float64(df80.IacPosition) / 1.8))),
+		IdleHot:                  df80.IdleHot - 35,
+		IACPosition:              int8(iac),
 		IdleSpeedDeviation:       df80.IdleSpeedDeviation,
 		IgnitionAdvanceOffset80:  df80.IgnitionAdvanceOffset80,
 		IgnitionAdvance:          (float32(df80.IgnitionAdvance) / 2) - 24,
@@ -300,9 +308,9 @@ func (mems *MemsConnection) ReadMemsData() {
 		LambdaDutycycle:          df7d.LambdaDutyCycle,
 		LambdaStatus:             df7d.LambdaStatus,
 		ClosedLoop:               bool(df7d.LoopIndicator != 0),
-		LongTermFuelTrim:         df7d.LongTermFuelTrim,
+		LongTermFuelTrim:         df7d.LongTermFuelTrim - 128,
 		ShortTermFuelTrim:        df7d.ShortTermFuelTrim,
-		FuelTrimCorrection:       df7d.ShortTermFuelTrim - 100,
+		FuelTrimCorrection:       int8(df7d.ShortTermFuelTrim) - 100,
 		CarbonCanisterPurgeValve: df7d.CarbonCanisterPurgeValve,
 		DTC3:                     df7d.Dtc3,
 		IdleBasePosition:         df7d.IdleBasePos,

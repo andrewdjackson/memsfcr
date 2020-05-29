@@ -7,10 +7,10 @@ type (
 	MemsData struct {
 		Time                     string
 		EngineRPM                uint16
-		CoolantTemp              uint8
-		AmbientTemp              uint8
-		IntakeAirTemp            uint8
-		FuelTemp                 uint8
+		CoolantTemp              int8
+		AmbientTemp              int8
+		IntakeAirTemp            int8
+		FuelTemp                 int8
 		ManifoldAbsolutePressure float32
 		BatteryVoltage           float32
 		ThrottlePotSensor        float32
@@ -23,7 +23,7 @@ type (
 		IdleSetPoint             uint8
 		IdleHot                  uint8
 		Uk8011                   uint8
-		IACPosition              uint8
+		IACPosition              int8
 		IdleSpeedDeviation       uint16
 		IgnitionAdvanceOffset80  uint8
 		IgnitionAdvance          float32
@@ -43,7 +43,7 @@ type (
 		ClosedLoop               bool
 		LongTermFuelTrim         uint8
 		ShortTermFuelTrim        uint8
-		FuelTrimCorrection       uint8
+		FuelTrimCorrection       int8
 		CarbonCanisterPurgeValve uint8
 		DTC3                     uint8
 		IdleBasePosition         uint8
@@ -158,4 +158,6 @@ const (
 	FuelPumpFaultCode = byte(0b00000001)
 	// ThrottlePotFaultCode 0x80 DTC1 Fault
 	ThrottlePotFaultCode = byte(0b01000000)
+	// IdleSwitchActive flag
+	IdleSwitchActive = byte(0b00001000)
 )
