@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="google" content="notranslate" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- CSS -->
+    <link href="/css/bootstrap.css" rel="stylesheet" />
+    <link href="/fontawesome/css/all.css" rel="stylesheet" />
+    <link href="/css/pro-sidebar.css" rel="stylesheet" />
+    <link href="/css/sidebar-themes.css" rel="stylesheet" />
+    <link href="/css/led.css" rel="stylesheet" />
+    <link href="/css/Chart.css" rel="stylesheet">
+    <link href="/css/memsfcr.css" rel="stylesheet">
+
+    <title>MEMSFCR - MEMS Fault Code Reader</title>
+</head>
+
+<body>
+    <div class="page-wrapper light-theme toggled">
+        <a id="show-sidebar" class="btn btn-sm btn-dark" href="#">
+            <i class="fas fa-caret-square-right"></i>
+        </a>
+        <nav id="sidebar" class="sidebar-wrapper">
+            <div class="sidebar-content">
+                <div class="sidebar-brand">
+                    <a href="#"><i class="fa fa-stethoscope">&nbsp</i>MemsFCR</a>
+                    <div id="close-sidebar">
+                        <i class="fas fa-caret-square-left"></i>
+                    </div>
+                </div>
+
+                <div class="sidebar-header">
+                    <div class="d-flex justify-content-center mb-3">
+                        <button class="btn btn-outline-success" id="connectECUbtn" type="button">
+								<i class="fa fa-plug">&nbsp</i>Connect
+							</button> &nbsp;
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="alert alert-light invisible font-weight-light text-wrap" role="alert" id="connectionMessage">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center mb-3">
+                        <div class="led-box">
+                            <div class="led-green-off" id="ecudata"></div>
+                            <p>ECU Connection</p>
+                        </div>
+
+                        <div class="led-box">
+                            <div class="led-red-off" id="ecufault"></div>
+                            <p>ECU Fault</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-menu">
+                    <ul class="flex-column nav">
+                        <li class="header-menu">
+                            <span>MEMS Fault Code Reader</span>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="#dashboard" data-toggle="tab" class="active nav-link"><i class="fa fa-tachometer-alt">&nbsp;</i>Dashboard</a
+								>
+							</li>
+							<li class="nav-item">
+								<a href="#profiling" data-toggle="tab" class="nav-link"
+									><i class="fa fa-wave-square">&nbsp;</i>Profiling</a
+								>
+							</li>
+							<li class="nav-item">
+								<a href="#data" data-toggle="tab" class="nav-link"
+									><i class="fa fa-list-ol">&nbsp;</i>ECU Data</a
+								>
+							</li>
+							<li class="nav-item">
+								<a href="#adjustments" data-toggle="tab" class="nav-link"
+									><i class="fa fa-terminal">&nbsp;</i>Adaptive Values</a
+								>
+							</li>
+							<li class="nav-item">
+								<a href="#alerts" data-toggle="tab" class="nav-link"
+									><i class="fa fa-bell">&nbsp;</i>Fault Codes & Alerts<span id="ecu-fault-status" class="badge badge-pill badge-danger notification"></span></a
+								>
+							</li>
+							<li class="nav-item">
+								<a href="#settings" data-toggle="tab" class="nav-link"
+									><i class="fa fa-cog">&nbsp;</i>Settings</a
+								>
+							</li>
+						</ul>
+					</div>
+					<!-- sidebar-menu  -->
+				</div>
+				<div class="sidebar-footer p-3">
+					<p class="font-weight-bold">MEMS Fault Code Reader</p>
+					<p class="font-weight-light float-right">Andrew Jackson</p>
+				</div>
+			</nav>
+			<!-- sidebar-wrapper  -->
+			<main class="page-content">
+				<div class="container-fluid">
+					<div class="tab-content">
+						
+						<div id="dashboard" class="tab-pane active container">
+							<h2>Dashboard</h2>
+							<div class="card">
+								<div class="card-body">
+									<span>
+									<canvas id="gauge-rpm"></canvas>&nbsp;
+									<canvas id="gauge-map"></canvas>&nbsp;
+									<canvas id="gauge-throttlepos"></canvas>&nbsp;  
+									<canvas id="gauge-iacpos"></canvas>&nbsp;
+									<canvas id="gauge-battery"></canvas>
+									</span>
+									<span>
+									<canvas id="gauge-coolant"></canvas>&nbsp;
+									<canvas id="gauge-air"></canvas>&nbsp;
+									<canvas id="gauge-lambda"></canvas>&nbsp;
+									<canvas id="gauge-fueltrim"></canvas>&nbsp;
+									<canvas id="gauge-ignition"></canvas>
+									</span>
+								</div>
+							</div>
+						</div>
+						
+						<div id="profiling" class="tab-pane container">
+							<h2>Running Performance</h2>
+							<div class="card">
+								<div class="card-body">
+									<div class="chart-container">
+										<canvas id="rpmchart"></canvas>
+									</div>
+									<div class="chart-container">
+										<canvas id="lambdachart"></canvas>
+									</div>
+									<div class="chart-container">
+										<canvas id="loopchart"></canvas>
+                                    </div>
+                                    <div class="chart-container">
+										<canvas id="afrchart"></canvas>
+									</div>
+									<div class="chart-container">
+										<canvas id="coolantchart"></canvas>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						<div id="data" class="tab-pane container">
+							<h2>ECU Data</h2>
+							<div class="card">
+								<div class="card-body">
+									<div class="mb-3 col-mb-1"><button type="button" class="btn btn-danger mb-3" onclick="resetECU();"><i class="fa fa-exclamation-triangle">&nbsp</i>Reset ECU</button>
+										&nbsp;</div>
+									<div class="container-fluid">
+										<div class="row">
+											<div class="col-md-6">
+												<table class="table">
+													<thead class="thead-light">
+														<tr>
+															<th scope="col">DataFrame 0x7D</th>
+															<th scope="col">Description</th>
+															<th scope="col">Recieved</th>
+														</tr>
+													</thead>
+													<tbody>
+														<tr>
+															<th scope="row">0x01</th>
+															<td>Ignition Switch</td>
+															<td class="raw" id="IgnitionSwitch">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x02</th>
+															<td>Throttle Angle (°)</td>
+															<td class="raw" id="ThrottleAngle">-</td>
+							
+														</tr>
+														<tr>
+															<th scope="row">0x03</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk7d03">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x04</th>
+															<td>Air : Fuel Ratio</td>
+															<td class="raw" id="AirFuelRatio">-</td>
+							
+														</tr>
+														<tr>
+															<th scope="row">0x05</th>
+															<td>DTC 2</td>
+															<td class="raw" id="DTC2">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x06</th>
+															<td>Lambda Frequency</td>
+															<td class="raw" id="LambdaFrequency">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x07</th>
+															<td>Lambda Voltage (mV)</td>
+															<td class="raw" id="LambdaVoltage">-</td>
+							
+														</tr>
+														<tr>
+															<th scope="row">0x08</th>
+															<td>Lambda Duty Cycle</td>
+															<td class="raw" id="LambdaDutycycle">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x09</th>
+															<td>Lambda Status</td>
+															<td class="raw" id="LambdaStatus">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x0A</th>
+															<td>Loop Indicator</td>
+															<td class="raw" id="ClosedLoop">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x0B</th>
+															<td>Long Term Fuel Trim (LTFT)</td>
+															<td class="raw" id="LongTermFuelTrim">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x0C</th>
+															<td>Short Term Fuel Trim (STFT)</td>
+															<td class="raw" id="ShortTermFuelTrim">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x0D</th>
+															<td>Carbon Canister Purge Valve (%)</td>
+															<td class="raw" id="CarbonCanisterPurgeValve">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x0E</th>
+															<td>DTC 3</td>
+															<td class="raw" id=DTC3 "">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x0F</th>
+															<td>Idle Base Position</td>
+															<td class="raw" id="IdleBasePosition">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x10</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk7d10">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x11</th>
+															<td>DTC 4</td>
+															<td class="raw" id="DTC4">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x12</th>
+															<td>Ignition Advance Offset</td>
+															<td class="raw" id="IgnitionAdvanceOffset7d">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x13</th>
+															<td>Idle Speed Offset (RPM)</td>
+															<td class="raw" id="IdleSpeedOffset">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x14</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk7d14">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x15</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk7d15">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x16</th>
+															<td>DTC 5</td>
+															<td class="raw" id="DTC5">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x17</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk7d17">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x18</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk7d18">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x19</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk7d19">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x1A</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk7d1a">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x1B</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk7d1b">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x1C</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk7d1c">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x1D</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk7d1d">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x1E</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk7d1e">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x1F</th>
+															<td>Jack Count</td>
+															<td class="raw" id="JackCount">-</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+							
+											<div class="col-md-6">
+												<table class="table">
+													<thead class="thead-light">
+														<tr>
+															<th scope="col">DataFrame 0x80</th>
+															<th scope="col">Description</th>
+															<th scope="col">Recieved</th>
+														</tr>
+													</thead>
+													<tbody>
+														<tr>
+															<th scope="row">0x01-02</th>
+															<td>Engine Speed (RPM)</td>
+															<td class="raw" id="EngineRPM">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x03</th>
+															<td>Coolant Temperature (°C)</td>
+															<td class="raw" id="CoolantTemp">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x04</th>
+															<td>Ambient Temperature (°C)</td>
+															<td class="raw" id="AmbientTemp">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x05</th>
+															<td>Intake Air Temperature (°C)</td>
+															<td class="raw" id="IntakeAirTemp">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x06</th>
+															<td>Fuel Temperature (°C)</td>
+															<td class="raw" id="FuelTemp">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x07</th>
+															<td>Mainfold Absolute Pressure (kPa)</td>
+															<td class="raw" id="ManifoldAbsolutePressure">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x08</th>
+															<td>Battery Voltage (V)</td>
+															<td class="raw" id="BatteryVoltage">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x09</th>
+															<td>Throttle Pot. Sensor (V)</td>
+															<td class="raw" id="ThrottlePotSensor">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x0A</th>
+															<td>Idle Switch</td>
+															<td class="raw" id="IdleSwitch">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x0B</th>
+															<td>Aircon Switch</td>
+															<td class="raw" id="AirconSwitch">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x0C</th>
+															<td>Neutral Switch</td>
+															<td class="raw" id="ParkNeutralSwitch">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x0D</th>
+															<td>DTC 0</td>
+															<td class="raw" id="DTC0">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x0E</th>
+															<td>DTC 1</td>
+															<td class="raw" id="DTC1">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x0F</th>
+															<td>Idle Set Point</td>
+															<td class="raw" id="IdleSetPoint">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x10</th>
+															<td>Idle Hot / Idle Decay</td>
+															<td class="raw" id="IdleHot">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x11</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk8011">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x12</th>
+															<td>Idle Air Control Motor Position (%)</td>
+															<td class="raw" id="IACPosition">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x13-14</th>
+															<td>Idle Speed Deviation (RPM)</td>
+															<td class="raw" id="IdleSpeedDeviation">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x15</th>
+															<td>Ignition Advance Offset</td>
+															<td class="raw" id="IgnitionAdvanceOffset80">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x16</th>
+															<td>Ignition Advance (°)</td>
+															<td class="raw" id="IgnitionAdvance">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x17-18</th>
+															<td>Coil Time (ms)</td>
+															<td class="raw" id="CoilTime">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x19</th>
+															<td>Crankshaft Position Sensor</td>
+															<td class="raw" id="CrankshaftPositionSensor">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x1A</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk801a">-</td>
+														</tr>
+														<tr>
+															<th scope="row">0x1B</th>
+															<td>Unknown</td>
+															<td class="raw" id="Uk801b">-</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						<div id="adjustments" class="tab-pane container">
+							<h2>Adaptive Values</h2>
+							<div class="card">
+								<div class="card-body">
+									<div class="mb-3 col-mb-1"><button type="button" class="btn btn-warning mb-3" onclick="resetAdj();"><i class="fa fa-undo">&nbsp</i>Reset Adjustments</button>
+										&nbsp;</div>
+									<table class="table">
+										<tbody>
+											<tr>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('idlespeed');">Slower&nbsp<i class="fa fa-angle-left"></i></button></td>
+												<td class="adjustment"><i class="fa fa-tachometer-alt" style="width:50px"></i>Idle Speed
+													<div class="range-slider">
+													<input id="idlespeed" class="range-slider__range" type="range" value="128" min="120" max="136" disabled>
+														<span id="idlespeed" class="range-slider__value">0</span>
+													</div>
+												</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('idlespeed');"><i class="fa fa-angle-right">&nbsp</i>Faster</button></td>
+											</tr>
+											<tr>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('idlehot');">Decrease&nbsp<i class="fa fa-angle-left"></i></button></td>
+												<td class="adjustment"><i class="fa fa-thermometer-full" style="width:50px"></i>Hot Idle
+													<div class="range-slider">
+														<input id="hotidle" class="range-slider__range" type="range" value="35" min="10" max="60" disabled aria-disabled="true">
+														<span id="hotidle" class="range-slider__value">0</span>
+													</div>
+												</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('idlehot');"><i class="fa fa-angle-right">&nbsp</i>Increase</button></td>
+											</tr>
+											<tr>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('fueltrim');">Leaner&nbsp<i class="fas fa-angle-left"></i></button></td>
+												<td class="adjustment"><i class="far fa-gas-pump" style="width:50px"></i>Fuel Trim
+													<div class="range-slider">
+														<input id="fueltrim" class="range-slider__range" type="range" value="138" min="0" max="254" disabled aria-disabled="true">
+														<span id="fueltrim" class="range-slider__value">0</span>
+													</div>
+												</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('fueltrim');"><i class="far fa-angle-right">&nbsp</i>Richer</button></td>
+											</tr>
+											<tr>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('ignitionadvance');">Earlier&nbsp<i class="fa fa-angle-left"></i></button></td>
+												<td class="adjustment"><i class="fa fa-stopwatch" style="width:50px"></i>Ignition Advance
+													<div class="range-slider">
+														<input id="ignitionadvance" class="range-slider__range" type="range" value="128" min="116" max="140" disabled>
+														<span id="ignitionadvance" class="range-slider__value">0</span>
+													</div>
+												</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('ignitionadvance');"><i class="fa fa-angle-right">&nbsp</i>Later</button></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+						
+						<div id="alerts" class="tab-pane container">
+							<h2>Fault Codes and Alerts</h2>
+							<div class="card bg-light">
+								<div class="card-body">
+									<div class="mb-5">
+										<button type="button" class="btn btn-success" onclick="clearFaultCodes();"><i class="fa fa-stethoscope">&nbsp</i>Clear Faults</button>
+									</div>
+										
+									<span>
+									<div class="led-box"><div class="led-green-off" id="idleswitch"></div><p>Idle Switch</p></div>
+									<div class="led-box"><div class="led-green-off" id="parkswitch"></div><p>Park / Neutral Switch</p></div>
+									<div class="led-box"><div class="led-green-off" id="closedloop"></div><p>Lambda Active (Closed Loop)</p></div>
+									</span>
+								</div>
+								<div class="card-body">
+									<span>
+									<div class="led-box"><div class="led-red-off" id="coolantfault"></div><p>Coolant Sensor Fault</p></div>
+									<div class="led-box"><div class="led-red-off" id="airfault"></div><p>Air Temperature Sensor Fault</p></div>
+									<div class="led-box"><div class="led-red-off" id="fuelfault"></div><p>Fuel Pump Circuit Fault</p></div>
+									<div class="led-box"><div class="led-red-off" id="throttlefault"></div><p>Throttle Position Sensor Fault</p></div>
+									</span>
+								</div>
+							</div>
+							<div class="card bg-light mt-5">
+								<div class="card-body">
+									<span>
+									<div class="led-box"><div class="led-yellow-off" id="rpmsensor"></div><p>Signal RPM and TDC Sensor</p></div>
+									<div class="led-box"><div class="led-yellow-off" id="lambdalow"></div><p>Lamba &lt; 10mV</p></div>
+									<div class="led-box"><div class="led-yellow-off" id="lambdahigh"></div><p>Lambda &gt; 900mV</p></div>
+									<div class="led-box"><div class="led-yellow-off" id="iaclow"></div><p>IAC Low Reading</p></div>
+									</span>
+								</div>
+								<div class="card-body mb-0">
+									<span>
+									<div class="led-box"><div class="led-red-off" id="lambdafault"></div><p>Lambda Signal Error</p></div>
+									<div class="led-box"><div class="led-red-off" id="lambdalowfault"></div><p>Lambda Reading Lean</p></div>
+									<div class="led-box"><div class="led-red-off" id="lambdahighfault"></div><p>Lambda Reading Rich</p></div>
+									<div class="led-box"><div class="led-red-off" id="iaclowfault"></div><p>IAC Low Readings</p></div>
+									<div class="led-box"><div class="led-red-off" id="jackfault"></div><p>Jack Count Max Threshold</p></div>
+									</span>
+								</div>
+							</div>
+						</div>
+
+						<div id="settings" class="tab-pane container">
+							<h2>Settings</h2>
+							<div class="card">
+								<div class="card-body">
+									<form>
+										<div class="form-group">
+											
+											<div class="input-group mb-3">
+												<div class="input-group-prepend">
+													<button type="button" class="btn btn-outline-secondary">Serial Port</button>
+													<button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+													<span class="sr-only">Toggle Dropdown</span>
+												</button>
+													<div class="dropdown-menu" id="ports">
+													</div>
+												</div>
+												<input type="text" class="form-control" id="port" placeholder="/dev/usb.serial" aria-label="Serial Port">
+											</div>
+			
+											
+											<div class="input-group mb-3">
+												<div class="input-group-prepend">
+													<div class="input-group-text">
+														<input type="checkbox" id="logtofile" aria-label="Checkbox for following text input">
+														<label class="form-check-label" for="logtofile">&nbsp;Log Data to File</label>
+													</div>
+												</div>
+												<input type="text" class="form-control" id="logfolder" aria-label="Log folder.." aria-readonly readonly>
+											</div>
+											<span class="input-group-btn">
+											<button class="btn btn-default btn-outline-success my-2 my-sm-0" id="applySettings" onclick="Save();" type="button">Apply</button>
+											</span>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+
+					</div>
+				</div>
+			</main>
+			<!-- page-content" -->
+		</div>
+		<!-- page-wrapper -->
+
+		<script type="text/javascript" src="/js/jquery-3.5.0.min.js"></script>
+		<script type="text/javascript" src="/js/popper.min.js"></script>
+		<script type="text/javascript" src="/js/bootstrap.js"></script>
+		<script type="text/javascript" src="/fontawesome/js/fontawesome.min.js"></script>
+		<script type="text/javascript" src="/js/pro-sidebar.js"></script>
+		<script type="text/javascript" src="/js/gauge.min.js"></script>
+		<script type="text/javascript" src="/js/Chart.js"></script>
+		<script type="text/javascript" src="/js/constants.js"></script>
+		<script type="text/javascript" src="/js/memsfcr.js"></script>
+        <script type="text/javascript" src="/js/memsdata.js"></script>
+        <script type="text/javascript" src="/js/historical.js"></script>
+        <script type="text/javascript" src="/js/dashboard.js"></script>
+	</body>
+</html>

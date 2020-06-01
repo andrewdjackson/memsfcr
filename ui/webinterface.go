@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 
 	"github.com/andrewdjackson/memsfcr/utils"
 	"github.com/gorilla/mux"
@@ -59,17 +61,45 @@ func NewWebInterface() *WebInterface {
 	return wi
 }
 
+// fileExists reports whether the named file or directory exists.
+func (wi *WebInterface) fileExists(filename string) bool {
+	exists := false
+
+	if _, err := os.Stat(filename); err != nil {
+		if os.IsNotExist(err) {
+			exists = false
+		} else {
+			exists = true
+		}
+	}
+
+	utils.LogI.Printf("%s exists %t", filename, exists)
+
+	return exists
+}
+
 func (wi *WebInterface) newRouter() *mux.Router {
+	var webroot string
+
 	// determine the path to find the local html files
 	// based on the current executable path
 	exepath, err := os.Executable()
 	path, err := filepath.Abs(filepath.Dir(exepath))
 
+	// use default browser on Windows until I can get the Webview to work
+	if runtime.GOOS == "darwin" {
+		// MacOS use .app Resources
+		webroot = strings.Replace(path, "MacOS", "Resources", -1)
+	} else {
+		// windows use the exe subdirectory
+		webroot = fmt.Sprintf("%s/Resources", path)
+	}
+
 	if err != nil {
 		utils.LogE.Printf("unable to find the current path to the local html files (%s)", err)
 	}
 
-	wi.httpDir = fmt.Sprintf("%s/../Resources", path)
+	wi.httpDir = webroot
 
 	// set a router and a hander to accept messages over the websocket
 	r := mux.NewRouter()

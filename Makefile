@@ -1,14 +1,22 @@
 EXECUTABLE=memsfcr
 APPNAME=MemsFCR
+APPLEDEVID=${APPLEDEVID} 
+
+DISTPATH=dist
+RESOURCESPATH=resources
 
 WINDOWSDISTPATH=dist/windows
 WINDOWS=$(WINDOWSDISTPATH)/$(EXECUTABLE).exe
+
 LINUXDISTPATH=dir/linux
 LINUX=$(LINUXDISTPATH)/$(EXECUTABLE)
+
 DARWINDISTPATH=dist/darwin
 DARWIN=$(DARWINDISTPATH)/$(EXECUTABLE)
+
 ARMDISTPATH=dist/arm
 ARM=$(ARMDISTPATH)/$(EXECUTABLE)-arm
+
 #VERSION=$(shell git describe --tags)
 VERSION="V1.0.1"
 BUILD=$(shell date +%FT%T%z)
@@ -20,7 +28,7 @@ all: build
 build: darwin   ## Build binaries
 	@echo version: $(VERSION)
 
-darwin: $(DARWIN) buildapp ## Build for Darwin (macOS 10.15+)
+darwin: $(DARWIN) buildapp signapp packageapp  ## Build for Darwin (macOS 10.15+)
 arm: $(ARM) ## Build for Darwin 32bit (macOS <10.15)
 linux: $(LINUX) ## Build for Linux
 windows: $(WINDOWS) ## Build for Windows
@@ -38,36 +46,34 @@ $(ARM):
 	env GOOS=android GOARCH=arm GOARM=5 CGO_ENABLED=1 go build -i -v -o $(DARWIN) -ldflags="-extldflags=-Wl,-z,norelro"
 
 buildapp:
-	./macapp -assets "public" -bin $(EXECUTABLE) -icon "resources/icons/icon.png" -identifier "com.github.andrewdjackson.memsfcr" -name "$(APPNAME)" -o "$(DARWINDISTPATH)"
-	ln -s /Applications "$(DARWINDISTPATH)/Applications"
+	# create the MacOS app
+	cp -f "$(DARWINDISTPATH)/$(EXECUTABLE)" "$(RESOURCESPATH)/$(EXECUTABLE)"	
+	./macapp -assets "$(RESOURCESPATH)" -bin $(EXECUTABLE) -icon "$(RESOURCESPATH)/icons/icon.png" -identifier "com.github.andrewdjackson.memsfcr" -name "$(APPNAME)" -o "$(DARWINDISTPATH)"
 
-	sips -i resources/icons/icon.png
-	DeRez -only icns resources/icons/icon.png > resources/icons/icns.rsrc
-	hdiutil create /tmp/tmp.dmg -ov -volname "MemsFCR" -fs HFS+ -srcfolder "$(DARWINDISTPATH)" 
-	hdiutil convert /tmp/tmp.dmg -format UDZO -o "$(DARWINDISTPATH)/$(APPNAME).dmg"
-	Rez -append resources/icons/icns.rsrc -o "$(DARWINDISTPATH)/$(APPNAME).dmg"
-	SetFile -a C "$(DARWINDISTPATH)/$(APPNAME).dmg"
-	mv "$(DARWINDISTPATH)/$(APPNAME).dmg" dist/$(APPNAME).dmg
+signapp:	
+	# sign with the Developer ID
+	codesign --force  --deep --verify --verbose -s "$(APPLEDEVID)" -v --timestamp --options runtime "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/$(EXECUTABLE)" "$(DARWINDISTPATH)/$(APPNAME).app"
 
 
-oldmacapp:
-	mkdir "$(DARWINDISTPATH)/$(APPNAME).app"
-	mkdir "$(DARWINDISTPATH)/$(APPNAME).app/Contents"
-	mkdir "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS"
-	mkdir "$(DARWINDISTPATH)/$(APPNAME).app/Contents/Resources"
-	mkdir "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/logs"
+packageapp:
+	appdmg $(DISTPATH)/dmgspec.json $(DARWINDISTPATH)/MemsFCR.dmg 
 
-	cp resources/icons/icon.icns "$(DARWINDISTPATH)/$(APPNAME).app/Contents/Resources"
-	cp resources/darwin/Info.plist "$(DARWINDISTPATH)/$(APPNAME).app/Contents"
-	mv $(DARWIN) "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/$(EXECUTABLE)"
-	cp memsfcr.cfg "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS"
-	cp -r ./public "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS"
+	# check signature with:
+	#   codesign -display --deep -vvv $(APPNAME).app
+	#
+	# the app will need notarizing with the following command:
+	#   xcrun altool --notarize-app -f $(APPNAME).dmg --primary-bundle-id "{bundle-id}" -u {username} -p {password}
+	#
+	# if successful 'staple' the app for offline installation
+	#   xcrun stapler staple "$(APPNAME).app"
+	#   xcrun stapler staple "$(APPNAME).dmg"
+	
 
 clean: ## Remove previous build
 	rm -f $(WINDOWS) $(LINUX) $(DARWIN)
-	rm -fr $(DARWINDISTPATH)/$(APPNAME).app
-	rm -fr $(DARWINDISTPATH)/$(APPNAME).dmg
 	rm -f $(DARWINDISTPATH)/Applications
+	rm -fr $(DARWINDISTPATH)/*
+	rm -fr $(DISTPATH)/$(APPNAME).dmg
 
 help: ## Display available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

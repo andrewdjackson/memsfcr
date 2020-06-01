@@ -58,6 +58,7 @@ var (
 	outputDir        string
 	bundleIdentifier string
 	templateDMG      string
+	version          string
 )
 
 func init() {
@@ -68,6 +69,7 @@ func init() {
 	flag.StringVar(&outputDir, "o", ".", "The folder into which to output the artefacts")
 	flag.StringVar(&bundleIdentifier, "identifier", "com.example.unknown", "The bundle identifier (make it your own)")
 	flag.StringVar(&templateDMG, "dmg", "", "If set, will package the app in a DMG based on this template")
+	flag.StringVar(&version, "version", "1.0.0", "The version number of the build")
 }
 
 func main() {
@@ -111,6 +113,7 @@ func makeAppBundle(appFilename string) error {
 	// write the Info.plist file into the bundle
 	infoPlist := strings.Replace(infoPlistTpl, "{{.AppName}}", binaryName, -1)
 	infoPlist = strings.Replace(infoPlist, "{{.BundleIdentifier}}", bundleIdentifier, -1)
+	infoPlist = strings.Replace(infoPlist, "{{.Version}}", version, -1)
 	infoPlistPath := filepath.Join(appFilename, "Contents", "Info.plist")
 	err := ioutil.WriteFile(infoPlistPath, []byte(infoPlist), 0644)
 	if err != nil {
@@ -407,6 +410,14 @@ const infoPlistTpl = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleName</key>
+	<string>{{.AppName}}</string>
+	<key>CFBundleVersion</key>
+	<string>{{.Version}}</string>
+	<key>CFBundleShortVersionString</key>
+	<string>{{.Version}}</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
 	<key>CFBundleExecutable</key>
 	<string>{{.AppName}}</string>
 	<key>CFBundleIconFile</key>
