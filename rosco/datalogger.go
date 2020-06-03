@@ -76,7 +76,7 @@ func (logger *MemsDataLogger) openFile() {
 	logger.logfile, err = os.OpenFile(logger.Filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 
 	if err != nil {
-		utils.LogE.Printf("%s", err)
+		utils.LogE.Printf("unable to open file '%s' (%s)", logger.Filename, err)
 		logger.isOpen = false
 	} else {
 		logger.isOpen = true
@@ -89,11 +89,11 @@ func (logger *MemsDataLogger) writeToFile(data string) error {
 	var err error
 
 	if _, err = logger.logfile.WriteString(data); err != nil {
-		utils.LogE.Printf("%s", err)
+		utils.LogE.Printf("unable to write to file '%s' (%s)", logger.Filename, err)
 		return err
 	}
 
-	utils.LogI.Printf("%s", data)
+	utils.LogI.Printf("wrote to log '%s'", data)
 
 	return logger.logfile.Sync()
 }

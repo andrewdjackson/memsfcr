@@ -219,7 +219,7 @@ func openBrowser(url string) {
 	}
 
 	if err != nil {
-		utils.LogE.Printf("%s", err)
+		utils.LogE.Printf("error opening browser (%s)", err)
 	}
 
 	for {

@@ -95,6 +95,8 @@ func (wi *WebInterface) newRouter() *mux.Router {
 		webroot = fmt.Sprintf("%s/Resources", path)
 	}
 
+	utils.LogI.Printf("path to the local html files (%s)", webroot)
+
 	if err != nil {
 		utils.LogE.Printf("unable to find the current path to the local html files (%s)", err)
 	}
