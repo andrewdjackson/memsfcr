@@ -3,6 +3,7 @@ package rosco
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -22,6 +23,8 @@ func NewMemsDataLogger(folder string) *MemsDataLogger {
 	logger := &MemsDataLogger{}
 	logger.logFolder = folder
 	logger.setFilename()
+
+	utils.LogI.Printf("opening log file '%s'", logger.logFolder)
 
 	// check if this is a new file
 	exist := logger.fileExists()
@@ -44,12 +47,12 @@ func (logger *MemsDataLogger) WriteMemsDataToFile(memsdata MemsData) {
 
 func (logger *MemsDataLogger) setFilename() {
 	currentTime := time.Now()
+	dateTime := currentTime.Format("2006-01-02 15:04:05")
+	dateTime = strings.ReplaceAll(dateTime, ":", "")
+	dateTime = strings.ReplaceAll(dateTime, " ", "-")
 
-	filename := fmt.Sprintf("%s/%s.csv", logger.logFolder, currentTime.Format("2006-01-02 15:04:05"))
-	filename = strings.ReplaceAll(filename, ":", "")
-	filename = strings.ReplaceAll(filename, " ", "-")
-
-	logger.Filename = filename
+	filename := fmt.Sprintf("%s/%s", logger.logFolder, dateTime)
+	logger.Filename = filepath.FromSlash(filename)
 }
 
 // fileExists reports whether the named file or directory exists.

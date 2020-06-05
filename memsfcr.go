@@ -6,12 +6,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"os/exec"
 	"runtime"
 
 	"github.com/andrewdjackson/memsfcr/rosco"
 	"github.com/andrewdjackson/memsfcr/ui"
 	"github.com/andrewdjackson/memsfcr/utils"
+	"github.com/pkg/browser"
 	"github.com/zserge/webview"
 )
 
@@ -207,16 +207,20 @@ func (r *MemsReader) fcrMainLoop() {
 func openBrowser(url string) {
 	var err error
 
-	switch runtime.GOOS {
-	case "linux":
-		err = exec.Command("xdg-open", url).Start()
-	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	case "darwin":
-		err = exec.Command("open", url).Start()
-	default:
-		err = fmt.Errorf("unsupported platform")
-	}
+	utils.LogI.Printf("opening browser (%s)", runtime.GOOS)
+
+	err = browser.OpenURL(url)
+
+	// switch runtime.GOOS {
+	// case "linux":
+	// 	err = exec.Command("xdg-open", url).Start()
+	// case "windows":
+	// 	err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	// case "darwin":
+	// 	err = exec.Command("open", url).Start()
+	// default:
+	// 	err = fmt.Errorf("unsupported platform")
+	// }
 
 	if err != nil {
 		utils.LogE.Printf("error opening browser (%s)", err)

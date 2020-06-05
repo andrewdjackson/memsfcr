@@ -92,7 +92,7 @@ func (wi *WebInterface) newRouter() *mux.Router {
 		webroot = strings.Replace(path, "MacOS", "Resources", -1)
 	} else {
 		// windows use the exe subdirectory
-		webroot = fmt.Sprintf("%s/Resources", path)
+		webroot = fmt.Sprintf("%s\\resources", path)
 	}
 
 	utils.LogI.Printf("path to the local html files (%s)", webroot)
@@ -101,7 +101,7 @@ func (wi *WebInterface) newRouter() *mux.Router {
 		utils.LogE.Printf("unable to find the current path to the local html files (%s)", err)
 	}
 
-	wi.httpDir = webroot
+	wi.httpDir = filepath.ToSlash(webroot)
 
 	// set a router and a hander to accept messages over the websocket
 	r := mux.NewRouter()
