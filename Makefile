@@ -1,6 +1,6 @@
 EXECUTABLE=memsfcr
 APPNAME=MemsFCR
-APPLEDEVID=${APPLEDEVID} 
+DEVID="Developer ID Application: Andrew Jackson (MD9E767XF5)"
 
 DISTPATH=dist
 RESOURCESPATH=resources
@@ -18,7 +18,7 @@ ARMDISTPATH=dist/arm
 ARM=$(ARMDISTPATH)/$(EXECUTABLE)-arm
 
 #VERSION=$(shell git describe --tags)
-VERSION="V1.0.1"
+VERSION="V1.0.2"
 BUILD=$(shell date +%FT%T%z)
 
 .PHONY: all clean
@@ -27,6 +27,7 @@ all: build
 
 build: darwin   ## Build binaries
 	@echo version: $(VERSION)
+	@echo appid: $(DEVID)
 
 darwin: $(DARWIN) buildapp signapp packageapp  ## Build for Darwin (macOS 10.15+)
 arm: $(ARM) ## Build for Darwin 32bit (macOS <10.15)
@@ -52,7 +53,7 @@ buildapp:
 
 signapp:	
 	# sign with the Developer ID
-	codesign --force  --deep --verify --verbose -s "$(APPLEDEVID)" -v --timestamp --options runtime "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/$(EXECUTABLE)" "$(DARWINDISTPATH)/$(APPNAME).app"
+	codesign --force  --deep --verify --verbose -s $(DEVID) -v --timestamp --options runtime "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/$(EXECUTABLE)" "$(DARWINDISTPATH)/$(APPNAME).app"
 
 
 packageapp:

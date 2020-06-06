@@ -51,7 +51,7 @@ func (logger *MemsDataLogger) setFilename() {
 	dateTime = strings.ReplaceAll(dateTime, ":", "")
 	dateTime = strings.ReplaceAll(dateTime, " ", "-")
 
-	filename := fmt.Sprintf("%s/%s", logger.logFolder, dateTime)
+	filename := fmt.Sprintf("%s/%s.csv", logger.logFolder, dateTime)
 	logger.Filename = filepath.FromSlash(filename)
 }
 

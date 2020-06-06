@@ -89,7 +89,13 @@ func (wi *WebInterface) newRouter() *mux.Router {
 	// use default browser on Windows until I can get the Webview to work
 	if runtime.GOOS == "darwin" {
 		// MacOS use .app Resources
-		webroot = strings.Replace(path, "MacOS", "Resources", -1)
+		if strings.Index(path, "MacOS") > -1 {
+			// packaged app
+			webroot = strings.Replace(path, "MacOS", "Resources", -1)
+		} else {
+			// running a local or dev version
+			webroot = fmt.Sprintf("%s/Resources", path)
+		}
 	} else {
 		// windows use the exe subdirectory
 		webroot = fmt.Sprintf("%s\\resources", path)
