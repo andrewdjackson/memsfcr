@@ -25,7 +25,7 @@ BUILD=$(shell date +%FT%T%z)
 
 all: build
 
-build: darwin   ## Build binaries
+build: arm   ## Build binaries
 	@echo version: $(VERSION)
 	@echo appid: $(DEVID)
 
@@ -44,7 +44,7 @@ $(DARWIN):
 	env GOOS=darwin GOARCH=amd64 go build -i -v -o $(DARWIN) -ldflags="-s -w -X main.Version=$(VERSION) -X main.Build=$(BUILD)"
 
 $(ARM):
-	env GOOS=android GOARCH=arm GOARM=5 CGO_ENABLED=1 go build -i -v -o $(DARWIN) -ldflags="-extldflags=-Wl,-z,norelro"
+	env GOOS=linux GOARCH=arm GOARM=5 CGO_ENABLED=1 CC=arm-linux-gnueabihf-gcc CXX=arm-linux-gnueabihf-g++ go build -i -v -o $(ARM) -ldflags="-extldflags=-Wl,-z,norelro -X main.Version=$(VERSION) -X main.Build=$(BUILD)"
 
 buildapp:
 	# create the MacOS app
