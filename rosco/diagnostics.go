@@ -1,7 +1,6 @@
 package rosco
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/andrewdjackson/memsfcr/utils"
@@ -35,7 +34,7 @@ type MemsAnalysisReport struct {
 	// Lambda Status
 	lambdaStatus MemsLambdaStatus
 	// Sample Stats
-	coolantTempAverage float32
+	coolantTempAverage float64
 }
 
 // NewMemsAnalysisReport create a new report
@@ -56,6 +55,8 @@ func NewMemsAnalysisReport() *MemsAnalysisReport {
 type MemsDiagnostics struct {
 	// CurrentData is the lastest reading
 	CurrentData MemsData
+	// Sample contains the last minute of readings
+	Sample []MemsData
 	// DataSet of mems data
 	Dataset []MemsData
 	// Analysis report
@@ -77,17 +78,19 @@ func NewMemsDiagnostics() *MemsDiagnostics {
 func (diagnostics *MemsDiagnostics) Add(data MemsData) {
 	diagnostics.CurrentData = data
 	diagnostics.Dataset = append(diagnostics.Dataset, data)
+	diagnostics.Sample = diagnostics.GetDataSetSample(60)
 }
 
 // Analyse runs a diagnostic review of the dataset
 func (diagnostics *MemsDiagnostics) Analyse() {
 	// work with a sample of the last 60 seconds of data
-	sample := diagnostics.getDataSetSample(60)
-	diagnostics.Analysis.coolantTempAverage = diagnostics.getMovingAverage("CoolantTemp")
+	diagnostics.Sample = diagnostics.GetDataSetSample(60)
+	diagnostics.Analysis.IsWarm = diagnostics.isEngineWarm()
 	diagnostics.Analysis.IsIdle = diagnostics.isIdle()
 }
 
-func (diagnostics *MemsDiagnostics) getDataSetSample(points int) []MemsData {
+// GetDataSetSample asda
+func (diagnostics *MemsDiagnostics) GetDataSetSample(points int) []MemsData {
 	maxItems := len(diagnostics.Dataset)
 
 	if points > maxItems {
@@ -97,24 +100,35 @@ func (diagnostics *MemsDiagnostics) getDataSetSample(points int) []MemsData {
 	return diagnostics.Dataset[maxItems-points:]
 }
 
-func (diagnostics *MemsDiagnostics) getMovingAverage(sample []MemsData, metricName string) float32 {
-	items := reflect.ValueOf(sample)
+// GetMovingAverage asda
+func (diagnostics *MemsDiagnostics) GetMovingAverage(metricName string) float64 {
+	items := reflect.ValueOf(diagnostics.Sample)
+	count := 0.0
+	total := 0.0
 
 	for i := 0; i < items.Len(); i++ {
 		item := items.Index(i)
 		if item.Kind() == reflect.Struct {
 			v := reflect.Indirect(item).FieldByName(metricName)
-			for j := 0; j < v.NumField(); j++ {
-				fmt.Println(v.Type().Field(j).Name, v.Field(j).Interface())
-			}
+			total = total + float64(v.Interface().(int8))
+			count = count + 1
 		}
 	}
 
-	return 0
+	return total / count
 }
 
+func (diagnostics *MemsDiagnostics) isEngineWarm() bool {
+	return diagnostics.GetMovingAverage("CoolantTemp") >= engineWarmTemperature
+}
 func (diagnostics *MemsDiagnostics) isIdle() bool {
-	return diagnostics.CurrentData.CoolantTemp < engineWarmTemperature && diagnostics.CurrentData.EngineRPM < maxIdleWarmRPM
+	rpm := diagnostics.GetMovingAverage("EngineRPM")
+
+	if diagnostics.isEngineWarm() {
+		return rpm >= minIdleWarmRPM && rpm <= maxIdleWarmRPM
+	}
+
+	return rpm >= minIdleColdRPM && rpm <= maxIdleColdRPM
 }
 
 func (diagnostics *MemsDiagnostics) minIAC() bool {

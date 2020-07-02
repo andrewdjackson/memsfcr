@@ -44,7 +44,7 @@ $(DARWIN):
 	env GOOS=darwin GOARCH=amd64 go build -i -v -o $(DARWIN) -ldflags="-s -w -X main.Version=$(VERSION) -X main.Build=$(BUILD)"
 
 $(ARM):
-	env GOOS=linux GOARCH=arm GOARM=5 CGO_ENABLED=1 CC=arm-linux-gnueabihf-gcc CXX=arm-linux-gnueabihf-g++ go build -i -v -o $(ARM) -ldflags="-extldflags=-Wl,-z,norelro -X main.Version=$(VERSION) -X main.Build=$(BUILD)"
+	env GOOS=linux GOARCH=arm GOARM=5 CGO_ENABLED=1 CC=arm-linux-gnueabihf-gcc CXX=arm-linux-gnueabihf-g++ go 
 
 buildapp:
 	# create the MacOS app
