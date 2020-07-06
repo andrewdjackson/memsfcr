@@ -18,18 +18,18 @@ ARMDISTPATH=dist/arm
 ARM=$(ARMDISTPATH)/$(EXECUTABLE)-arm
 
 #VERSION=$(shell git describe --tags)
-VERSION="V1.0.2"
+VERSION="V1.1make.0"
 BUILD=$(shell date +%FT%T%z)
 
 .PHONY: all clean
 
 all: build
 
-build: arm   ## Build binaries
+build: darwin   ## Build binaries
 	@echo version: $(VERSION)
 	@echo appid: $(DEVID)
 
-darwin: $(DARWIN) buildapp signapp packageapp  ## Build for Darwin (macOS 10.15+)
+darwin: $(DARWIN) buildapp signapp packageapp ## Build for Darwin (macOS 10.15+)
 arm: $(ARM) ## Build for Darwin 32bit (macOS <10.15)
 linux: $(LINUX) ## Build for Linux
 windows: $(WINDOWS) ## Build for Windows

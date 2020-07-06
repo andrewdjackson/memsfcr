@@ -155,7 +155,6 @@ func (mems *MemsConnection) doRead(b []byte) (int, error) {
 // read 1 byte at a time until we have all the expected bytes
 func (mems *MemsConnection) readSerial() []byte {
 	var n int
-	var e error
 
 	size := mems.getResponseSize(mems.command)
 
