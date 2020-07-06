@@ -31,6 +31,7 @@ type MemsConnection struct {
 	RxECU       chan MemsCommandResponse
 	Connected   bool
 	Initialised bool
+	Diagnostics *MemsDiagnostics
 }
 
 // MemsConnectionStatus are we?
@@ -64,6 +65,8 @@ func NewMemsConnection() *MemsConnection {
 	m.Initialised = false
 	m.TxECU = make(chan MemsCommandResponse)
 	m.RxECU = make(chan MemsCommandResponse)
+	// engine diagnostics
+	m.Diagnostics = NewMemsDiagnostics()
 
 	return m
 }
@@ -82,7 +85,7 @@ func (mems *MemsConnection) ConnectAndInitialiseECU(port string) {
 func (mems *MemsConnection) connect(port string) {
 
 	// connect to the ecu, timeout if we don't get data after a couple of seconds
-	c := &serial.Config{Name: port, Baud: 9600, ReadTimeout: time.Second * 2}
+	c := &serial.Config{Name: port, Baud: 9600, ReadTimeout: time.Millisecond * 1200}
 
 	utils.LogI.Println("opening ", port)
 
@@ -134,6 +137,20 @@ func (mems *MemsConnection) initialise() {
 	mems.Initialised = true
 }
 
+func (mems *MemsConnection) doRead(b []byte) (int, error) {
+	var n int
+	var e error
+
+	n, e = mems.SerialPort.Read(b)
+	if e != nil {
+		utils.LogW.Printf("serial port read error %s, timeout?", e)
+		utils.LogW.Printf("retrying serial port read..")
+		n, e = mems.doRead(b)
+	}
+
+	return n, e
+}
+
 // readSerial read from MEMS
 // read 1 byte at a time until we have all the expected bytes
 func (mems *MemsConnection) readSerial() []byte {
@@ -152,10 +169,10 @@ func (mems *MemsConnection) readSerial() []byte {
 		// read all the expected bytes before returning the data
 		for count := 0; count < size; {
 			// wait for a response from MEMS
-			n, e = mems.SerialPort.Read(b)
+			n, _ = mems.SerialPort.Read(b)
 
-			if e != nil {
-				utils.LogW.Printf("serial port read error %s, timeout?", e)
+			if n == 0 {
+				utils.LogW.Printf("serial port read error, timeout?")
 				// drop out of loop, send back a 0x00 byte array response
 				// this prevents the loop getting blocked on a read error
 				count = size
@@ -274,11 +291,11 @@ func (mems *MemsConnection) ReadMemsData() {
 	// adjustments and calculations
 	memsdata := MemsData{
 		Time:                     t.Format("15:04:05.000"),
-		EngineRPM:                df80.EngineRpm,
-		CoolantTemp:              int8(df80.CoolantTemp) - 55,
-		AmbientTemp:              int8(df80.AmbientTemp) - 55,
-		IntakeAirTemp:            int8(df80.IntakeAirTemp) - 55,
-		FuelTemp:                 int8(df80.FuelTemp) - 55,
+		EngineRPM:                int(df80.EngineRpm),
+		CoolantTemp:              int(df80.CoolantTemp) - 55,
+		AmbientTemp:              int(df80.AmbientTemp) - 55,
+		IntakeAirTemp:            int(df80.IntakeAirTemp) - 55,
+		FuelTemp:                 int(df80.FuelTemp) - 55,
 		ManifoldAbsolutePressure: float32(df80.ManifoldAbsolutePressure),
 		BatteryVoltage:           float32(df80.BatteryVoltage) / 10,
 		ThrottlePotSensor:        roundTo2DecimalPoints(float32(df80.ThrottlePotSensor) * 0.02),
@@ -287,11 +304,11 @@ func (mems *MemsConnection) ReadMemsData() {
 		ParkNeutralSwitch:        bool(df80.ParkNeutralSwitch == 1),
 		DTC0:                     df80.Dtc0,
 		DTC1:                     df80.Dtc1,
-		IdleSetPoint:             df80.IdleSetPoint,
-		IdleHot:                  df80.IdleHot - 35,
-		IACPosition:              int8(iac),
-		IdleSpeedDeviation:       df80.IdleSpeedDeviation,
-		IgnitionAdvanceOffset80:  df80.IgnitionAdvanceOffset80,
+		IdleSetPoint:             int(df80.IdleSetPoint),
+		IdleHot:                  int(df80.IdleHot - 35),
+		IACPosition:              int(iac),
+		IdleSpeedDeviation:       int(df80.IdleSpeedDeviation),
+		IgnitionAdvanceOffset80:  int(df80.IgnitionAdvanceOffset80),
 		IgnitionAdvance:          (float32(df80.IgnitionAdvance) / 2) - 24,
 		CoilTime:                 roundTo2DecimalPoints(float32(df80.CoilTime) * 0.002),
 		CrankshaftPositionSensor: bool(df80.CrankshaftPositionSensor != 0),
@@ -300,25 +317,25 @@ func (mems *MemsConnection) ReadMemsData() {
 		FuelPumpCircuitFault:     bool(df80.Dtc1&FuelPumpFaultCode != 0),
 		ThrottlePotCircuitFault:  bool(df80.Dtc1&ThrottlePotFaultCode != 0),
 		IgnitionSwitch:           bool(df7d.IgnitionSwitch != 0),
-		ThrottleAngle:            uint8(math.Round(float64(df7d.ThrottleAngle * 6 / 10))),
+		ThrottleAngle:            int(math.Round(float64(df7d.ThrottleAngle * 6 / 10))),
 		AirFuelRatio:             float32(df7d.AirFuelRatio) / 10,
 		DTC2:                     df7d.Dtc2,
-		LambdaVoltage:            df7d.LambdaVoltage * 5,
-		LambdaFrequency:          df7d.LambdaFrequency,
-		LambdaDutycycle:          df7d.LambdaDutyCycle,
-		LambdaStatus:             df7d.LambdaStatus,
+		LambdaVoltage:            int(df7d.LambdaVoltage * 5),
+		LambdaFrequency:          int(df7d.LambdaFrequency),
+		LambdaDutycycle:          int(df7d.LambdaDutyCycle),
+		LambdaStatus:             int(df7d.LambdaStatus),
 		ClosedLoop:               bool(df7d.LoopIndicator != 0),
-		LongTermFuelTrim:         df7d.LongTermFuelTrim - 128,
-		ShortTermFuelTrim:        df7d.ShortTermFuelTrim,
-		FuelTrimCorrection:       int8(df7d.ShortTermFuelTrim) - 100,
-		CarbonCanisterPurgeValve: df7d.CarbonCanisterPurgeValve,
+		LongTermFuelTrim:         int(df7d.LongTermFuelTrim - 128),
+		ShortTermFuelTrim:        int(df7d.ShortTermFuelTrim),
+		FuelTrimCorrection:       int(df7d.ShortTermFuelTrim) - 100,
+		CarbonCanisterPurgeValve: int(df7d.CarbonCanisterPurgeValve),
 		DTC3:                     df7d.Dtc3,
-		IdleBasePosition:         df7d.IdleBasePos,
+		IdleBasePosition:         int(df7d.IdleBasePos),
 		DTC4:                     df7d.Dtc4,
-		IgnitionAdvanceOffset7d:  df7d.IgnitionAdvanceOffset7d - 48,
-		IdleSpeedOffset:          ((df7d.IdleSpeedOffset - 128) * 25),
+		IgnitionAdvanceOffset7d:  int(df7d.IgnitionAdvanceOffset7d - 48),
+		IdleSpeedOffset:          int((df7d.IdleSpeedOffset - 128) * 25),
 		DTC5:                     df7d.Dtc5,
-		JackCount:                df7d.JackCount,
+		JackCount:                int(df7d.JackCount),
 		Dataframe80:              hex.EncodeToString(d80),
 		Dataframe7d:              hex.EncodeToString(d7d),
 	}
@@ -327,6 +344,10 @@ func (mems *MemsConnection) ReadMemsData() {
 
 	// run as a go routine so it doesn't block this function completing
 	go mems.sendMemsDataToChannel(memsdata)
+
+	// add the data for diagnostics
+	mems.Diagnostics.Add(memsdata)
+	mems.Diagnostics.Analyse()
 }
 
 func (mems *MemsConnection) sendMemsDataToChannel(memsdata MemsData) {

@@ -6,11 +6,11 @@ var responseMap = make(map[string][]byte)
 type (
 	MemsData struct {
 		Time                     string
-		EngineRPM                uint16
-		CoolantTemp              int8
-		AmbientTemp              int8
-		IntakeAirTemp            int8
-		FuelTemp                 int8
+		EngineRPM                int
+		CoolantTemp              int
+		AmbientTemp              int
+		IntakeAirTemp            int
+		FuelTemp                 int
 		ManifoldAbsolutePressure float32
 		BatteryVoltage           float32
 		ThrottlePotSensor        float32
@@ -20,49 +20,49 @@ type (
 		ParkNeutralSwitch        bool
 		DTC0                     uint8
 		DTC1                     uint8
-		IdleSetPoint             uint8
-		IdleHot                  uint8
-		Uk8011                   uint8
-		IACPosition              int8
-		IdleSpeedDeviation       uint16
-		IgnitionAdvanceOffset80  uint8
+		IdleSetPoint             int
+		IdleHot                  int
+		Uk8011                   int
+		IACPosition              int
+		IdleSpeedDeviation       int
+		IgnitionAdvanceOffset80  int
 		IgnitionAdvance          float32
 		CoilTime                 float32
 		CrankshaftPositionSensor bool
-		Uk801a                   uint8
-		Uk801b                   uint8
+		Uk801a                   int
+		Uk801b                   int
 		IgnitionSwitch           bool
-		ThrottleAngle            uint8
-		Uk7d03                   uint8
+		ThrottleAngle            int
+		Uk7d03                   int
 		AirFuelRatio             float32
 		DTC2                     uint8
-		LambdaVoltage            uint8
-		LambdaFrequency          uint8
-		LambdaDutycycle          uint8
-		LambdaStatus             uint8
+		LambdaVoltage            int
+		LambdaFrequency          int
+		LambdaDutycycle          int
+		LambdaStatus             int
 		ClosedLoop               bool
-		LongTermFuelTrim         uint8
-		ShortTermFuelTrim        uint8
-		FuelTrimCorrection       int8
-		CarbonCanisterPurgeValve uint8
+		LongTermFuelTrim         int
+		ShortTermFuelTrim        int
+		FuelTrimCorrection       int
+		CarbonCanisterPurgeValve int
 		DTC3                     uint8
-		IdleBasePosition         uint8
-		Uk7d10                   uint8
+		IdleBasePosition         int
+		Uk7d10                   int
 		DTC4                     uint8
-		IgnitionAdvanceOffset7d  uint8
-		IdleSpeedOffset          uint8
-		Uk7d14                   uint8
-		Uk7d15                   uint8
+		IgnitionAdvanceOffset7d  int
+		IdleSpeedOffset          int
+		Uk7d14                   int
+		Uk7d15                   int
 		DTC5                     uint8
-		Uk7d17                   uint8
-		Uk7d18                   uint8
-		Uk7d19                   uint8
-		Uk7d1a                   uint8
-		Uk7d1b                   uint8
-		Uk7d1c                   uint8
-		Uk7d1d                   uint8
-		Uk7d1e                   uint8
-		JackCount                uint8
+		Uk7d17                   int
+		Uk7d18                   int
+		Uk7d19                   int
+		Uk7d1a                   int
+		Uk7d1b                   int
+		Uk7d1c                   int
+		Uk7d1d                   int
+		Uk7d1e                   int
+		JackCount                int
 
 		CoolantTempSensorFault   bool
 		IntakeAirTempSensorFault bool

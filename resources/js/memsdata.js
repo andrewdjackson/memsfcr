@@ -4,15 +4,21 @@ var maxLambda = false;
 var minIAC = false;
 var dataframeLoop;
 
+
+// duration in milliseconds between calls to the ECU for
+// dataframes. the ECU will struggle to respond with a 
+// value less than 450ms
+const ECUQueryInterval = 1000
+
+// wait time for the ECU to respond before sending another command
 var waitingForResponse = false;
 var waitingForResponseTimeout;
-const WaitForResponseInterval = 500
+const WaitForResponseInterval = 300
 
 const AirSensorFaultCode = 0b00000001
 const CoolantSensorFaultCode = 0b00000010
 const FuelPumpFaultCode = 0b00000001
 const ThrottlePotFaultCode = 0b01000000
-
 
 const ResponseSTFTDecrement = "7a"
 const ResponseSTFTIncrement = "79"
@@ -94,11 +100,6 @@ const LogToFileEnabled = "true"
 const LogToFileDisabled = "false"
 const SettingPort = "port"
 const SettingPortList = "ports"
-
-// duration in milliseconds between calls to the ECU for
-// dataframes. the ECU will struggle to respond with a 
-// value less than 450ms
-const ECUQueryInterval = 900
 
 // Indicators and Labels
 const IndicatorConnectionMessage = "connectionMessage"
@@ -554,7 +555,13 @@ function stopDataframeLoop() {
 
 function startWaitForResponse() {
     waitingForResponse = true
-    waitingForResponseTimeout = setInterval(clearWaitForResponse, WaitForResponseInterval)
+    waitingForResponseTimeout = setInterval(waitForResponseTimedOut, WaitForResponseInterval)
+}
+
+// called if the wait for response times out
+function waitForResponseTimedOut() {
+    console.error("timed out waiting for response")
+    clearWaitForResponse()
 }
 
 // fail back if we don't get a response, so that the UI doesn't get blocked
@@ -641,7 +648,7 @@ function sendSocketMessage(msg) {
         startWaitForResponse()
         sock.send(msg);
     } else {
-        console.log("can't send whilst waiting for a response")
+        console.error("can't send whilst waiting for a response")
     }
 }
 

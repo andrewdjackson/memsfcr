@@ -110,13 +110,15 @@ func (memsfcr *MemsFCR) getECUDataFrame() {
 func (memsfcr *MemsFCR) TxECU(cmd []byte) {
 	var c rosco.MemsCommandResponse
 	c.Command = cmd
-
-	select {
-	case memsfcr.FCRSendToECU <- c:
-		utils.LogI.Printf("%s FCR sent command '%x' to ECU", utils.ECUCommandTrace, cmd)
-	default:
-		utils.LogW.Printf("%s FCR unable to send command to ECU on FCRSendToECU, blocked?", utils.ECUCommandTrace)
-	}
+	memsfcr.FCRSendToECU <- c
+	utils.LogI.Printf("%s FCR sent command '%x' to ECU", utils.ECUCommandTrace, cmd)
+	/*
+		select {
+		case memsfcr.FCRSendToECU <- c:
+			utils.LogI.Printf("%s FCR sent command '%x' to ECU", utils.ECUCommandTrace, cmd)
+		default:
+			utils.LogW.Printf("%s FCR unable to send command '%x' to ECU on FCRSendToECU, blocked?", utils.ECUCommandTrace, cmd)
+		}*/
 }
 
 // TxRxECULoop wraps the ECU send and recieve protocol

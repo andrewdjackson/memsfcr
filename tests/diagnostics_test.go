@@ -1,8 +1,10 @@
 package tests
 
 import (
-	"github.com/andrewdjackson/memsfcr/rosco"
+	"math/rand"
 	"testing"
+
+	"github.com/andrewdjackson/memsfcr/rosco"
 )
 
 func createTestData(items int) []rosco.MemsData {
@@ -23,13 +25,6 @@ func TestNewDiagnostic(t *testing.T) {
 	}
 }
 
-func TestNewMemsAnalytics(t *testing.T) {
-	r := rosco.NewMemsAnalysisReport()
-	if r == nil {
-		t.Errorf("failed")
-	}
-}
-
 func TestAddData(t *testing.T) {
 	d := rosco.NewMemsDiagnostics()
 	item := rosco.MemsData{}
@@ -39,11 +34,21 @@ func TestAddData(t *testing.T) {
 	}
 }
 
-func TestMovingAverage(t *testing.T) {
-	temp := [3]int8{20, 30, 40}
-	rpm := [3]uint16{1100, 1180, 1200}
+func getRandomValues(min int, max int, qty int) []int {
+	var v []int
 
-	expected := 30.0
+	for i := 0; i < qty; i++ {
+		v = append(v, rand.Intn(max-min)+min)
+	}
+
+	return v
+}
+
+func TestMovingAverageUnstable(t *testing.T) {
+	temp := getRandomValues(20, 88, 20)
+	rpm := getRandomValues(800, 1250, 20)
+
+	expected := 54.0
 
 	d := rosco.NewMemsDiagnostics()
 
@@ -55,10 +60,36 @@ func TestMovingAverage(t *testing.T) {
 		d.Add(item)
 	}
 
-	a := d.GetMovingAverage("CoolantTemp")
+	d.Analyse()
+	s := d.GetMetricStatistics("CoolantTemp")
 
-	if a != expected {
-		t.Errorf("failed expected %d, got %f", temp, a)
+	if s.Mean != expected {
+		t.Errorf("failed expected %d, got %f", temp, s.Mean)
+	}
+	t.Logf("%v", s)
+}
+
+func TestMovingAverageTrendStable(t *testing.T) {
+	temp := getRandomValues(86, 88, 20)
+	rpm := getRandomValues(1100, 1250, 20)
+
+	expected := 87.0
+
+	d := rosco.NewMemsDiagnostics()
+
+	for i := 0; i < len(temp); i++ {
+		item := rosco.MemsData{
+			CoolantTemp: temp[i],
+			EngineRPM:   rpm[i],
+		}
+		d.Add(item)
+	}
+
+	d.Analyse()
+	s := d.GetMetricStatistics("CoolantTemp")
+
+	if s.Mean != expected {
+		t.Errorf("failed expected %d", temp)
 	}
 }
 func TestGetSample(t *testing.T) {
@@ -84,5 +115,28 @@ func TestGetSampleWithSmallDataset(t *testing.T) {
 
 	if len(s) != datasetSize {
 		t.Errorf("failed %d items, %d expected", len(s), items)
+	}
+}
+
+func TestAnalyse(t *testing.T) {
+	datasetSize := 20
+
+	temp := getRandomValues(86, 88, datasetSize)
+	rpm := getRandomValues(1100, 1250, datasetSize)
+
+	d := rosco.NewMemsDiagnostics()
+
+	for i := 0; i < len(temp); i++ {
+		item := rosco.MemsData{
+			CoolantTemp: temp[i],
+			EngineRPM:   rpm[i],
+		}
+		d.Add(item)
+	}
+
+	d.Analyse()
+
+	if len(d.Dataset) != datasetSize {
+		t.Errorf("failed expected %d", datasetSize)
 	}
 }

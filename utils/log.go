@@ -20,6 +20,9 @@ const ReceiveFromWebTrace = "\u001b[38;5;21mWEB_RX<\u001b[0m"
 // SendToWebTrace color coding for Messages received from the Web
 const SendToWebTrace = "\u001b[38;5;21mWEB_TX>\u001b[0m"
 
+// DiagnosticTrace color coding for Messages received from the Web
+const DiagnosticTrace = "\u001b[38;5;220mDIAGTR>\u001b[0m"
+
 var (
 	// LogE logs as an error
 	LogE = log.New(LogWriter{}, "\u001b[38;5;160mERROR: ", 0)
