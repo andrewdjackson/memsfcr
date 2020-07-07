@@ -201,26 +201,27 @@ func (r *MemsReader) fcrMainLoop() {
 		case r.wi.ToWebChannel <- df:
 		default:
 		}
+
+		// send the diagnostics to the web interface
+		r.fcrSendDiagnosticsToWebView()
 	}
+}
+
+func (r *MemsReader) fcrSendDiagnosticsToWebView() {
+	m := ui.WebMsg{}
+	m.Action = ui.WebActionDiagnostics
+	data, _ := json.Marshal(r.fcr.ECU.Diagnostics.Analysis)
+	m.Data = string(data)
+
+	utils.LogI.Printf("%s sending diagnostics to web (%v)", utils.SendToWebTrace, m)
+	r.wi.ToWebChannel <- m
 }
 
 func openBrowser(url string) {
 	var err error
 
 	utils.LogI.Printf("opening browser (%s)", runtime.GOOS)
-
 	err = browser.OpenURL(url)
-
-	// switch runtime.GOOS {
-	// case "linux":
-	// 	err = exec.Command("xdg-open", url).Start()
-	// case "windows":
-	// 	err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	// case "darwin":
-	// 	err = exec.Command("open", url).Start()
-	// default:
-	// 	err = fmt.Errorf("unsupported platform")
-	// }
 
 	if err != nil {
 		utils.LogE.Printf("error opening browser (%s)", err)

@@ -8,7 +8,7 @@ var dataframeLoop;
 // duration in milliseconds between calls to the ECU for
 // dataframes. the ECU will struggle to respond with a 
 // value less than 450ms
-const ECUQueryInterval = 1000
+const ECUQueryInterval = 950
 
 // wait time for the ECU to respond before sending another command
 var waitingForResponse = false;
@@ -41,6 +41,7 @@ const WebActionCommand = "command"
 const WebActionResponse = "response"
 const WebActionIncrease = "increase"
 const WebActionDecrease = "decrease"
+const WebActionDiagnostics = "diagnostics"
 
 // WebActionCommand commands
 const CommandStart = "start"
@@ -225,6 +226,11 @@ function parseMessage(m) {
         updateDataFrameValues(data);
         updateAdjustmentValues(data);
     }
+
+    if (msg.action == WebActionDiagnostics) {
+        waitingForResponse = false;
+        console.log(data); 
+    }
 }
 
 function parseECUResponse(response) {
@@ -259,7 +265,7 @@ function parseECUResponse(response) {
 function updateGauges(Responsedata) {
     gaugeRPM.value = Responsedata.EngineRPM;
     gaugeMap.value = Responsedata.ManifoldAbsolutePressure;
-    gaugeThrottlePos.value = Responsedata.ThrottlePotSensor;
+    gaugeThrottlePos.value = (Responsedata.ThrottlePotSensor - 0.6) * 100;
     gaugeIACPos.value = Responsedata.IACPosition;
     gaugeBattery.value = Responsedata.BatteryVoltage;
     gaugeCoolant.value = Responsedata.CoolantTemp;

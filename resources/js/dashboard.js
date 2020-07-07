@@ -254,36 +254,40 @@ var gaugeThrottlePos = new RadialGauge({
 
 var gaugeIACPos = new RadialGauge({
     renderTo: 'gauge-iacpos',
-    title: 'IAC Motor Position',
+    title: 'Stepper Motor Position (IAC)',
     width: 200,
     height: 200,
-    units: '%',
+    units: 'steps',
     minValue: 0,
-    maxValue: 100,
+    maxValue: 200,
     majorTicks: [
         '0',
-        '10',
         '20',
-        '30',
         '40',
-        '50',
         '60',
-        '70',
         '80',
-        '90',
-        '100'
+        '100',
+        '120',
+        '140',
+        '160',
+        '180',
+        '200'
     ],
     minorTicks: 5,
     ticksAngle: 250,
     startAngle: 55,
     strokeTicks: true,
     highlights: [{
-        from: 50,
-        to: 80,
+        from: 0,
+        to: 30,
+        color: 'rgba(225, 7, 23, 0.75)'
+    }, {
+        from: 30,
+        to: 120,
         color: 'rgba(10, 225, 6, 0.5)'
     }, {
-        from: 80,
-        to: 100,
+        from: 170,
+        to: 200,
         color: 'rgba(225, 7, 23, 0.75)'
     }],
     valueInt: 1,

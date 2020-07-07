@@ -18,6 +18,8 @@ const (
 	WebActionECUCommandDecrease = "command"
 	// WebActionData data packet is ecu data
 	WebActionData = "data"
+	// WebActionDiagnostics diagnostic statistical data
+	WebActionDiagnostics = "diagnostics"
 )
 
 const (

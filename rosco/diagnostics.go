@@ -9,19 +9,33 @@ import (
 )
 
 const (
-	minIdleColdRPM        = 1200
-	maxIdleColdRPM        = 900
-	minIdleWarmRPM        = 700
-	maxIdleWarmRPM        = 900
-	minIdleMap            = 30
-	maxIdleMap            = 60
-	bestAFR               = 14.7
-	minMAPEngineOff       = 95
-	engineWarmTemperature = 88
-	lambdaLow             = 10
-	lambdaHigh            = 900
-	maxIdleError          = 50
-	maxSamples            = 30 // ~30 seconds
+	minIdleColdRPM        = 900  // Minimum expected RPM when running at Idle when cold
+	maxIdleColdRPM        = 1200 // Maximum expected RPM when running at Idle when cold
+	minIdleWarmRPM        = 700  // Minimum expected RPM when running at Idle when warm
+	maxIdleWarmRPM        = 900  // Maximum expected RPM when running at Idle when warm
+	minIdleMap            = 30   // Minimum MAP reading when the engine is running
+	maxIdleMap            = 60   // Maximum MAP reading when the engine is running
+	minMAPEngineOff       = 95   // Minumum MAP reading when the engine to not running
+	engineWarmTemperature = 80   // Engine is warm if the coolant temp is > 80C
+	engineOperatingTemp   = 84   // Engine is at operating temp when coolant temp > 84C
+	bestAFR               = 14.7 // Ideal Air to Fuel ratio
+	lambdaLow             = 10   // Lambda minimum operating voltage
+	lambdaHigh            = 900  // Lambda maximum operating voltage
+	maxIdleError          = 50   // Max Idle Error
+	maxSamples            = 30   // ~30 seconds
+	minIAC                = 30   // Minimum normal operation steps for the IAC / Stepper Motor
+	maxIAC                = 160  // Maximum normal operation steps for the IAC / Stepper Motor
+)
+
+const (
+	codeOptimal      = "optimal"
+	codeVacuumPipe   = "vacuum"
+	codeThermostat   = "thermostat"
+	codeCoolant      = "coolant"
+	codeStepperMotor = "stepper"
+	codeLambda       = "lambda"
+	codeStepperMax   = "steppermax"
+	codeStepperMin   = "steppermin"
 )
 
 // MemsSampleStats holds the statistics from a sample of a given metric
@@ -78,17 +92,25 @@ func findMinAndMax(data []float64) (min float64, max float64) {
 
 // MemsAnalysisReport is the output from running the analysis
 type MemsAnalysisReport struct {
-	IsEngineRunning     bool
-	IsEngineWarming     bool
-	IsEngineWarm        bool
-	IsEngineIdle        bool
-	IsCruising          bool
-	IsClosedLoop        bool
-	ClosedLoopExpected  bool
-	MapFault            bool
-	VacuumFault         bool
-	IdleAirControlFault bool
-	LambdaFault         bool
+	AnalysisCode             string
+	IsEngineRunning          bool
+	IsEngineWarming          bool
+	IsEngineWarm             bool
+	IsAtOperatingTemp        bool
+	IsEngineIdle             bool
+	IsEngineIdleFault        bool
+	IsCruising               bool
+	IsClosedLoop             bool
+	ClosedLoopExpected       bool
+	MapFault                 bool
+	VacuumFault              bool
+	IdleAirControlFault      bool
+	LambdaFault              bool
+	CoolantTempSensorFault   bool
+	IntakeAirTempSensorFault bool
+	FuelPumpCircuitFault     bool
+	ThrottlePotCircuitFault  bool
+	IACPosition              int
 }
 
 // MemsDiagnostics structure
@@ -128,13 +150,24 @@ func (diagnostics *MemsDiagnostics) Analyse() {
 	// work with a sample of the last n seconds of data
 	diagnostics.Sample = diagnostics.GetDataSetSample(maxSamples)
 
-	// get running stats
+	// get samples and associated stats for named metrics
 	diagnostics.Stats["CoolantTemp"] = diagnostics.GetMetricStatistics("CoolantTemp")
 	diagnostics.Stats["EngineRPM"] = diagnostics.GetMetricStatistics("EngineRPM")
 	diagnostics.Stats["ManifoldAbsolutePressure"] = diagnostics.GetMetricStatistics("ManifoldAbsolutePressure")
 	diagnostics.Stats["LambdaVoltage"] = diagnostics.GetMetricStatistics("LambdaVoltage")
 	diagnostics.Stats["AirFuelRatio"] = diagnostics.GetMetricStatistics("AirFuelRatio")
+	diagnostics.Stats["IACPosition"] = diagnostics.GetMetricStatistics("IACPosition")
 
+	// default analysis outcome
+	diagnostics.Analysis.AnalysisCode = codeOptimal
+
+	// apply ECU detected faults
+	diagnostics.Analysis.CoolantTempSensorFault = diagnostics.CurrentData.CoolantTempSensorFault
+	diagnostics.Analysis.FuelPumpCircuitFault = diagnostics.CurrentData.FuelPumpCircuitFault
+	diagnostics.Analysis.ThrottlePotCircuitFault = diagnostics.CurrentData.ThrottlePotCircuitFault
+	diagnostics.Analysis.IntakeAirTempSensorFault = diagnostics.CurrentData.IntakeAirTempSensorFault
+
+	// check the status of the sensors and running parameters
 	diagnostics.checkIsEngineRunning()
 	diagnostics.checkIsEngineWarm()
 	diagnostics.checkIsEngineIdle()
@@ -189,6 +222,7 @@ func (diagnostics *MemsDiagnostics) GetMetricStatistics(metricName string) MemsS
 // is low then deem the engine to be running at operating temperature
 func (diagnostics *MemsDiagnostics) checkIsEngineWarm() {
 	diagnostics.Analysis.IsEngineWarm = (diagnostics.Stats["CoolantTemp"].Value >= engineWarmTemperature && diagnostics.Stats["CoolantTemp"].Stddev < 5)
+	diagnostics.Analysis.IsAtOperatingTemp = (diagnostics.Stats["CoolantTemp"].Value >= engineOperatingTemp && diagnostics.Stats["CoolantTemp"].Stddev < 5)
 }
 
 // if the last reading of engine RPM is 0 then the engine is not running
@@ -200,16 +234,22 @@ func (diagnostics *MemsDiagnostics) checkIsEngineRunning() {
 // IsIdle determines the correct idle speed parameters based on whether the engine is warm or cold
 // if the RPM is within the parameters for the sample period then the engine is deemed to be at Idle
 func (diagnostics *MemsDiagnostics) checkIsEngineIdle() {
-	if diagnostics.Analysis.IsEngineWarm {
-		// use warm idle settings
-		diagnostics.Analysis.IsEngineIdle = diagnostics.Stats["EngineRPM"].Mean >= minIdleWarmRPM && diagnostics.Stats["EngineRPM"].Mean <= maxIdleWarmRPM
+	// if the engine is running and the RPM is stable, then deem to be in an idle state
+	// if the engine RPM is above idle but stable then we're cruising
+	if diagnostics.Analysis.IsEngineRunning && diagnostics.Stats["EngineRPM"].Stddev <= 10 {
+		diagnostics.Analysis.IsEngineIdle = true
 		diagnostics.Analysis.IsCruising = diagnostics.Stats["EngineRPM"].Mean > maxIdleWarmRPM
-		diagnostics.Analysis.IsEngineWarming = false
 	}
 
-	// use cold idle settings
-	diagnostics.Analysis.IsEngineIdle = diagnostics.Stats["EngineRPM"].Mean >= minIdleColdRPM && diagnostics.Stats["EngineRPM"].Mean <= maxIdleColdRPM
-	diagnostics.Analysis.IsEngineWarming = true
+	if diagnostics.Analysis.IsEngineWarm {
+		// use warm idle settings
+		diagnostics.Analysis.IsEngineIdleFault = !(diagnostics.Stats["EngineRPM"].Mean >= minIdleWarmRPM && diagnostics.Stats["EngineRPM"].Mean <= maxIdleWarmRPM)
+		diagnostics.Analysis.IsEngineWarming = false
+	} else {
+		// use cold idle settings
+		diagnostics.Analysis.IsEngineIdleFault = !(diagnostics.Stats["EngineRPM"].Mean >= minIdleColdRPM && diagnostics.Stats["EngineRPM"].Mean <= maxIdleColdRPM)
+		diagnostics.Analysis.IsEngineWarming = true
+	}
 }
 
 // Manifold Pressure (KPa): This displays the pressure measured by the external MEMS air pressure sensor.
@@ -238,6 +278,7 @@ func (diagnostics *MemsDiagnostics) checkMapSensor() {
 // Slow idle is typically  450 - 1500 RPM
 func (diagnostics *MemsDiagnostics) checkForExpectedClosedLoop() {
 	diagnostics.Analysis.IsClosedLoop = diagnostics.CurrentData.ClosedLoop
+	// expecting ECU to switch to closed loop when at operating temperature and either idling or cruising
 	diagnostics.Analysis.ClosedLoopExpected = diagnostics.Analysis.IsEngineWarm && (diagnostics.Analysis.IsEngineIdle || diagnostics.Analysis.IsCruising)
 }
 
@@ -252,10 +293,27 @@ func (diagnostics *MemsDiagnostics) checkForVacuumFault() {
 // Also known as stepping motor--idle air control valve (IACV)
 // bolts on the side of the injection body housing to control engine idle speed
 // and air flow from cold start up
+// A high number of steps indicates that the ECU is attempting to close the stepper or reduce the airflow
+// a low number would indicate the inability to increase airflow
+
 func (diagnostics *MemsDiagnostics) checkIdleAirControl() {
 	if diagnostics.Analysis.IsEngineRunning {
 		// IAC fault if the idle offset exceeds the max error, yet the IAC position remains at 0
-		diagnostics.Analysis.IdleAirControlFault = (diagnostics.CurrentData.IdleSpeedDeviation >= maxIdleError && diagnostics.CurrentData.IACPosition == 0)
+		if diagnostics.CurrentData.IdleSpeedDeviation >= maxIdleError && diagnostics.CurrentData.IACPosition == 0 {
+			diagnostics.Analysis.IdleAirControlFault = true
+			diagnostics.Analysis.AnalysisCode = codeStepperMotor
+		}
+
+		// IAC fault if the stepper motor is wide open or closed
+		if diagnostics.Stats["IACPosition"].Mean <= minIAC {
+			diagnostics.Analysis.IdleAirControlFault = true
+			diagnostics.Analysis.AnalysisCode = codeStepperMin
+		}
+
+		if diagnostics.Stats["IACPosition"].Mean >= maxIAC {
+			diagnostics.Analysis.IdleAirControlFault = true
+			diagnostics.Analysis.AnalysisCode = codeStepperMax
+		}
 	} else {
 		diagnostics.Analysis.IdleAirControlFault = false
 	}
@@ -265,9 +323,46 @@ func (diagnostics *MemsDiagnostics) checkIdleAirControl() {
 func (diagnostics *MemsDiagnostics) checkLambdaStatus() {
 	if diagnostics.Analysis.IsEngineRunning && diagnostics.Analysis.IsClosedLoop {
 		if diagnostics.Stats["LambdaVoltage"].Min >= lambdaLow && diagnostics.Stats["LambdaVoltage"].Max <= lambdaHigh {
+			// lambda oprtating within exepcted parameters
 			diagnostics.Analysis.LambdaFault = false
 		} else {
 			diagnostics.Analysis.LambdaFault = true
 		}
 	}
 }
+
+/**
+ * Repeatedly send command to open or close the idle air control valve until
+ * it is in the desired position. The valve does not necessarily move one full
+ * step per serial command, depending on the rate at which the commands are
+ * issued.
+ */
+/*
+ bool mems_move_iac(mems_info *info, uint8_t desired_pos)
+ {
+   bool status = false;
+   uint16_t attempts = 0;
+   uint8_t current_pos = 0;
+   actuator_cmd cmd;
+
+   // read the current IAC position, and only take action
+   // if we're not already at the desired point
+   if (mems_read_iac_position(info, &current_pos))
+   {
+	 if ((desired_pos < current_pos) ||
+		 ((desired_pos > current_pos) && (current_pos < IAC_MAXIMUM)))
+	 {
+	   cmd = (desired_pos > current_pos) ? MEMS_OpenIAC : MEMS_CloseIAC;
+
+	   do
+	   {
+		 status = mems_test_actuator(info, cmd, &current_pos);
+		 attempts += 1;
+	   } while (status && (current_pos != desired_pos) && (attempts < 300));
+	 }
+   }
+
+   status = (desired_pos == current_pos);
+
+   return status;
+ }*/

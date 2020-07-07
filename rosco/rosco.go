@@ -132,6 +132,11 @@ func (mems *MemsConnection) initialise() {
 
 		mems.writeSerial(MEMSInitECUID)
 		mems.ECUID = mems.readSerial()
+
+		// get the IAC position
+		mems.writeSerial(MEMSGetIACPosition)
+		iac, _ := binary.Uvarint(mems.readSerial())
+		mems.Diagnostics.Analysis.IACPosition = int(iac)
 	}
 
 	mems.Initialised = true
@@ -305,7 +310,7 @@ func (mems *MemsConnection) ReadMemsData() {
 		DTC1:                     df80.Dtc1,
 		IdleSetPoint:             int(df80.IdleSetPoint),
 		IdleHot:                  int(df80.IdleHot - 35),
-		IACPosition:              int(iac),
+		IACPosition:              int(df80.IacPosition),
 		IdleSpeedDeviation:       int(df80.IdleSpeedDeviation),
 		IgnitionAdvanceOffset80:  int(df80.IgnitionAdvanceOffset80),
 		IgnitionAdvance:          (float32(df80.IgnitionAdvance) / 2) - 24,
