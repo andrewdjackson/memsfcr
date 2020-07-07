@@ -229,18 +229,18 @@ function parseMessage(m) {
 
     if (msg.action == WebActionDiagnostics) {
         waitingForResponse = false;
-        console.log(data); 
+        console.log(data);
     }
 }
 
 function parseECUResponse(response) {
-    var cmd = response.slice(0,2)
-    var value = response.slice(2,)
+    var cmd = response.slice(0, 2)
+    var value = response.slice(2, )
     console.log("parsing response cmd : " + cmd + ", val : " + value)
 
     switch (cmd) {
-        case ResponseIdleSpeedIncrement: 
-        case ResponseIdleSpeedDecrement: 
+        case ResponseIdleSpeedIncrement:
+        case ResponseIdleSpeedDecrement:
             updateAdjustmentValue(AdjustmentIdleSpeed, value);
             break;
         case ResponseIgnitionAdvanceOffsetIncrement:
@@ -265,7 +265,8 @@ function parseECUResponse(response) {
 function updateGauges(Responsedata) {
     gaugeRPM.value = Responsedata.EngineRPM;
     gaugeMap.value = Responsedata.ManifoldAbsolutePressure;
-    gaugeThrottlePos.value = (Responsedata.ThrottlePotSensor - 0.6) * 100;
+    // no throttle = 0.6V - full throttle = ~5V
+    gaugeThrottlePos.value = (Responsedata.ThrottlePotSensor - 0.6) * 22.72;
     gaugeIACPos.value = Responsedata.IACPosition;
     gaugeBattery.value = Responsedata.BatteryVoltage;
     gaugeCoolant.value = Responsedata.CoolantTemp;
@@ -429,15 +430,15 @@ function setFaultStatusOnMenu(data) {
     var count = 0
 
     if (data.CoolantTempSensorFault == true) count++
-    if (data.AirIntakeTempSensorFault == true) count++
-    if (data.ThrottlePotCircuitFault == true) count++
-    if (data.FuelPumpCircuitFault == true) count++
+        if (data.AirIntakeTempSensorFault == true) count++
+            if (data.ThrottlePotCircuitFault == true) count++
+                if (data.FuelPumpCircuitFault == true) count++
 
-    if (count > 0) {
-        $("#ecu-fault-status").html(count.toString());
-    } else {
-        $("#ecu-fault-status").html('');
-    }
+                    if (count > 0) {
+                        $("#ecu-fault-status").html(count.toString());
+                    } else {
+                        $("#ecu-fault-status").html('');
+                    }
 }
 
 function setStatusLED(status, id, statustype = LEDStatus) {
@@ -493,7 +494,7 @@ function updateAdjustmentValues(Responsedata) {
 }
 
 function updateAdjustmentValue(id, value) {
-    console.log("updating "+ id + " to new value " + value.toString())
+    console.log("updating " + id + " to new value " + value.toString())
 
     $("input#" + id + ".range-slider__range").val(value);
     $("span#" + id + ".range-slider__value").html(value.toString());
@@ -604,7 +605,7 @@ function resetECU() {
 function resetAdj() {
     // if we're not waiting for a response then send the ecu command
     var msg = formatSocketMessage(WebActionCommand, CommandResetAdjustments);
-    sendSocketMessage(msg); 
+    sendSocketMessage(msg);
 }
 
 function clearFaultCodes() {

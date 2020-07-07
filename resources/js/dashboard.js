@@ -110,8 +110,12 @@ var gaugeMap = new RadialGauge({
     startAngle: 55,
     strokeTicks: true,
     highlights: [{
-        from: 50,
-        to: 80,
+        from: 0,
+        to: 20,
+        color: 'rgba(225, 7, 23, 0.75)'
+    }, {
+        from: 30,
+        to: 60,
         color: 'rgba(10, 225, 6, 0.5)'
     }, {
         from: 80,
@@ -194,10 +198,6 @@ var gaugeThrottlePos = new RadialGauge({
     startAngle: 55,
     strokeTicks: true,
     highlights: [{
-        from: 50,
-        to: 80,
-        color: 'rgba(10, 225, 6, 0.5)'
-    }, {
         from: 80,
         to: 100,
         color: 'rgba(225, 7, 23, 0.75)'
@@ -281,10 +281,6 @@ var gaugeIACPos = new RadialGauge({
         from: 0,
         to: 30,
         color: 'rgba(225, 7, 23, 0.75)'
-    }, {
-        from: 30,
-        to: 120,
-        color: 'rgba(10, 225, 6, 0.5)'
     }, {
         from: 170,
         to: 200,
@@ -447,11 +443,11 @@ var gaugeCoolant = new RadialGauge({
     startAngle: 55,
     strokeTicks: true,
     highlights: [{
-        from: 85,
-        to: 105,
+        from: 80,
+        to: 95,
         color: 'rgba(10, 225, 6, 0.5)'
     }, {
-        from: 105,
+        from: 95,
         to: 120,
         color: 'rgba(225, 7, 23, 0.75)'
     }],
@@ -614,13 +610,21 @@ var gaugeLambda = new RadialGauge({
     startAngle: 55,
     strokeTicks: true,
     highlights: [{
-        from: 10,
-        to: 200,
-        color: 'rgba(255,153,0,0.5)'
+        from: 0,
+        to: 50,
+        color: 'rgba(225, 7, 23, 0.75)'
     }, {
-        from: 700,
+        from: 50,
+        to: 450,
+        color: 'rgba(102,153,255,0.75)'
+    }, {
+        from: 450,
+        to: 890,
+        color: 'rgba(102,0,255,0.75)'
+    }, {
+        from: 850,
         to: 900,
-        color: 'rgba(255,153,0,0.5)'
+        color: 'rgba(225, 7, 23, 0.75)'
     }],
     valueInt: 1,
     valueDec: 0,
@@ -697,16 +701,12 @@ var gaugeFuelTrim = new RadialGauge({
     strokeTicks: true,
     highlights: [{
         from: -20,
-        to: -10,
-        color: 'rgba(225, 7, 23, 0.75)'
+        to: 0,
+        color: 'rgba(102,153,255,0.75)'
     }, {
-        from: -10,
-        to: 10,
-        color: 'rgba(10, 225, 6, 0.5)'
-    }, {
-        from: 10,
+        from: 0,
         to: 20,
-        color: 'rgba(225, 7, 23, 0.75)'
+        color: 'rgba(102,0,255,0.75)'
     }],
     valueInt: 1,
     valueDec: 0,
