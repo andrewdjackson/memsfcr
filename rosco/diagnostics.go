@@ -1,11 +1,9 @@
 package rosco
 
 import (
-	"math"
 	"reflect"
 
 	"github.com/andrewdjackson/memsfcr/utils"
-	"gonum.org/v1/gonum/stat"
 )
 
 const (
@@ -37,58 +35,6 @@ const (
 	codeStepperMax   = "steppermax"
 	codeStepperMin   = "steppermin"
 )
-
-// MemsSampleStats holds the statistics from a sample of a given metric
-type MemsSampleStats struct {
-	Name      string
-	Value     float64
-	Max       float64
-	Min       float64
-	Mean      float64
-	Stddev    float64
-	Mode      float64
-	ModeCount float64
-	Skew      float64
-}
-
-// NewMemsSampleStats generates stats from a sample of float64 values
-func NewMemsSampleStats(metricName string, metricSample []float64) *MemsSampleStats {
-	// the sample stats
-	s := &MemsSampleStats{
-		Name:  metricName,
-		Value: metricSample[len(metricSample)-1],
-	}
-
-	// get the sample stats
-	s.Min, s.Max = findMinAndMax(metricSample)
-	s.Mean, s.Stddev = stat.MeanStdDev(metricSample, nil)
-	s.Mode, s.ModeCount = stat.Mode(metricSample, nil)
-	s.Skew = stat.Skew(metricSample, nil)
-
-	// round to 2 decimal places
-	s.Mean = math.Round(s.Mean * 100 / 100)
-	s.Stddev = math.Round(s.Stddev * 100 / 100)
-	s.Mode = math.Round(s.Mode * 100 / 100)
-	s.Skew = math.Round(s.Skew * 100 / 100)
-
-	utils.LogI.Printf("%s Engine stats %+v", utils.DiagnosticTrace, *s)
-
-	return s
-}
-
-func findMinAndMax(data []float64) (min float64, max float64) {
-	min = data[0]
-	max = data[0]
-	for _, value := range data {
-		if value < min {
-			min = value
-		}
-		if value > max {
-			max = value
-		}
-	}
-	return min, max
-}
 
 // MemsAnalysisReport is the output from running the analysis
 type MemsAnalysisReport struct {
@@ -122,7 +68,7 @@ type MemsDiagnostics struct {
 	// Sample contains the last n readings
 	Sample []MemsData
 	// Stats of the sample
-	Stats map[string]MemsSampleStats
+	Stats map[string]utils.Stats
 	// Analysis report
 	Analysis MemsAnalysisReport
 }
@@ -132,7 +78,7 @@ func NewMemsDiagnostics() *MemsDiagnostics {
 	diagnostics := &MemsDiagnostics{}
 	diagnostics.Dataset = []MemsData{}
 	diagnostics.Analysis = MemsAnalysisReport{}
-	diagnostics.Stats = make(map[string]MemsSampleStats)
+	diagnostics.Stats = make(map[string]utils.Stats)
 
 	utils.LogI.Printf("%s Starting diagnostics", utils.DiagnosticTrace)
 
@@ -192,7 +138,7 @@ func (diagnostics *MemsDiagnostics) GetDataSetSample(points int) []MemsData {
 
 // GetMetricStatistics takes the sample and calculates the simple average
 // this is useful to detect the trend for a metric
-func (diagnostics *MemsDiagnostics) GetMetricStatistics(metricName string) MemsSampleStats {
+func (diagnostics *MemsDiagnostics) GetMetricStatistics(metricName string) utils.Stats {
 	// get the fields available in the sample
 	sampleValues := reflect.ValueOf(diagnostics.Sample)
 	// an array to hold the sample
@@ -214,7 +160,7 @@ func (diagnostics *MemsDiagnostics) GetMetricStatistics(metricName string) MemsS
 	}
 
 	// calculate the stats for this sample
-	return *NewMemsSampleStats(metricName, metricSample)
+	return *utils.NewStats(metricName, metricSample)
 }
 
 // IsEngineWarm uses the current engine temperature and the standard deviation in the sample to determine the

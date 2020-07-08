@@ -127,6 +127,7 @@ const LEDWarning = "warning"
 
 // chart labels - must match id's used in the html
 const ChartRPM = "rpmchart"
+const SparkRPM = "rpmspark"
 const ChartLambda = "lambdachart"
 const ChartLoopIndicator = "loopchart"
 const ChartCoolant = "coolantchart"
@@ -172,6 +173,7 @@ window.onload = function() {
 
     // create the profiling line charts
     rpmChart = createChart(ChartRPM, "Engine (RPM)", 850, 1200);
+    rpmSpark = createSpark(SparkRPM)
     lambdaChart = createChart(ChartLambda, "Lambda Voltage (mV)");
     loopChart = createChart(ChartLoopIndicator, "Loop Indicator (0 Closed, 1 Open)");
     afrChart = createChart(ChartAFR, "Air : Fuel Ratio");
@@ -278,6 +280,7 @@ function updateGauges(Responsedata) {
 
 function updateGraphs(Responsedata) {
     addData(rpmChart, Responsedata.Time, Responsedata.EngineRPM);
+    addData(rpmSpark, Responsedata.Time, Responsedata.EngineRPM);
     addData(lambdaChart, Responsedata.Time, Responsedata.LambdaVoltage);
     addData(loopChart, Responsedata.Time, Responsedata.ClosedLoop);
     addData(afrChart, Responsedata.Time, Responsedata.AirFuelRatio);
