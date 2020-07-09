@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"math"
 	"time"
 
@@ -131,35 +132,23 @@ func (mems *MemsConnection) initialise() {
 		mems.readSerial()
 
 		mems.writeSerial(MEMSInitECUID)
-		mems.ECUID = mems.readSerial()
+		mems.ECUID, _ = mems.readSerial()
 
 		// get the IAC position
 		mems.writeSerial(MEMSGetIACPosition)
-		iac, _ := binary.Uvarint(mems.readSerial())
+		response, _ := mems.readSerial()
+		iac, _ := binary.Uvarint(response)
 		mems.Diagnostics.Analysis.IACPosition = int(iac)
 	}
 
 	mems.Initialised = true
 }
 
-func (mems *MemsConnection) doRead(b []byte) (int, error) {
-	var n int
-	var e error
-
-	n, e = mems.SerialPort.Read(b)
-	if e != nil {
-		utils.LogW.Printf("serial port read error %s, timeout?", e)
-		utils.LogW.Printf("retrying serial port read..")
-		n, e = mems.doRead(b)
-	}
-
-	return n, e
-}
-
 // readSerial read from MEMS
 // read 1 byte at a time until we have all the expected bytes
-func (mems *MemsConnection) readSerial() []byte {
+func (mems *MemsConnection) readSerial() ([]byte, error) {
 	var n int
+	var e error
 
 	size := mems.getResponseSize(mems.command)
 
@@ -181,6 +170,7 @@ func (mems *MemsConnection) readSerial() []byte {
 				// this prevents the loop getting blocked on a read error
 				count = size
 				data = append(data, b...)
+				e = errors.New("serial port read error")
 			} else {
 				// append the read bytes to the data frame
 				data = append(data, b[:n]...)
@@ -190,6 +180,7 @@ func (mems *MemsConnection) readSerial() []byte {
 			count = count + n
 			if count > size {
 				utils.LogW.Printf("%s dataframe size mismatch (received %d, expected %d)", utils.ECUResponseTrace, count, size)
+				e = errors.New("size mismatch")
 			}
 		}
 	}
@@ -199,9 +190,10 @@ func (mems *MemsConnection) readSerial() []byte {
 
 	if !mems.isCommandEcho() {
 		utils.LogW.Printf("%s expecting command echo (%x)\n", utils.ECUResponseTrace, mems.command)
+		e = errors.New("command mismatch")
 	}
 
-	return data
+	return data, e
 }
 
 // writeSerial write to MEMS
@@ -238,20 +230,30 @@ func (mems *MemsConnection) ListenTxECUChannelLoop() {
 		} else {
 			utils.LogI.Printf("%s '%x' command retrieved from TxECU channel", utils.ECUCommandTrace, m.Command)
 			// send the command
-			response := mems.sendCommand(m.Command)
-			// send back on the channel
-			var r MemsCommandResponse
-			r.Command = m.Command
-			r.Response = response
-			mems.sendRecievedDataToChannel(r)
+			response, e := mems.sendCommand(m.Command)
+			if e != nil {
+				utils.LogI.Printf("%s invalid response from serial interface (%v)", utils.ECUCommandTrace, e)
+			} else {
+				// send back on the channel
+				var r MemsCommandResponse
+				r.Command = m.Command
+				r.Response = response
+				mems.sendRecievedDataToChannel(r)
+			}
 		}
 	}
 }
 
 // sends a command and returns the response
-func (mems *MemsConnection) sendCommand(cmd []byte) []byte {
+func (mems *MemsConnection) sendCommand(cmd []byte) ([]byte, error) {
 	mems.writeSerial(cmd)
-	return mems.readSerial()
+	response, e := mems.readSerial()
+
+	if e != nil {
+		utils.LogW.Printf("%s command send/receive fault %v", utils.ECUResponseTrace, e)
+	}
+
+	return response, e
 }
 
 func roundTo2DecimalPoints(x float32) float32 {
@@ -263,7 +265,11 @@ func (mems *MemsConnection) ReadMemsData() {
 	utils.LogI.Printf("%s getting x7d and x80 dataframes", utils.ECUCommandTrace)
 
 	// read the raw dataframes
-	d80, d7d := mems.readRaw()
+	d80, d7d, e := mems.readRaw()
+
+	if e != nil {
+		utils.LogE.Printf("%s Unable to create memsdata, corrupt dataframes", utils.ECUResponseTrace)
+	}
 
 	// populate the DataFrame structure for command 0x80
 	r := bytes.NewReader(d80)
@@ -374,14 +380,22 @@ func (mems *MemsConnection) sendRecievedDataToChannel(m MemsCommandResponse) {
 }
 
 // readRaw reads dataframe 80 and then dataframe 7d as raw byte arrays
-func (mems *MemsConnection) readRaw() ([]byte, []byte) {
+func (mems *MemsConnection) readRaw() ([]byte, []byte, error) {
 	mems.writeSerial(MEMSReqData80)
-	dataframe80 := mems.readSerial()
+	dataframe80, e := mems.readSerial()
+
+	if e != nil {
+		utils.LogW.Printf("%s dataframe80 command send/receive fault %v", utils.ECUResponseTrace, e)
+	}
 
 	mems.writeSerial(MEMSReqData7D)
-	dataframe7d := mems.readSerial()
+	dataframe7d, e := mems.readSerial()
 
-	return dataframe80, dataframe7d
+	if e != nil {
+		utils.LogW.Printf("%s dataframe7d command send/receive fault %v", utils.ECUResponseTrace, e)
+	}
+
+	return dataframe80, dataframe7d, e
 }
 
 // getResponseSize returns the expected number of bytes for a given command

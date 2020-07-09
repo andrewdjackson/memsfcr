@@ -13,7 +13,7 @@ const ECUQueryInterval = 950
 // wait time for the ECU to respond before sending another command
 var waitingForResponse = false;
 var waitingForResponseTimeout;
-const WaitForResponseInterval = 300
+const WaitForResponseInterval = 1000
 
 const AirSensorFaultCode = 0b00000001
 const CoolantSensorFaultCode = 0b00000010
@@ -228,22 +228,19 @@ function parseMessage(m) {
 
     // connection status message received
     if (msg.action == WebActionConnection) {
-        waitingForResponse = false;
         connected = data.Connnected & data.Initialised;
         updateConnected(data.Initialised);
     }
 
     // response received from a command sent to the ECU
     if (msg.action == WebActionResponse) {
-        waitingForResponse = false
         parseECUResponse(data)
     }
 
     // new data received from the ECU, update the
     // gauges, graphs and status indicators 
     if (msg.action == WebActionData) {
-        waitingForResponse = false;
-        console.log(data);
+        console.log("Dataframe --> " + msg.data);
 
         updateGauges(data);
         updateLEDs(data);
@@ -253,7 +250,7 @@ function parseMessage(m) {
     }
 
     if (msg.action == WebActionDiagnostics) {
-        waitingForResponse = false;
+        //waitingForResponse = false;
         console.log(data);
     }
 }
@@ -691,7 +688,7 @@ function sendSocketMessage(msg) {
         startWaitForResponse()
         sock.send(msg);
     } else {
-        console.error("can't send whilst waiting for a response")
+        console.warn("can't send whilst waiting for a response")
     }
 }
 
