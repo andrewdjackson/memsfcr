@@ -113,6 +113,7 @@ body {
     position: relative;
     height: 30px;
     width: 220px;
+    padding-top: 5px;
     padding-left: 10px;
     padding-right: 10px;
     background-color: rgba(221, 221, 221, 0.05);

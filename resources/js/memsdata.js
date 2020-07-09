@@ -127,11 +127,23 @@ const LEDWarning = "warning"
 
 // chart labels - must match id's used in the html
 const ChartRPM = "rpmchart"
-const SparkRPM = "rpmspark"
 const ChartLambda = "lambdachart"
 const ChartLoopIndicator = "loopchart"
 const ChartCoolant = "coolantchart"
 const ChartAFR = "afrchart"
+
+// spark labels - must match id's used in the html
+const SparkRPM = "rpmspark"
+const SparkMAP = "mapspark"
+const SparkThrottle = "throttlespark"
+const SparkIAC = "iacspark"
+const SparkBattery = "batteryspark"
+const SparkCoolant = "coolantspark"
+const SparkAir = "airspark"
+const SparkLambda = "lambdaspark"
+const SparkFuel = "fuelspark"
+const SparkIgnition = "ignitionspark"
+
 
 // this function gets called as soon as the page load has completed
 window.onload = function() {
@@ -171,9 +183,20 @@ window.onload = function() {
     gaugeFuelTrim.draw();
     gaugeIgnition.draw();
 
+    // create gauge sparklines
+    rpmSpark = createSpark(SparkRPM)
+    mapSpark = createSpark(SparkMAP)
+    throttleSpark = createSpark(SparkThrottle)
+    iacSpark = createSpark(SparkIAC)
+    batterySpark = createSpark(SparkBattery)
+    coolantSpark = createSpark(SparkCoolant)
+    airSpark = createSpark(SparkAir)
+    lambdaSpark = createSpark(SparkLambda)
+    fuelSpark = createSpark(SparkFuel)
+    ignitionSpark = createSpark(SparkIgnition)
+
     // create the profiling line charts
     rpmChart = createChart(ChartRPM, "Engine (RPM)", 850, 1200);
-    rpmSpark = createSpark(SparkRPM)
     lambdaChart = createChart(ChartLambda, "Lambda Voltage (mV)");
     loopChart = createChart(ChartLoopIndicator, "Loop Indicator (0 Closed, 1 Open)");
     afrChart = createChart(ChartAFR, "Air : Fuel Ratio");
@@ -279,8 +302,18 @@ function updateGauges(Responsedata) {
 }
 
 function updateGraphs(Responsedata) {
-    addData(rpmChart, Responsedata.Time, Responsedata.EngineRPM);
     addData(rpmSpark, Responsedata.Time, Responsedata.EngineRPM);
+    addData(mapSpark, Responsedata.Time, Responsedata.ManifoldAbsolutePressure);
+    addData(throttleSpark, Responsedata.Time, (Responsedata.ThrottlePotSensor - 0.6) * 22.72);
+    addData(iacSpark, Responsedata.Time, Responsedata.IACPosition);
+    addData(batterySpark, Responsedata.Time, Responsedata.BatteryVoltage);
+    addData(coolantSpark, Responsedata.Time, Responsedata.CoolantTemp);
+    addData(airSpark, Responsedata.Time, Responsedata.IntakeAirTemp);
+    addData(lambdaSpark, Responsedata.Time, Responsedata.LambdaVoltage);
+    addData(fuelSpark, Responsedata.Time, Responsedata.FuelTrimCorrection);
+    addData(ignitionSpark, Responsedata.Time, Responsedata.IgnitionAdvance);
+
+    addData(rpmChart, Responsedata.Time, Responsedata.EngineRPM);
     addData(lambdaChart, Responsedata.Time, Responsedata.LambdaVoltage);
     addData(loopChart, Responsedata.Time, Responsedata.ClosedLoop);
     addData(afrChart, Responsedata.Time, Responsedata.AirFuelRatio);

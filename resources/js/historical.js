@@ -27,17 +27,23 @@ createChart = function (id, title, low, high) {
         options: {
             maintainAspectRatio: false,
             responsive: true,
+            spanGaps: true,
             fontSize: 12,
             fontFamily: "'-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
             animation: {
-                duration: 100 // general animation time
+                duration: 300, 
             },
             hover: {
-                animationDuration: 100 // duration of animations when hovering an item
+                animationDuration: 0 
             },
-            responsiveAnimationDuration: 100,// animation duration after a resize
+            responsiveAnimationDuration: 0,
             legend: {
                 display: false,
+            },
+            elements: {
+                line: {
+                    cubicInterpolationMode: 'monotone',
+                }
             },
             title: {
                 fontSize: 14,
@@ -85,13 +91,22 @@ createSpark = function (id) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            spanGaps: true,
             legend: {
                 display: false
             },
+            animation: {
+                duration: 0,
+            },
+            hover: {
+                animationDuration: 0,
+            },
+            responsiveAnimationDuration: 0,
             elements: {
                 line: {
                     borderColor: '#000000',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    cubicInterpolationMode: 'monotone',
                 },
                 point: {
                     radius: 0
