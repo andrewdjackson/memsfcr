@@ -195,6 +195,9 @@
 												<div class="gauge-label-container">(OS) Lamdba Voltage (mV)</div>
 												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="Signal voltage ranges from about 0.2 volts, to about 0.9 volts, which the ECU interprets as changes in the oxygen content of the exhaust stream. A signal voltage of 0.45 represents an air/fuel mixture that is at, or close to the stoichiometric value, and signal voltages above or below this value represent either a rich, or a lean mixture.">
 													<canvas id="gauge-lambda"></canvas>
+													<div class="gauge-led">
+														<div class="led-green-off" id="closedloop"></div>
+													</div>
 												</div>
 												<div class="spark-container">
 													<canvas id="lambdaspark"></canvas>
@@ -658,7 +661,7 @@
 									<span>
 									<div class="led-box"><div class="led-green-off" id="idleswitch"></div><p>Idle Switch</p></div>
 									<div class="led-box"><div class="led-green-off" id="parkswitch"></div><p>Park / Neutral Switch</p></div>
-									<div class="led-box"><div class="led-green-off" id="closedloop"></div><p>Lambda Active (Closed Loop)</p></div>
+									<div class="led-box"><div class="led-green-off" id="aclosedloop"></div><p>Lambda Active (Closed Loop)</p></div>
 									</span>
 								</div>
 								<div class="card-body">
