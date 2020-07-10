@@ -7,22 +7,21 @@ import (
 )
 
 const (
-	minIdleColdRPM        = 900  // Minimum expected RPM when running at Idle when cold
-	maxIdleColdRPM        = 1200 // Maximum expected RPM when running at Idle when cold
-	minIdleWarmRPM        = 700  // Minimum expected RPM when running at Idle when warm
-	maxIdleWarmRPM        = 900  // Maximum expected RPM when running at Idle when warm
-	minIdleMap            = 30   // Minimum MAP reading when the engine is running
-	maxIdleMap            = 60   // Maximum MAP reading when the engine is running
-	minMAPEngineOff       = 95   // Minumum MAP reading when the engine to not running
-	engineWarmTemperature = 80   // Engine is warm if the coolant temp is > 80C
-	engineOperatingTemp   = 84   // Engine is at operating temp when coolant temp > 84C
-	bestAFR               = 14.7 // Ideal Air to Fuel ratio
-	lambdaLow             = 10   // Lambda minimum operating voltage
-	lambdaHigh            = 900  // Lambda maximum operating voltage
-	maxIdleError          = 50   // Max Idle Error
-	maxSamples            = 30   // ~30 seconds
-	minIAC                = 30   // Minimum normal operation steps for the IAC / Stepper Motor
-	maxIAC                = 160  // Maximum normal operation steps for the IAC / Stepper Motor
+	minIdleColdRPM      = 900  // Minimum expected RPM when running at Idle when cold
+	maxIdleColdRPM      = 1200 // Maximum expected RPM when running at Idle when cold
+	minIdleWarmRPM      = 700  // Minimum expected RPM when running at Idle when warm
+	maxIdleWarmRPM      = 900  // Maximum expected RPM when running at Idle when warm
+	minIdleMap          = 30   // Minimum MAP reading when the engine is running
+	maxIdleMap          = 60   // Maximum MAP reading when the engine is running
+	minMAPEngineOff     = 95   // Minumum MAP reading when the engine to not running
+	engineOperatingTemp = 80   // Engine is at operating temp when coolant temp > 80C
+	bestAFR             = 14.7 // Ideal Air to Fuel ratio
+	lambdaLow           = 10   // Lambda minimum operating voltage
+	lambdaHigh          = 900  // Lambda maximum operating voltage
+	maxIdleError        = 50   // Max Idle Error
+	maxSamples          = 30   // ~30 seconds
+	minIAC              = 30   // Minimum normal operation steps for the IAC / Stepper Motor
+	maxIAC              = 160  // Maximum normal operation steps for the IAC / Stepper Motor
 )
 
 const (
@@ -41,7 +40,6 @@ type MemsAnalysisReport struct {
 	AnalysisCode             string
 	IsEngineRunning          bool
 	IsEngineWarming          bool
-	IsEngineWarm             bool
 	IsAtOperatingTemp        bool
 	IsEngineIdle             bool
 	IsEngineIdleFault        bool
@@ -167,7 +165,6 @@ func (diagnostics *MemsDiagnostics) GetMetricStatistics(metricName string) utils
 // stability of the temperature. If the reading is at the designated thermostat temp (88C) and the std deviation
 // is low then deem the engine to be running at operating temperature
 func (diagnostics *MemsDiagnostics) checkIsEngineWarm() {
-	diagnostics.Analysis.IsEngineWarm = (diagnostics.Stats["CoolantTemp"].Value >= engineWarmTemperature && diagnostics.Stats["CoolantTemp"].Stddev < 5)
 	diagnostics.Analysis.IsAtOperatingTemp = (diagnostics.Stats["CoolantTemp"].Value >= engineOperatingTemp && diagnostics.Stats["CoolantTemp"].Stddev < 5)
 }
 
@@ -187,7 +184,7 @@ func (diagnostics *MemsDiagnostics) checkIsEngineIdle() {
 		diagnostics.Analysis.IsCruising = diagnostics.Stats["EngineRPM"].Mean > maxIdleWarmRPM
 	}
 
-	if diagnostics.Analysis.IsEngineWarm {
+	if diagnostics.Analysis.IsAtOperatingTemp {
 		// use warm idle settings
 		diagnostics.Analysis.IsEngineIdleFault = !(diagnostics.Stats["EngineRPM"].Mean >= minIdleWarmRPM && diagnostics.Stats["EngineRPM"].Mean <= maxIdleWarmRPM)
 		diagnostics.Analysis.IsEngineWarming = false
@@ -225,7 +222,7 @@ func (diagnostics *MemsDiagnostics) checkMapSensor() {
 func (diagnostics *MemsDiagnostics) checkForExpectedClosedLoop() {
 	diagnostics.Analysis.IsClosedLoop = diagnostics.CurrentData.ClosedLoop
 	// expecting ECU to switch to closed loop when at operating temperature and either idling or cruising
-	diagnostics.Analysis.ClosedLoopExpected = diagnostics.Analysis.IsEngineWarm && (diagnostics.Analysis.IsEngineIdle || diagnostics.Analysis.IsCruising)
+	diagnostics.Analysis.ClosedLoopExpected = diagnostics.Analysis.IsAtOperatingTemp && (diagnostics.Analysis.IsEngineIdle || diagnostics.Analysis.IsCruising)
 }
 
 // if a hose is split the vacuum sensor in the ECU doesn't see true manifold pressure,

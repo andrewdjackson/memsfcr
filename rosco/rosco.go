@@ -39,6 +39,8 @@ type MemsConnection struct {
 type MemsConnectionStatus struct {
 	Connected   bool
 	Initialised bool
+	ECUID       string
+	IACPosition int
 }
 
 // package init function
@@ -86,7 +88,7 @@ func (mems *MemsConnection) ConnectAndInitialiseECU(port string) {
 func (mems *MemsConnection) connect(port string) {
 
 	// connect to the ecu, timeout if we don't get data after a couple of seconds
-	c := &serial.Config{Name: port, Baud: 9600, ReadTimeout: time.Millisecond * 1200}
+	c := &serial.Config{Name: port, Baud: 9600, ReadTimeout: time.Millisecond * 2000}
 
 	utils.LogI.Println("opening ", port)
 

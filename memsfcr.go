@@ -156,6 +156,8 @@ func (r *MemsReader) sendConnectionStatusToWebView() {
 
 	c.Connected = r.fcr.ECU.Connected
 	c.Initialised = r.fcr.ECU.Initialised
+	c.ECUID = fmt.Sprintf("%X", r.fcr.ECU.ECUID)
+	c.IACPosition = r.fcr.ECU.Diagnostics.Analysis.IACPosition
 
 	m.Action = ui.WebActionConnection
 

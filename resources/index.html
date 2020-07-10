@@ -114,7 +114,8 @@
 									<div class="row align-items-center">
 										<div class="col">
 											<div class="dashboard-container">
-												<div class="gauge-container">
+												<div class="gauge-label-container">(CAS) Engine Speed (RPM)</div>
+												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="The engine RPM is determined by the Crankshaft Angle Sensor or CAS. The failure of this sensor can have a dramatic effect on the engine performance.">
 													<canvas id="gauge-rpm"></canvas>
 												</div>
 												<div class="spark-container">
@@ -124,7 +125,8 @@
 										</div>
 										<div class="col">
 											<div class="dashboard-container">
-												<div class="gauge-container">
+												<div class="gauge-label-container">(MAP) Manifold Absolute Pressure (kPa)</div>
+												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="An essential sensor in the determination of the fuel mixture. The MAP sensor should read 100kPa when the engine is off and around 30 - 60kPa in normal operation. A high reading indicates a vacuum line failure which will result in overrevving at idle and very poor running performance. Another indicator of vacuum line failure is the fuel trim which shows the over fuelling compensation taking place.">
 													<canvas id="gauge-map"></canvas>
 												</div>
 												<div class="spark-container">
@@ -134,7 +136,8 @@
 										</div>
 										<div class="col">
 											<div class="dashboard-container">
-												<div class="gauge-container">
+												<div class="gauge-label-container">(TPS) Throttle Position (%)</div>
+												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="Indicates to the ECU the position of the throttle. When the engine is at idle the TPS should read 0.6V rising to 4V volts at 90% throttle.">
 													<canvas id="gauge-throttlepos"></canvas>
 												</div>
 												<div class="spark-container">
@@ -144,7 +147,8 @@
 										</div> 
 										<div class="col">
 											<div class="dashboard-container">
-												<div class="gauge-container">
+												<div class="gauge-label-container">(IAC) Stepper Motor Position (Steps)</div>
+												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="The stepper motor is used to control the idle speed of the engine through remote operation of the throttle. The stepper motor is a learnt position incrementing in steps up to 180 steps. Rough or low idle can be a result of the stepper motor failing and making coarse adjustments.">
 													<canvas id="gauge-iacpos"></canvas>
 												</div>
 												<div class="spark-container">
@@ -155,7 +159,8 @@
 
 										<div class="col">
 											<div class="dashboard-container">
-												<div class="gauge-container">
+												<div class="gauge-label-container">Battery Voltage (V)</div>
+												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="Battery voltage should be maintained between 12.5V and 14.5V. Overvoltage indicates an alternator fault and can damage the battery, whereas undervoltage will likely cause the ECU to over fuel as the stepper motor will try to increase the idle speed to allow greater alternator charging." >
 													<canvas id="gauge-battery"></canvas>
 												</div>
 												<div class="spark-container">
@@ -165,7 +170,8 @@
 										</div> 
 										<div class="col">
 											<div class="dashboard-container">
-												<div class="gauge-container">
+												<div class="gauge-label-container">(CTS) Coolant Temperature (°C)</div>
+												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="The coolant sensor is used to determine the engine temperature, which is used by the ECU to adjust idle speed and when to run in open or closed loop. The engine is deemed to be at operating temperature when it reaches 80C. If the ECU detects a fault condition it will enter limp home mode and use a temperature of 60C.">
 													<canvas id="gauge-coolant"></canvas>
 												</div>
 												<div class="spark-container">
@@ -175,7 +181,8 @@
 										</div> 
 										<div class="col">
 											<div class="dashboard-container">
-												<div class="gauge-container">
+												<div class="gauge-label-container">(ATS) Air Intake Temperature (°C)</div>
+												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="The air temperature sensor measures the temperature before it enters the inlet manifold and is critical part of determining the air/fuel ratio. The signal should measure between 2.0 and 3.0 volts at 20C. If the ECU detects a fault condition it will enter limp home mode and use a temperature of 35C.">
 													<canvas id="gauge-air"></canvas>
 												</div>
 												<div class="spark-container">
@@ -185,7 +192,8 @@
 										</div> 
 										<div class="col">	
 											<div class="dashboard-container">
-												<div class="gauge-container">
+												<div class="gauge-label-container">(OS) Lamdba Voltage (mV)</div>
+												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="Signal voltage ranges from about 0.2 volts, to about 0.9 volts, which the ECU interprets as changes in the oxygen content of the exhaust stream. A signal voltage of 0.45 represents an air/fuel mixture that is at, or close to the stoichiometric value, and signal voltages above or below this value represent either a rich, or a lean mixture.">
 													<canvas id="gauge-lambda"></canvas>
 												</div>
 												<div class="spark-container">
@@ -196,7 +204,8 @@
 
 										<div class="col">
 											<div class="dashboard-container">
-												<div class="gauge-container">
+												<div class="gauge-label-container">Short Term Fuel Trim (%)</div>
+												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="Assuming that MAP, ATS and CTS are working correctly, short-term fuel trim values should generally be between positive 10%, and negative 10% when the engine is running at a steady speed.">
 													<canvas id="gauge-fueltrim"></canvas>
 												</div>
 												<div class="spark-container">
@@ -206,7 +215,30 @@
 										</div> 
 										<div class="col">
 											<div class="dashboard-container">
-												<div class="gauge-container">
+												<div class="gauge-label-container">Long Term Fuel Trim (%)</div>
+												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="LTFT should be at, or close to 0%, when the engine is running at a steady speed, such as when it is idling. However, in some cases, the displayed value for long term fuel trims can be as high as 6 to 8% due to age and engine wear.">
+													<canvas id="gauge-ltfueltrim"></canvas>
+												</div>
+												<div class="spark-container">
+													<canvas id="ltfuelspark"></canvas>
+												</div>
+											</div>
+										</div> 
+										<div class="col">
+											<div class="dashboard-container">
+												<div class="gauge-label-container">Fuel : Air Ratio</div>
+												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="Using the sensors and fuel trim the ECU tries to maintain the ideal air/fuel ratio for complete combustion (stoichiometry) – 14.7 parts air to 1 part fuel. The lambda sensor when operating in closed loop provides feedback to the ECU to determine whether the ratio needs to be adjusted by increasing or decreasing the fuel.">
+													<canvas id="gauge-airfuel"></canvas>
+												</div>
+												<div class="spark-container">
+													<canvas id="airfuelspark"></canvas>
+												</div>
+											</div>
+										</div> 
+										<div class="col">
+											<div class="dashboard-container">
+												<div class="gauge-label-container">Ignition Advance (°)</div>
+												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="Data on engine load (MAP), engine speed (CAS) and engine temperature (CTS) are used to lookup the best ignition advance angle.">
 													<canvas id="gauge-ignition"></canvas>
 												</div>
 												<div class="spark-container">

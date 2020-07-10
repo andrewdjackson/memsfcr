@@ -13,7 +13,7 @@ const ECUQueryInterval = 950
 // wait time for the ECU to respond before sending another command
 var waitingForResponse = false;
 var waitingForResponseTimeout;
-const WaitForResponseInterval = 1000
+const WaitForResponseInterval = ECUQueryInterval * 2
 
 const AirSensorFaultCode = 0b00000001
 const CoolantSensorFaultCode = 0b00000010
@@ -142,11 +142,13 @@ const SparkCoolant = "coolantspark"
 const SparkAir = "airspark"
 const SparkLambda = "lambdaspark"
 const SparkFuel = "fuelspark"
+const SparkLTFuel = "ltfuelspark"
+const SparkAirFuel = "airfuelspark"
 const SparkIgnition = "ignitionspark"
 
 
 // this function gets called as soon as the page load has completed
-window.onload = function() {
+window.onload = function () {
     // get the url of the current page to build the websocket url
     wsuri = window.location.href.split("/").slice(0, 3).join("/");
     wsuri = wsuri.replace("http:", "ws:");
@@ -155,19 +157,23 @@ window.onload = function() {
     // open, close and message events
     sock = new WebSocket(wsuri + "/ws");
 
-    sock.onopen = function() {
+    sock.onopen = function () {
         console.log("connected to " + wsuri);
         readConfig();
     };
 
-    sock.onclose = function(e) {
+    sock.onclose = function (e) {
         console.log("connection closed (" + e.code + ")");
     };
 
-    sock.onmessage = function(e) {
+    sock.onmessage = function (e) {
         console.log("message received: " + e.data);
         clearWaitForResponse()
         parseMessage(e.data);
+    };
+
+    sock.onerror = function (error) {
+        alert(`[error] ${error.message}`);
     };
 
     // draw the gauges
@@ -181,6 +187,8 @@ window.onload = function() {
     gaugeAir.draw();
     gaugeLambda.draw();
     gaugeFuelTrim.draw();
+    gaugeLTFuelTrim.draw();
+    gaugeAirFuel.draw();
     gaugeIgnition.draw();
 
     // create gauge sparklines
@@ -193,6 +201,8 @@ window.onload = function() {
     airSpark = createSpark(SparkAir)
     lambdaSpark = createSpark(SparkLambda)
     fuelSpark = createSpark(SparkFuel)
+    ltfuelSpark = createSpark(SparkLTFuel)
+    airfuelSpark = createSpark(SparkAirFuel)
     ignitionSpark = createSpark(SparkIgnition)
 
     // create the profiling line charts
@@ -257,7 +267,7 @@ function parseMessage(m) {
 
 function parseECUResponse(response) {
     var cmd = response.slice(0, 2)
-    var value = response.slice(2, )
+    var value = response.slice(2,)
     console.log("parsing response cmd : " + cmd + ", val : " + value)
 
     switch (cmd) {
@@ -295,6 +305,8 @@ function updateGauges(Responsedata) {
     gaugeAir.value = Responsedata.IntakeAirTemp;
     gaugeLambda.value = Responsedata.LambdaVoltage;
     gaugeFuelTrim.value = Responsedata.FuelTrimCorrection;
+    gaugeLTFuelTrim.value = Responsedata.LongTermFuelTrim;
+    gaugeAirFuel.value = Responsedata.AirFuelRatio;
     gaugeIgnition.value = Responsedata.IgnitionAdvance;
 }
 
@@ -308,6 +320,8 @@ function updateGraphs(Responsedata) {
     addData(airSpark, Responsedata.Time, Responsedata.IntakeAirTemp);
     addData(lambdaSpark, Responsedata.Time, Responsedata.LambdaVoltage);
     addData(fuelSpark, Responsedata.Time, Responsedata.FuelTrimCorrection);
+    addData(ltfuelSpark, Responsedata.Time, Responsedata.LongTermFuelTrim);
+    addData(airfuelSpark, Responsedata.Time, Responsedata.AirFuelRatio);
     addData(ignitionSpark, Responsedata.Time, Responsedata.IgnitionAdvance);
 
     addData(rpmChart, Responsedata.Time, Responsedata.EngineRPM);
@@ -350,6 +364,10 @@ function updateConnected(connected) {
             "btn-outline-info",
             pauseECUDataLoop
         );
+
+        // update the IAC start postion
+
+        // update the ECUID
 
         // start the dataframe command loop
         startDataframeLoop();
@@ -463,15 +481,15 @@ function setFaultStatusOnMenu(data) {
     var count = 0
 
     if (data.CoolantTempSensorFault == true) count++
-        if (data.AirIntakeTempSensorFault == true) count++
-            if (data.ThrottlePotCircuitFault == true) count++
-                if (data.FuelPumpCircuitFault == true) count++
+    if (data.AirIntakeTempSensorFault == true) count++
+    if (data.ThrottlePotCircuitFault == true) count++
+    if (data.FuelPumpCircuitFault == true) count++
 
-                    if (count > 0) {
-                        $("#ecu-fault-status").html(count.toString());
-                    } else {
-                        $("#ecu-fault-status").html('');
-                    }
+    if (count > 0) {
+        $("#ecu-fault-status").html(count.toString());
+    } else {
+        $("#ecu-fault-status").html('');
+    }
 }
 
 function setStatusLED(status, id, statustype = LEDStatus) {
@@ -534,7 +552,7 @@ function updateAdjustmentValue(id, value) {
 }
 
 function setSerialPortSelection(ports) {
-    $.each(ports, function(key, value) {
+    $.each(ports, function (key, value) {
         console.log("serial port added " + key + " : " + value);
         $("#ports").append('<a class="dropdown-item" href="#" onclick="selectPort(this)">' + value + '</a>');
     });
@@ -685,8 +703,8 @@ function sendSocketMessage(msg) {
     if (!waitingForResponse) {
         console.log("sending socket message: " + msg);
 
-        startWaitForResponse()
         sock.send(msg);
+        startWaitForResponse()
     } else {
         console.warn("can't send whilst waiting for a response")
     }
