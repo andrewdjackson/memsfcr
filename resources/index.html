@@ -705,15 +705,14 @@
 												<div class="input-group-prepend">
 													<button type="button" class="btn btn-outline-secondary">Serial Port</button>
 													<button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-													<span class="sr-only">Toggle Dropdown</span>
-												</button>
+														<span class="sr-only">Toggle Dropdown</span>
+													</button>
 													<div class="dropdown-menu" id="ports">
 													</div>
 												</div>
 												<input type="text" class="form-control" id="port" placeholder="/dev/usb.serial" aria-label="Serial Port">
-											</div>
-			
-											
+											</div>	
+
 											<div class="input-group mb-3">
 												<div class="input-group-prepend">
 													<div class="input-group-text">
@@ -723,6 +722,18 @@
 												</div>
 												<input type="text" class="form-control" id="logfolder" aria-label="Log folder.." aria-readonly readonly>
 											</div>
+
+											<div class="input-group mb-3 debug">
+												<div class="input-group-prepend">
+													<label class="input-group-text" for="range-slider">ECU Query Frequency</label>
+											
+													<div class="range-slider-settings">
+														<input id="ecuqueryfrequency" class="range-slider__range" type="range" value="950" min="450" max="1500" step="50" enabled>
+														<span id="ecuqueryfrequency" class="range-slider__value">0</span>
+													</div>
+												</div>	
+											</div>		
+
 											<span class="input-group-btn">
 											<button class="btn btn-default btn-outline-success my-2 my-sm-0" id="applySettings" onclick="Save();" type="button">Apply</button>
 											</span>

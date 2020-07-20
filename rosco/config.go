@@ -13,12 +13,14 @@ import (
 // ReadmemsConfig readmems configuration
 type ReadmemsConfig struct {
 	// Config
-	Port      string
-	LogToFile string
-	LogFolder string
-	Loop      string
-	Ports     []string
-	Debug     string
+	Port       string
+	LogToFile  string
+	LogFolder  string
+	Loop       string
+	Ports      []string
+	Debug      string
+	Frequency  string
+	UseBrowser string
 }
 
 var config ReadmemsConfig
@@ -33,6 +35,8 @@ func NewConfig() *ReadmemsConfig {
 	config.LogToFile = "true"
 	config.Loop = "100000000"
 	config.Debug = "false"
+	config.UseBrowser = "true"
+	config.Frequency = "950"
 
 	return &config
 }
@@ -96,6 +100,8 @@ func WriteConfig(c *ReadmemsConfig) {
 	cfg.Section("").Key("logtofile").SetValue(c.LogToFile)
 	cfg.Section("").Key("logfolder").SetValue(c.LogFolder)
 	cfg.Section("").Key("debug").SetValue(c.Debug)
+	cfg.Section("").Key("frequency").SetValue(c.Frequency)
+	cfg.Section("").Key("usebrowser").SetValue(c.UseBrowser)
 
 	err = cfg.SaveTo(filename)
 
@@ -130,6 +136,8 @@ func ReadConfig() *ReadmemsConfig {
 	c.LogToFile = cfg.Section("").Key("logtofile").String()
 	c.LogFolder = cfg.Section("").Key("logfolder").String()
 	c.Debug = cfg.Section("").Key("debug").String()
+	c.Frequency = cfg.Section("").Key("frequency").String()
+	c.UseBrowser = cfg.Section("").Key("usebrowser").String()
 
 	utils.LogI.Println("MemsFCR Config", c)
 	return c

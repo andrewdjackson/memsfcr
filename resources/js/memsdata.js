@@ -3,12 +3,12 @@ var minLambda = false;
 var maxLambda = false;
 var minIAC = false;
 var dataframeLoop;
-
+var debug = false;
 
 // duration in milliseconds between calls to the ECU for
 // dataframes. the ECU will struggle to respond with a 
 // value less than 450ms
-const ECUQueryInterval = 450
+var ECUQueryInterval = 450
 
 // wait time for the ECU to respond before sending another command
 var waitingForResponse = false;
@@ -101,6 +101,7 @@ const LogToFileEnabled = "true"
 const LogToFileDisabled = "false"
 const SettingPort = "port"
 const SettingPortList = "ports"
+const SettingECUQueryFrequency = "ecuqueryfrequency"
 
 // Indicators and Labels
 const IndicatorConnectionMessage = "connectionMessage"
@@ -148,7 +149,7 @@ const SparkIgnition = "ignitionspark"
 
 
 // this function gets called as soon as the page load has completed
-window.onload = function() {
+window.onload = function () {
     // get the url of the current page to build the websocket url
     wsuri = window.location.href.split("/").slice(0, 3).join("/");
     wsuri = wsuri.replace("http:", "ws:");
@@ -157,22 +158,22 @@ window.onload = function() {
     // open, close and message events
     sock = new WebSocket(wsuri + "/ws");
 
-    sock.onopen = function() {
+    sock.onopen = function () {
         console.log("connected to " + wsuri);
         readConfig();
     };
 
-    sock.onclose = function(e) {
+    sock.onclose = function (e) {
         console.log("connection closed (" + e.code + ")");
     };
 
-    sock.onmessage = function(e) {
+    sock.onmessage = function (e) {
         console.log("message received: " + e.data);
         clearWaitForResponse()
         parseMessage(e.data);
     };
 
-    sock.onerror = function(error) {
+    sock.onerror = function (error) {
         alert(`[error] ${error.message}`);
     };
 
@@ -234,6 +235,13 @@ function parseMessage(m) {
         setPort(data.Port);
         setSerialPortSelection(data.Ports);
         setLogToFile(data.LogToFile, data.LogFolder);
+        setECUQueryFrequency(data.Frequency);
+
+        if (data.Debug == "true") {
+            debug = data.Debug
+        } else {
+            hideDebugValues()
+        }
     }
 
     // connection status message received
@@ -267,7 +275,7 @@ function parseMessage(m) {
 
 function parseECUResponse(response) {
     var cmd = response.slice(0, 2)
-    var value = response.slice(2, )
+    var value = response.slice(2,)
     console.log("parsing response cmd : " + cmd + ", val : " + value)
 
     switch (cmd) {
@@ -409,10 +417,20 @@ function setConnectionStatusMessage(connected) {
     }
 }
 
+function setECUQueryFrequency(frequency) {
+    console.log("freq " + frequency)
+    f = parseInt(frequency)
+    if (f > 200) {
+        ECUQueryInterval = f
+        updateAdjustmentValue(SettingECUQueryFrequency, ECUQueryInterval)
+    }
+}
+
 // save the configuration settings
 function Save() {
     folder = document.getElementById(SettingLogFolder).value;
     configPort = document.getElementById(SettingPort).value;
+    setECUQueryFrequency(document.getElementById(SettingECUQueryFrequency).value)
 
     if (document.getElementById(SettingLogToFile).checked == true) {
         logToFile = LogToFileEnabled;
@@ -420,7 +438,7 @@ function Save() {
         logToFile = LogToFileDisabled;
     }
 
-    var data = { Port: configPort, logFolder: folder, logtofile: logToFile };
+    var data = { Port: configPort, logFolder: folder, logtofile: logToFile, frequency: ECUQueryInterval.toString() };
     var msg = formatSocketMessage(WebActionSave, JSON.stringify(data));
 
     sendSocketMessage(msg);
@@ -481,15 +499,15 @@ function setFaultStatusOnMenu(data) {
     var count = 0
 
     if (data.CoolantTempSensorFault == true) count++
-        if (data.AirIntakeTempSensorFault == true) count++
-            if (data.ThrottlePotCircuitFault == true) count++
-                if (data.FuelPumpCircuitFault == true) count++
+    if (data.AirIntakeTempSensorFault == true) count++
+    if (data.ThrottlePotCircuitFault == true) count++
+    if (data.FuelPumpCircuitFault == true) count++
 
-                    if (count > 0) {
-                        $("#ecu-fault-status").html(count.toString());
-                    } else {
-                        $("#ecu-fault-status").html('');
-                    }
+    if (count > 0) {
+        $("#ecu-fault-status").html(count.toString());
+    } else {
+        $("#ecu-fault-status").html('');
+    }
 }
 
 function setStatusLED(status, id, statustype = LEDStatus) {
@@ -551,8 +569,13 @@ function updateAdjustmentValue(id, value) {
     $("span#" + id + ".range-slider__value").html(value.toString());
 }
 
+function hideDebugValues() {
+    console.log("hiding debug elements")
+    for (let el of document.querySelectorAll('.debug')) el.style.visibility = 'hidden';
+}
+
 function setSerialPortSelection(ports) {
-    $.each(ports, function(key, value) {
+    $.each(ports, function (key, value) {
         console.log("serial port added " + key + " : " + value);
         $("#ports").append('<a class="dropdown-item" href="#" onclick="selectPort(this)">' + value + '</a>');
     });

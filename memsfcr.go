@@ -57,7 +57,7 @@ func (r *MemsReader) webMainLoop() {
 		// and determine the action
 
 		action := ui.EvaluateWebMsg(m)
-		utils.LogI.Printf("evaluated action (%v) as %d", action.Msg, action.Value)
+		utils.LogI.Printf("evaluated action (%+v) as %d", action.Msg, action.Value)
 
 		switch action.Value {
 
@@ -68,11 +68,12 @@ func (r *MemsReader) webMainLoop() {
 			cfg := rosco.ReadmemsConfig{}
 			json.Unmarshal([]byte(m.Data), &cfg)
 
-			utils.LogI.Printf("applying config (%v)", cfg)
+			utils.LogI.Printf("applying config (%+v)", cfg)
 
 			r.fcr.Config.Port = cfg.Port
 			r.fcr.Config.LogFolder = cfg.LogFolder
 			r.fcr.Config.LogToFile = cfg.LogToFile
+			r.fcr.Config.Frequency = cfg.Frequency
 
 			if r.fcr.Config.LogToFile == "true" {
 				r.fcr.Logging = false
@@ -289,6 +290,11 @@ func main() {
 
 	// use default browser on Windows until I can get the Webview to work
 	if runtime.GOOS == "windows" {
+		showLocal = false
+	}
+
+	// use the browser if the user has configured this option
+	if memsReader.fcr.Config.UseBrowser == "true" {
 		showLocal = false
 	}
 
