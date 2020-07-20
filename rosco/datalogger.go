@@ -19,10 +19,10 @@ type MemsDataLogger struct {
 }
 
 // NewMemsDataLogger logs the mems data to a CSV file
-func NewMemsDataLogger(folder string) *MemsDataLogger {
+func NewMemsDataLogger(folder string, prefix string) *MemsDataLogger {
 	logger := &MemsDataLogger{}
 	logger.logFolder = folder
-	logger.setFilename()
+	logger.setFilename(prefix)
 
 	utils.LogI.Printf("opening log file '%s'", logger.logFolder)
 
@@ -45,13 +45,13 @@ func (logger *MemsDataLogger) WriteMemsDataToFile(memsdata MemsData) {
 	logger.writeCSVData(memsdata)
 }
 
-func (logger *MemsDataLogger) setFilename() {
+func (logger *MemsDataLogger) setFilename(prefix string) {
 	currentTime := time.Now()
 	dateTime := currentTime.Format("2006-01-02 15:04:05")
 	dateTime = strings.ReplaceAll(dateTime, ":", "")
 	dateTime = strings.ReplaceAll(dateTime, " ", "-")
 
-	filename := fmt.Sprintf("%s/%s.csv", logger.logFolder, dateTime)
+	filename := fmt.Sprintf("%s/%s%s.csv", logger.logFolder, prefix, dateTime)
 	logger.Filename = filepath.FromSlash(filename)
 }
 

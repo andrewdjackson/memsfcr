@@ -172,8 +172,7 @@ func (r *MemsReader) sendConnectionStatusToWebView() {
 func (r *MemsReader) fcrMainLoop() {
 	var data []byte
 
-	// create the data logger
-	r.dataLogger = rosco.NewMemsDataLogger(r.fcr.Config.LogFolder)
+	loggerOpen := false
 
 	// busy clearing channels
 	for {
@@ -188,6 +187,15 @@ func (r *MemsReader) fcrMainLoop() {
 			df.Action = ui.WebActionData
 			data, _ = json.Marshal(m.MemsDataFrame)
 			if r.fcr.Logging {
+				if r.fcr.ECU.Connected && !loggerOpen {
+					prefix := fmt.Sprintf("%X-", r.fcr.ECU.ECUID)
+					
+					// create the data logger
+					utils.LogI.Printf("opening log file with prefix %s", prefix)
+					r.dataLogger = rosco.NewMemsDataLogger(r.fcr.Config.LogFolder, prefix)
+					loggerOpen = true
+				}
+
 				// write data to log file
 				r.dataLogger.WriteMemsDataToFile(m.MemsDataFrame)
 			}
