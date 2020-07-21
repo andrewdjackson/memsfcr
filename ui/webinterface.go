@@ -112,6 +112,8 @@ func (wi *WebInterface) newRouter() *mux.Router {
 	// set a router and a hander to accept messages over the websocket
 	r := mux.NewRouter()
 	r.HandleFunc("/ws", wi.wsHandler)
+	r.HandleFunc("/scenario", wi.scenarioHandler).Methods("GET")
+	r.HandleFunc("/config", wi.configHandler).Methods("GET", "POST")
 
 	// Create a file server which serves files out of the "./ui/static" directory.
 	// Note that the path given to the http.Dir function is relative to the project
@@ -142,38 +144,6 @@ func (wi *WebInterface) RunHTTPServer() {
 	wi.ServerRunning = true
 
 	http.Serve(listener, wi.router)
-}
-
-func (wi *WebInterface) wsHandler(w http.ResponseWriter, r *http.Request) {
-	var m WebMsg
-	var err error
-
-	// upgrade the http connection to a websocket
-	wi.ws, err = wi.upgrader.Upgrade(w, r, nil)
-	defer wi.ws.Close()
-
-	if err != nil {
-		utils.LogE.Printf("error in websocket (%s)", err)
-	}
-
-	// read loop, if a message is recieved over the websocket
-	// then post it into the FromWeb communication channel
-	// this is configured not to block if the channel is unable to
-	// receive.
-	for {
-		err = wi.ws.ReadJSON(&m)
-		if err != nil {
-			utils.LogE.Fatalf("error in websocket (%s)", err)
-		} else {
-			utils.LogI.Printf("%s recieved websocket message (%v)", utils.ReceiveFromWebTrace, m)
-		}
-
-		select {
-		case wi.FromWebChannel <- m:
-			utils.LogI.Printf("%s sent message to FromWebChannel (%v)", utils.ReceiveFromWebTrace, m)
-		default:
-		}
-	}
 }
 
 // send message to the web interface over the websocket

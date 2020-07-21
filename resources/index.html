@@ -37,8 +37,18 @@
                 <div class="sidebar-header">
                     <div class="d-flex justify-content-center mb-3">
                         <button class="btn btn-outline-success" id="connectECUbtn" type="button">
-								<i class="fa fa-plug">&nbsp</i>Connect
-							</button> &nbsp;
+							<i class="fa fa-plug">&nbsp</i>Connect
+						</button> &nbsp;
+                    
+						<div class="btn-group debug">
+							<div class="dropdown">
+								<button class="btn btn-outline-info" id="replayECUbtn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									<i class="fa fa-play-circle">&nbsp</i>Replay
+								</button> &nbsp;
+								<div class="dropdown-menu" id="replayScenarios" aria-labelledby="dropdownMenuButton">
+								</div>
+							</div>
+						</div>
                     </div>
                     <div class="overflow-hidden">
                         <div class="alert alert-light invisible font-weight-light text-wrap" role="alert" id="connectionMessage">

@@ -213,10 +213,14 @@ window.onload = function () {
     afrChart = createChart(ChartAFR, "Air : Fuel Ratio");
     coolantChart = createChart(ChartCoolant, "Coolant Temp (°C)", 80, 105);
 
+    // load the available scenarios
+    updateScenarios();
+
     // wire the connect button to the relevant function
     // we have to do this in javascript, so we can change the onclick
     // event function programmatically
     $("#connectECUbtn").click(this.connectECU);
+    $("#replayECUbtn").click(this.replayScenario);
 };
 
 // parseMessage receives the websocket message as a json object
@@ -368,7 +372,7 @@ function updateConnected(connected) {
 
         // change the button operation to pause the data loop
         setConnectButtonStyle(
-            "<i class='fa fa-pause-circle'>&nbsp</i>Pause Data Loop",
+            "<i class='fa fa-pause-circle'>&nbsp</i>Pause",
             "btn-outline-info",
             pauseECUDataLoop
         );
@@ -386,6 +390,40 @@ function updateConnected(connected) {
         setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connect", "btn-outline-success", connectECU);
         $("#connectECUbtn").prop("disabled", false);
     }
+}
+
+function updateScenarios() {
+    uri = window.location.href.split("/").slice(0, 3).join("/");
+
+    // Create a request variable and assign a new XMLHttpRequest object to it.
+    var request = new XMLHttpRequest()
+
+    // Open a new connection, using the GET request on the URL endpoint
+    request.open('GET', uri + '/scenario', true)
+
+    request.onload = function () {
+        // Begin accessing JSON data here
+        var data = JSON.parse(this.response)
+
+        var replay = $('#replayScenarios');
+        $.each(data, function (val, text) {
+            var id = "replay-" + text
+            var i = $('<button class="dropdown-item" id="' + id + '" type="button"></button>').val(val).html(text)
+            replay.append(i);
+        });
+    }
+
+    $("#replayScenarios").off().click(replaySelectedScenario);
+    // Send request
+    request.send()
+}
+
+function replaySelectedScenario(e) {
+    e = e || window.event;
+    var targ = e.target || e.srcElement || e;
+    if (targ.nodeType == 3) targ = targ.parentNode;
+
+    console.log(targ)
 }
 
 function disableAllButtons() {
@@ -571,7 +609,7 @@ function updateAdjustmentValue(id, value) {
 
 function hideDebugValues() {
     console.log("hiding debug elements")
-    for (let el of document.querySelectorAll('.debug')) el.style.visibility = 'hidden';
+    for (let el of document.querySelectorAll('.debug')) el.style.display = 'none';
 }
 
 function setSerialPortSelection(ports) {
@@ -621,6 +659,10 @@ function connectECU() {
 
     // disable all buttons
     disableAllButtons()
+}
+
+function replayScenario() {
+    // replay selected scenario
 }
 
 // startDataframeLoop configures a timer interval to make
@@ -696,7 +738,7 @@ function pauseECUDataLoop() {
 
     // change the button operation to restart the data loop
     setConnectButtonStyle(
-        "<i class='fa fa-play-circle'>&nbsp</i>Restart Data Loop",
+        "<i class='fa fa-play-circle'>&nbsp</i>Restart",
         "btn-outline-warning",
         restartECUDataLoop
     );
@@ -712,7 +754,7 @@ function restartECUDataLoop() {
 
     // change the button operation back to pause the data loop
     setConnectButtonStyle(
-        "<i class='fa fa-pause-circle'>&nbsp</i>Pause Data Loop",
+        "<i class='fa fa-pause-circle'>&nbsp</i>Pause",
         "btn-outline-info",
         pauseECUDataLoop
     );

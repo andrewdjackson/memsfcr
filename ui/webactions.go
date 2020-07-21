@@ -20,6 +20,8 @@ const (
 	WebActionData = "data"
 	// WebActionDiagnostics diagnostic statistical data
 	WebActionDiagnostics = "diagnostics"
+	// WebActionScenarios returns the list of scenario files
+	WebActionScenarios = "scenarios"
 )
 
 const (
@@ -59,6 +61,10 @@ const (
 	Save = 16
 	// Dataframe command
 	Dataframe = 17
+	// Replay scenario command
+	Replay = 18
+	// ListScenarios command
+	ListScenarios = 19
 )
 
 // WebAction converts the JSON message from the
@@ -93,6 +99,10 @@ func EvaluateWebMsg(m WebMsg) WebAction {
 			return WebAction{m, StartDataLoop}
 		case "dataframe":
 			return WebAction{m, Dataframe}
+		case "scenarios":
+			return WebAction{m, ListScenarios}
+		case "replay":
+			return WebAction{m, Replay}
 		}
 	case "increase":
 		switch m.Data {
