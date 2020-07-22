@@ -57,6 +57,7 @@ func (r *MemsReader) webMainLoop() {
 			r.sendConnectionStatusToWebView()
 
 		case ui.Replay:
+			// replay csv file
 			utils.LogI.Printf("%s replay requested %+v", utils.EmulatorTrace, m.Data)
 			r.fcr.Config.Port = scenarios.GetScenarioPath(m.Data)
 
