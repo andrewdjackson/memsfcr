@@ -4,6 +4,7 @@ var maxLambda = false;
 var minIAC = false;
 var dataframeLoop;
 var debug = false;
+var replay = "";
 
 // duration in milliseconds between calls to the ECU for
 // dataframes. the ECU will struggle to respond with a 
@@ -42,6 +43,7 @@ const WebActionResponse = "response"
 const WebActionIncrease = "increase"
 const WebActionDecrease = "decrease"
 const WebActionDiagnostics = "diagnostics"
+const WebActionReplay = "replay"
 
 // WebActionCommand commands
 const CommandStart = "start"
@@ -389,6 +391,7 @@ function updateConnected(connected) {
         // enable connect button
         setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connect", "btn-outline-success", connectECU);
         $("#connectECUbtn").prop("disabled", false);
+        $('#connectECUbtn').removeClass("flashing-button");
     }
 }
 
@@ -407,8 +410,7 @@ function updateScenarios() {
 
         var replay = $('#replayScenarios');
         $.each(data, function (val, text) {
-            var id = "replay-" + text
-            var i = $('<button class="dropdown-item" id="' + id + '" type="button"></button>').val(val).html(text)
+            var i = $('<button class="dropdown-item replay" type="button"></button>').val(text).html(text)
             replay.append(i);
         });
     }
@@ -423,7 +425,26 @@ function replaySelectedScenario(e) {
     var targ = e.target || e.srcElement || e;
     if (targ.nodeType == 3) targ = targ.parentNode;
 
-    console.log(targ)
+    // request replay 
+    var msg = formatSocketMessage(WebActionReplay, targ.value);
+    sendSocketMessage(msg);
+
+    replay = targ.value;
+
+    $('#replayECUbtn').removeClass("btn-outline-info");
+    $('#replayECUbtn').removeClass("btn-success");
+    $('#connectECUbtn').removeClass("flashing-button");
+
+    if (replay == "Cancel Replay") {
+        replay = ""
+        port = document.getElementById("port").value
+        $('#replayECUbtn').addClass("btn-outline-info");
+        setConnectionStatusMessage(false)
+        setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connect", "btn-outline-success", connectECU);
+    } else {
+        $('#replayECUbtn').addClass("btn-success");
+        $('#connectECUbtn').addClass("flashing-button");
+    }
 }
 
 function disableAllButtons() {
@@ -447,10 +468,16 @@ function setConnectionStatusMessage(connected) {
     $('#' + id).addClass("visible");
 
     if (connected == true) {
-        document.getElementById(id).textContent = "connected to " + document.getElementById("port").value
+        if (replay == "") {
+            msg = document.getElementById("port").value
+        } else {
+            msg = replay
+        }
+
+        document.getElementById(id).textContent = "connected to " + msg
         $('#' + id).addClass("alert-success");
     } else {
-        document.getElementById(id).textContent = "unable to connect to " + document.getElementById("port").value
+        document.getElementById(id).textContent = "unable to connect to " + msg
         $('#' + id).addClass("alert-danger");
     }
 }
@@ -585,7 +612,7 @@ function setConnectButtonStyle(name, style, f) {
     $(id).removeClass("btn-outline-success");
     $(id).removeClass("btn-outline-info");
     $(id).removeClass("btn-outline-warning");
-
+    $(id).removeClass("flashing-button");
     // assign new ones
     $(id).addClass(style);
     $(id).html(name);
@@ -661,10 +688,6 @@ function connectECU() {
     disableAllButtons()
 }
 
-function replayScenario() {
-    // replay selected scenario
-}
-
 // startDataframeLoop configures a timer interval to make
 // a call to retieve the ECU dataframe
 function startDataframeLoop() {
@@ -713,19 +736,19 @@ function decrease(id) {
 }
 
 function resetECU() {
-    // if we're not waiting for a response then send the ecu command
+    // reset ECU command
     var msg = formatSocketMessage(WebActionCommand, CommandResetECU);
     sendSocketMessage(msg);
 }
 
 function resetAdj() {
-    // if we're not waiting for a response then send the ecu command
+    // reset ECU adjustments
     var msg = formatSocketMessage(WebActionCommand, CommandResetAdjustments);
     sendSocketMessage(msg);
 }
 
 function clearFaultCodes() {
-    // if we're not waiting for a response then send the ecu command
+    // clear fault codes
     var msg = formatSocketMessage(WebActionCommand, CommandClearFaults);
     sendSocketMessage(msg);
 

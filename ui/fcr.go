@@ -9,7 +9,7 @@ import (
 // MemsFCR structure
 type MemsFCR struct {
 	// Config FCR configuration
-	Config *rosco.ReadmemsConfig
+	Config *utils.ReadmemsConfig
 
 	// Paused dataframe read enabled / disabled
 	Paused bool
@@ -46,7 +46,7 @@ func NewMemsFCR() *MemsFCR {
 
 // read the configuration file and apply the values
 func (memsfcr *MemsFCR) readConfig() {
-	memsfcr.Config = rosco.ReadConfig()
+	memsfcr.Config = utils.ReadConfig()
 
 	if memsfcr.Config.Loop == "inf" {
 		// infitite loop, so set loop count to a very big number

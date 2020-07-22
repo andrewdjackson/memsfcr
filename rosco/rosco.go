@@ -7,8 +7,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"math"
+	"strings"
 	"time"
 
+	"github.com/andrewdjackson/memsfcr/scenarios"
 	"github.com/andrewdjackson/memsfcr/utils"
 	"github.com/tarm/serial"
 )
@@ -32,7 +34,9 @@ type MemsConnection struct {
 	RxECU       chan MemsCommandResponse
 	Connected   bool
 	Initialised bool
+	Emulated    bool
 	Diagnostics *MemsDiagnostics
+	responder   *scenarios.Responder
 }
 
 // MemsConnectionStatus are we?
@@ -66,6 +70,7 @@ func NewMemsConnection() *MemsConnection {
 	m := &MemsConnection{}
 	m.Connected = false
 	m.Initialised = false
+	m.Emulated = false
 	m.TxECU = make(chan MemsCommandResponse)
 	m.RxECU = make(chan MemsCommandResponse)
 	// engine diagnostics
@@ -74,8 +79,20 @@ func NewMemsConnection() *MemsConnection {
 	return m
 }
 
+// check if the port is a CSV file, if so then a scenario emulation
+// has been requested rather than a real serial connection
+func (mems *MemsConnection) isScenario(port string) bool {
+	return strings.HasSuffix(port, ".csv")
+}
+
 // ConnectAndInitialiseECU connect and initialise the ECU
 func (mems *MemsConnection) ConnectAndInitialiseECU(port string) {
+	if mems.isScenario(port) {
+		// emulate ECU if scenario file is supplied
+		mems.Emulated = true
+		mems.responder = scenarios.NewResponder()
+	}
+
 	if !mems.Connected {
 		mems.connect(port)
 		if mems.Connected {
@@ -86,22 +103,34 @@ func (mems *MemsConnection) ConnectAndInitialiseECU(port string) {
 
 // connect to MEMS via serial port
 func (mems *MemsConnection) connect(port string) {
+	var err error
+	var s *serial.Port
 
-	// connect to the ecu, timeout if we don't get data after a couple of seconds
-	c := &serial.Config{Name: port, Baud: 9600, ReadTimeout: time.Millisecond * 2000}
+	// assume not connected or initialised
+	mems.Connected = false
+	mems.Initialised = false
 
-	utils.LogI.Println("opening ", port)
+	if mems.Emulated {
+		err = mems.responder.LoadScenario(port)
+	} else {
+		// connect to the ecu, timeout if we don't get data after a couple of seconds
+		c := &serial.Config{Name: port, Baud: 9600, ReadTimeout: time.Millisecond * 2000}
 
-	s, err := serial.OpenPort(c)
+		utils.LogI.Println("opening ", port)
 
-	if s == nil {
+		s, err = serial.OpenPort(c)
+		if s != nil {
+			mems.SerialPort = s
+		}
+	}
+
+	if err == nil {
+		utils.LogI.Println("connected to ", port)
+		mems.Connected = true
+	} else {
 		utils.LogE.Printf("error opening port (%s)", err)
 		mems.Connected = false
 		mems.Initialised = false
-	} else {
-		utils.LogI.Println("connected to ", port)
-		mems.SerialPort = s
-		mems.Connected = true
 	}
 }
 
@@ -121,29 +150,36 @@ func (mems *MemsConnection) isCommandEcho() bool {
 // 6. Recieve response D0 XX XX XX XX
 //
 func (mems *MemsConnection) initialise() {
-	if mems.SerialPort != nil {
-		mems.SerialPort.Flush()
+	// assume not initialised
+	mems.Initialised = false
 
-		mems.writeSerial(MEMSInitCommandA)
-		mems.readSerial()
+	if mems.Emulated {
+		mems.Initialised = true
+	} else {
+		if mems.SerialPort != nil {
+			mems.SerialPort.Flush()
 
-		mems.writeSerial(MEMSInitCommandB)
-		mems.readSerial()
+			mems.writeSerial(MEMSInitCommandA)
+			mems.readSerial()
 
-		mems.writeSerial(MEMSHeartbeat)
-		mems.readSerial()
+			mems.writeSerial(MEMSInitCommandB)
+			mems.readSerial()
 
-		mems.writeSerial(MEMSInitECUID)
-		mems.ECUID, _ = mems.readSerial()
+			mems.writeSerial(MEMSHeartbeat)
+			mems.readSerial()
 
-		// get the IAC position
-		mems.writeSerial(MEMSGetIACPosition)
-		response, _ := mems.readSerial()
-		iac, _ := binary.Uvarint(response)
-		mems.Diagnostics.Analysis.IACPosition = int(iac)
+			mems.writeSerial(MEMSInitECUID)
+			mems.ECUID, _ = mems.readSerial()
+
+			// get the IAC position
+			mems.writeSerial(MEMSGetIACPosition)
+			response, _ := mems.readSerial()
+			iac, _ := binary.Uvarint(response)
+			mems.Diagnostics.Analysis.IACPosition = int(iac)
+
+			mems.Initialised = true
+		}
 	}
-
-	mems.Initialised = true
 }
 
 // readSerial read from MEMS
@@ -160,29 +196,35 @@ func (mems *MemsConnection) readSerial() ([]byte, error) {
 	//  data frame buffer
 	data := make([]byte, 0)
 
-	if mems.SerialPort != nil {
-		// read all the expected bytes before returning the data
-		for count := 0; count < size; {
-			// wait for a response from MEMS
-			n, _ = mems.SerialPort.Read(b)
+	if mems.Emulated {
+		// emulate the response
+		data = mems.responder.GetECUResponse(mems.command)
+		utils.LogI.Printf("%s data read for emulation %x", utils.EmulatorTrace, data)
+	} else {
+		if mems.SerialPort != nil {
+			// read all the expected bytes before returning the data
+			for count := 0; count < size; {
+				// wait for a response from MEMS
+				n, _ = mems.SerialPort.Read(b)
 
-			if n == 0 {
-				utils.LogW.Printf("serial port read error, timeout?")
-				// drop out of loop, send back a 0x00 byte array response
-				// this prevents the loop getting blocked on a read error
-				count = size
-				data = append(data, b...)
-				e = errors.New("serial port read error")
-			} else {
-				// append the read bytes to the data frame
-				data = append(data, b[:n]...)
-			}
+				if n == 0 {
+					utils.LogW.Printf("serial port read error, timeout?")
+					// drop out of loop, send back a 0x00 byte array response
+					// this prevents the loop getting blocked on a read error
+					count = size
+					data = append(data, b...)
+					e = errors.New("serial port read error")
+				} else {
+					// append the read bytes to the data frame
+					data = append(data, b[:n]...)
+				}
 
-			// increment by the number of bytes read
-			count = count + n
-			if count > size {
-				utils.LogW.Printf("%s dataframe size mismatch (received %d, expected %d)", utils.ECUResponseTrace, count, size)
-				e = errors.New("size mismatch")
+				// increment by the number of bytes read
+				count = count + n
+				if count > size {
+					utils.LogW.Printf("%s dataframe size mismatch (received %d, expected %d)", utils.ECUResponseTrace, count, size)
+					e = errors.New("size mismatch")
+				}
 			}
 		}
 	}
@@ -200,19 +242,24 @@ func (mems *MemsConnection) readSerial() ([]byte, error) {
 
 // writeSerial write to MEMS
 func (mems *MemsConnection) writeSerial(data []byte) {
-	if mems.SerialPort != nil {
-		// save the sent command
+	if mems.Emulated {
+		utils.LogI.Printf("%s data stored for emulation %x", utils.EmulatorTrace, data)
 		mems.command = data
+	} else {
+		if mems.SerialPort != nil {
+			// save the sent command
+			mems.command = data
 
-		// write the response to the code reader
-		n, e := mems.SerialPort.Write(data)
+			// write the response to the code reader
+			n, e := mems.SerialPort.Write(data)
 
-		if e != nil {
-			utils.LogE.Printf("%s error sending data to serial port (%s)", utils.ECUCommandTrace, e)
-		}
+			if e != nil {
+				utils.LogE.Printf("%s error sending data to serial port (%s)", utils.ECUCommandTrace, e)
+			}
 
-		if n > 0 {
-			utils.LogI.Printf("%s data sent to serial port %x", utils.ECUCommandTrace, data)
+			if n > 0 {
+				utils.LogI.Printf("%s data sent to serial port %x", utils.ECUCommandTrace, data)
+			}
 		}
 	}
 }

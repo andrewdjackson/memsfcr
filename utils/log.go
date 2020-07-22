@@ -23,6 +23,9 @@ const SendToWebTrace = "\u001b[38;5;21mWEB_TX>\u001b[0m"
 // DiagnosticTrace color coding for Messages received from the Web
 const DiagnosticTrace = "\u001b[38;5;220mDIAGTR>\u001b[0m"
 
+// EmulatorTrace color coding
+const EmulatorTrace = "\u001b[38;5;106mEMU_TR>\u001b[0m"
+
 var (
 	// LogE logs as an error
 	LogE = log.New(LogWriter{}, "\u001b[38;5;160mERROR: ", 0)

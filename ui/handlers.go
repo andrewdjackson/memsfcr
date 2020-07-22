@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/andrewdjackson/memsfcr/scenarios"
 	"github.com/andrewdjackson/memsfcr/utils"
 )
 
 func (wi *WebInterface) scenarioHandler(w http.ResponseWriter, r *http.Request) {
-	scenarios, _ := utils.GetScenarios()
+	scenarios, _ := scenarios.GetScenarios()
 
 	utils.LogI.Printf("%+v", scenarios)
 
@@ -20,9 +21,11 @@ func (wi *WebInterface) scenarioHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (wi *WebInterface) configHandler(w http.ResponseWriter, r *http.Request) {
+	config := utils.ReadConfig()
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(""); err != nil {
+	if err := json.NewEncoder(w).Encode(config); err != nil {
 		panic(err)
 	}
 }
