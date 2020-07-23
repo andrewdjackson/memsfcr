@@ -65,14 +65,20 @@ func (r *MemsReader) fcrMainLoop() {
 				if r.fcr.ECU.Connected && !loggerOpen {
 					prefix := fmt.Sprintf("%X-", r.fcr.ECU.ECUID)
 
-					// create the data logger
-					utils.LogI.Printf("opening log file with prefix %s", prefix)
-					r.dataLogger = rosco.NewMemsDataLogger(r.fcr.Config.LogFolder, prefix)
-					loggerOpen = true
+					if r.fcr.ECU.Emulated {
+						loggerOpen = false
+					} else {
+						// create the data logger
+						utils.LogI.Printf("opening log file with prefix %s", prefix)
+						r.dataLogger = rosco.NewMemsDataLogger(r.fcr.Config.LogFolder, prefix)
+						loggerOpen = true
+					}
 				}
 
 				// write data to log file
-				r.dataLogger.WriteMemsDataToFile(m.MemsDataFrame)
+				if loggerOpen {
+					r.dataLogger.WriteMemsDataToFile(m.MemsDataFrame)
+				}
 			}
 		} else {
 			// send the response from the ECU to the web interface

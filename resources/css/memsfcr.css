@@ -266,6 +266,11 @@ input::-moz-focus-outer {
 	padding: 0 0 0 0;
 }
 
+.alert-connect {
+	padding: 0.2rem 0.2rem 0.2rem 0.2rem;
+	max-width: 215px;
+	overflow-y: auto;
+}
 .flashing-button {
 	-webkit-animation: glowing 1500ms infinite;
 	-moz-animation: glowing 1500ms infinite;
@@ -274,51 +279,48 @@ input::-moz-focus-outer {
 }
 @-webkit-keyframes glowing {
 	0% {
-		/*background-color: #b20000;*/
-		-webkit-box-shadow: 0 0 3px #b20000;
+		-webkit-box-shadow: 0 0 3px rgba(46, 78, 20, 0.5);
 	}
 	50% {
-		/*background-color: #ff0000;*/
-		-webkit-box-shadow: 0 0 10px #ff0000;
+		-webkit-box-shadow: 0 0 10px rgba(113, 197, 45, 0.9);
 	}
 	100% {
-		/*background-color: #b20000;*/
-		-webkit-box-shadow: 0 0 3px #b20000;
+		-webkit-box-shadow: 0 0 3px rgba(46, 78, 20, 0.5);
 	}
 }
 
 @-moz-keyframes glowing {
 	0% {
-		-moz-box-shadow: 0 0 3px #b20000;
+		-moz-box-shadow: 0 0 3px rgba(46, 78, 20, 0.5);
 	}
 	50% {
-		-moz-box-shadow: 0 0 10px #ff0000;
+		-moz-box-shadow: 0 0 10px rgba(113, 197, 45, 0.9);
 	}
 	100% {
-		-moz-box-shadow: 0 0 3px #b20000;
+		-moz-box-shadow: 0 0 3px rgba(46, 78, 20, 0.5);
 	}
 }
 
 @-o-keyframes glowing {
 	0% {
-		box-shadow: 0 0 3px #b20000;
+		box-shadow: 0 0 3px rgba(46, 78, 20, 0.5);
 	}
 	50% {
-		box-shadow: 0 0 10px #ff0000;
+		box-shadow: 0 0 10px rgba(113, 197, 45, 0.9);
 	}
 	100% {
-		box-shadow: 0 0 3px #b20000;
+		box-shadow: 0 0 3px rgba(46, 78, 20, 0.5);
 	}
 }
 
 @keyframes glowing {
 	0% {
-		box-shadow: 0 0 3px #b20000;
+		box-shadow: 0 0 3px rgba(46, 78, 20, 0.5);
 	}
 	50% {
-		box-shadow: 0 0 10px #ff0000;
+		box-shadow: 0 0 10px rgba(113, 197, 45, 0.9);
 	}
 	100% {
-		box-shadow: 0 0 3px #b20000;
+		box-shadow: 0 0 3px rgba(46, 78, 20, 0.5);
 	}
 }

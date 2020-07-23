@@ -869,8 +869,8 @@ var gaugeAirFuel = new RadialGauge({
         to: 12,
         color: 'rgba(225, 185, 6, 0.75)'
     }, {
-        from: 14,
-        to: 16,
+        from: 13.5,
+        to: 16.5,
         color: 'rgba(10, 225, 6, 0.5)'
     }, {
         from: 18,

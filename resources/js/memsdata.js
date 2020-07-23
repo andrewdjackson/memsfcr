@@ -370,6 +370,8 @@ function updateConnected(connected) {
     setConnectionStatusMessage(connected)
 
     if (connected) {
+        // disable replay once connected
+        $('#replayECUbtn').prop("disabled", true);
         setStatusLED(true, IndicatorECUConnected, LEDStatus);
 
         // change the button operation to pause the data loop
@@ -435,16 +437,10 @@ function replaySelectedScenario(e) {
     $('#replayECUbtn').removeClass("btn-success");
     $('#connectECUbtn').removeClass("flashing-button");
 
-    if (replay == "Cancel Replay") {
-        replay = ""
-        port = document.getElementById("port").value
-        $('#replayECUbtn').addClass("btn-outline-info");
-        setConnectionStatusMessage(false)
-        setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connect", "btn-outline-success", connectECU);
-    } else {
-        $('#replayECUbtn').addClass("btn-success");
-        $('#connectECUbtn').addClass("flashing-button");
-    }
+    $('#replayECUbtn').addClass("btn-success");
+    $('#replayECUbtn').prop("disabled", true);
+    setConnectButtonStyle("<i class='fa fa-play-circle'>&nbsp</i>Play", "btn-outline-success", connectECU);
+    $('#connectECUbtn').addClass("flashing-button");
 }
 
 function disableAllButtons() {
