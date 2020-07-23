@@ -13,6 +13,10 @@ createChart = function (id, title, low, high) {
 
     return new Chart(ctx, {
         type: 'line',
+        plugins: [
+            // This chart will use the plugin
+            ChartRegressions
+        ],
         data: {
             labels: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             datasets: [{
@@ -21,7 +25,11 @@ createChart = function (id, title, low, high) {
                 backgroundColor: 'rgba(102,153,204,0.1)',
                 fillColor: "rgba(102,153,51,0.2)",
                 strokeColor: "rgba(220,220,220,1)",
-                borderWidth: 1
+                borderWidth: 1,
+                regressions: {
+                    type: "linear",
+                    line: { color: "red", width: 0.5, dash: [8, 2] },
+                },
             }],
         },
         options: {
@@ -31,10 +39,10 @@ createChart = function (id, title, low, high) {
             fontSize: 12,
             fontFamily: "'-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
             animation: {
-                duration: 300, 
+                duration: 300,
             },
             hover: {
-                animationDuration: 0 
+                animationDuration: 0
             },
             responsiveAnimationDuration: 0,
             legend: {
@@ -85,7 +93,7 @@ createSpark = function (id) {
                 backgroundColor: 'rgba(102,153,204,0.1)',
                 fillColor: "rgba(102,153,51,0.2)",
                 strokeColor: "rgba(220,220,220,1)",
-                borderWidth: 1
+                borderWidth: 1,
             }],
         },
         options: {
