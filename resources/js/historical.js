@@ -8,6 +8,10 @@ addData = function (chart, label, data) {
     chart.update();
 }
 
+addScenarioData = function (chart, data) {
+    chart.data = data
+}
+
 createChart = function (id, title, low, high) {
     var ctx = $('#' + id);
 

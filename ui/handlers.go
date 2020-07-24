@@ -4,9 +4,26 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/andrewdjackson/memsfcr/scenarios"
 	"github.com/andrewdjackson/memsfcr/utils"
 )
+
+func (wi *WebInterface) scenarioDataHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	scenarioID := vars["scenarioId"]
+
+	data := scenarios.GetScenario(scenarioID)
+
+	utils.LogI.Printf("%+v", data)
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		panic(err)
+	}
+}
 
 func (wi *WebInterface) scenarioHandler(w http.ResponseWriter, r *http.Request) {
 	scenarios, _ := scenarios.GetScenarios()

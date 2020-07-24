@@ -34,8 +34,8 @@ func NewConfig() *ReadmemsConfig {
 	config.LogToFile = "true"
 	config.Loop = "100000000"
 	config.Debug = "false"
-	config.UseBrowser = "true"
-	config.Frequency = "950"
+	config.UseBrowser = "false"
+	config.Frequency = "500"
 
 	return &config
 }

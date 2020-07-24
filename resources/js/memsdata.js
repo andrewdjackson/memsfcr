@@ -6,6 +6,10 @@ var dataframeLoop;
 var debug = false;
 var replay = "";
 
+// replay data
+var replayCount = 0
+var replayPosition = 0
+
 // duration in milliseconds between calls to the ECU for
 // dataframes. the ECU will struggle to respond with a 
 // value less than 450ms
@@ -134,6 +138,8 @@ const ChartLambda = "lambdachart"
 const ChartLoopIndicator = "loopchart"
 const ChartCoolant = "coolantchart"
 const ChartAFR = "afrchart"
+const ReplayProgress = "replayprogress"
+const ReplayProgressRemaining = "replayprogressremaining"
 
 // spark labels - must match id's used in the html
 const SparkRPM = "rpmspark"
@@ -223,6 +229,8 @@ window.onload = function () {
     // event function programmatically
     $("#connectECUbtn").click(this.connectECU);
     $("#replayECUbtn").click(this.replayScenario);
+
+    showProgressValues(false)
 };
 
 // parseMessage receives the websocket message as a json object
@@ -271,6 +279,16 @@ function parseMessage(m) {
         updateGraphs(data);
         updateDataFrameValues(data);
         updateAdjustmentValues(data);
+
+        if (replay != "") {
+            // increment the replay progress
+            replayPosition = replayPosition + 1
+            // loop back to the start
+            if (replayPosition > replayCount)
+                replayPosition = 1
+            // update progress display
+            updateReplayProgress();
+        }
     }
 
     if (msg.action == WebActionDiagnostics) {
@@ -312,7 +330,8 @@ function updateGauges(Responsedata) {
     gaugeRPM.value = Responsedata.EngineRPM;
     gaugeMap.value = Responsedata.ManifoldAbsolutePressure;
     // no throttle = 0.6V - full throttle = ~5V
-    gaugeThrottlePos.value = (Responsedata.ThrottlePotSensor - 0.6) * 22.72;
+    //gaugeThrottlePos.value = (Responsedata.ThrottlePotSensor - 0.6) * 22.72;
+    gaugeThrottlePos.value = (Responsedata.ThrottlePotSensor) * 20;
     gaugeIACPos.value = Responsedata.IACPosition;
     gaugeBattery.value = Responsedata.BatteryVoltage;
     gaugeCoolant.value = Responsedata.CoolantTemp;
@@ -397,6 +416,7 @@ function updateConnected(connected) {
     }
 }
 
+// calls the resp api to get the list of available scenarios
 function updateScenarios() {
     uri = window.location.href.split("/").slice(0, 3).join("/");
 
@@ -422,25 +442,80 @@ function updateScenarios() {
     request.send()
 }
 
+// set up the selected scenario for replay
+// update the replay and connect button visuals
 function replaySelectedScenario(e) {
     e = e || window.event;
     var targ = e.target || e.srcElement || e;
     if (targ.nodeType == 3) targ = targ.parentNode;
 
-    // request replay 
-    var msg = formatSocketMessage(WebActionReplay, targ.value);
-    sendSocketMessage(msg);
-
+    // extract the filename from the selected item
+    // replay is global and if set to a value indicates we're replaying a scenario
     replay = targ.value;
+
+    // request replay 
+    var msg = formatSocketMessage(WebActionReplay, replay);
+    sendSocketMessage(msg);
 
     $('#replayECUbtn').removeClass("btn-outline-info");
     $('#replayECUbtn').removeClass("btn-success");
     $('#connectECUbtn').removeClass("flashing-button");
-
     $('#replayECUbtn').addClass("btn-success");
     $('#replayECUbtn').prop("disabled", true);
+
+    // show the connect button as "Play" and flash the button
     setConnectButtonStyle("<i class='fa fa-play-circle'>&nbsp</i>Play", "btn-outline-success", connectECU);
     $('#connectECUbtn').addClass("flashing-button");
+
+    replayCount = 0
+    replayPosition = 0
+    // show the replay progress bar
+    showProgressValues(true)
+    // get the replay scenario details
+    getReplayScenarioDescription(replay)
+}
+
+// call the rest api to get the description of the scenario selected
+function getReplayScenarioDescription(scenario) {
+    uri = window.location.href.split("/").slice(0, 3).join("/");
+
+    // Create a request variable and assign a new XMLHttpRequest object to it.
+    var request = new XMLHttpRequest()
+
+    // Open a new connection, using the GET request on the URL endpoint
+    request.open('GET', uri + '/scenario/' + scenario, true)
+
+    request.onload = function () {
+        // Begin accessing JSON data here
+        var data = JSON.parse(this.response)
+        console.info("replay scenario description " + JSON.stringify(data))
+        replayCount = data.count
+        replayPosition = data.position
+        updateReplayProgress()
+    }
+
+    // Send request
+    request.send()
+}
+
+// update the progress of the scenario replay
+function updateReplayProgress() {
+    console.info("replay " + replayPosition + " of " + replayCount)
+
+    var percentProgress = Math.round((replayPosition / replayCount) * 100)
+    var percentRemaining = 100 - percentProgress
+
+    $("#" + ReplayProgress).width(percentProgress + "%")
+
+    if (percentProgress < 87) {
+        $("#" + ReplayProgress).html("")
+        $("#" + ReplayProgressRemaining).html(percentProgress + "%")
+    } else {
+        $("#" + ReplayProgress).html(percentProgress + "%")
+        $("#" + ReplayProgressRemaining).html("")
+    }
+
+    $("#" + ReplayProgressRemaining).width(percentRemaining + "%")
 }
 
 function disableAllButtons() {
@@ -633,6 +708,17 @@ function updateAdjustmentValue(id, value) {
 function hideDebugValues() {
     console.log("hiding debug elements")
     for (let el of document.querySelectorAll('.debug')) el.style.display = 'none';
+}
+
+function showProgressValues(show) {
+    console.log("hiding/showing progress elements")
+    if (show) {
+        d = 'visible'
+    } else {
+        d = 'hidden'
+    }
+
+    for (let el of document.querySelectorAll('.progressdisplay')) el.style.visibility = d;
 }
 
 function setSerialPortSelection(ports) {

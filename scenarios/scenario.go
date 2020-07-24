@@ -48,3 +48,17 @@ func GetScenarios() ([]string, error) {
 
 	return files, nil
 }
+
+// GetScenario returns the data for the given scenario
+func GetScenario(id string) ScenarioDescription {
+	file := GetScenarioPath(id)
+	r := NewResponder()
+	r.LoadScenario(file)
+
+	scenario := ScenarioDescription{}
+	scenario.Count = r.playbook.count
+	scenario.Position = r.playbook.position
+	scenario.Name = id
+
+	return scenario
+}

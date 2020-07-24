@@ -30,6 +30,14 @@ type Playbook struct {
 	servedDataframe80 bool
 }
 
+// ScenarioDescription describes the scenario for the ui
+type ScenarioDescription struct {
+	Name       string `json:"name"`
+	Count      int    `json:"count"`
+	Position   int    `json:"position"`
+	SampleData []int  `json:"sample"`
+}
+
 // Responder struct
 type Responder struct {
 	file        *os.File
@@ -137,7 +145,7 @@ func (responder *Responder) GetECUResponse(cmd []byte) []byte {
 			utils.LogI.Printf("both dataframes served, indexing to %d of %d", responder.playbook.position, responder.playbook.count)
 
 			// if we've reached the end then loop back to the start
-			if responder.playbook.position > responder.playbook.count {
+			if responder.playbook.position >= responder.playbook.count {
 				responder.playbook.position = 0
 				utils.LogW.Printf("reached end of scenario, restarting from beginning")
 			}

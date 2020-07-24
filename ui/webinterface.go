@@ -113,6 +113,7 @@ func (wi *WebInterface) newRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/ws", wi.wsHandler)
 	r.HandleFunc("/scenario", wi.scenarioHandler).Methods("GET")
+	r.HandleFunc("/scenario/{scenarioId}", wi.scenarioDataHandler).Methods("GET")
 	r.HandleFunc("/config", wi.configHandler).Methods("GET", "POST")
 
 	// Create a file server which serves files out of the "./ui/static" directory.
