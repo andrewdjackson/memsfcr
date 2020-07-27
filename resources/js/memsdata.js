@@ -126,6 +126,7 @@ const IndicatorLambdaLow = "lambdalow"
 const IndicatorLambdaHigh = "lambdahigh"
 const IndicatorRPMSensor = "rpmsensor"
 const IndicatorIACLow = "iaclow"
+const IndicatorO2SystemFault = "systemfault"
 
 // LED statuses 
 const LEDFault = "fault"
@@ -157,7 +158,7 @@ const SparkIgnition = "ignitionspark"
 
 
 // this function gets called as soon as the page load has completed
-window.onload = function () {
+window.onload = function() {
     // get the url of the current page to build the websocket url
     wsuri = window.location.href.split("/").slice(0, 3).join("/");
     wsuri = wsuri.replace("http:", "ws:");
@@ -166,22 +167,22 @@ window.onload = function () {
     // open, close and message events
     sock = new WebSocket(wsuri + "/ws");
 
-    sock.onopen = function () {
+    sock.onopen = function() {
         console.log("connected to " + wsuri);
         readConfig();
     };
 
-    sock.onclose = function (e) {
+    sock.onclose = function(e) {
         console.log("connection closed (" + e.code + ")");
     };
 
-    sock.onmessage = function (e) {
+    sock.onmessage = function(e) {
         console.log("message received: " + e.data);
         clearWaitForResponse()
         parseMessage(e.data);
     };
 
-    sock.onerror = function (error) {
+    sock.onerror = function(error) {
         alert(`[error] ${error.message}`);
     };
 
@@ -283,10 +284,10 @@ function parseMessage(m) {
         if (replay != "") {
             // increment the replay progress
             replayPosition = replayPosition + 1
-            // loop back to the start
+                // loop back to the start
             if (replayPosition > replayCount)
                 replayPosition = 1
-            // update progress display
+                // update progress display
             updateReplayProgress();
         }
     }
@@ -299,7 +300,7 @@ function parseMessage(m) {
 
 function parseECUResponse(response) {
     var cmd = response.slice(0, 2)
-    var value = response.slice(2,)
+    var value = response.slice(2, )
     console.log("parsing response cmd : " + cmd + ", val : " + value)
 
     switch (cmd) {
@@ -426,12 +427,12 @@ function updateScenarios() {
     // Open a new connection, using the GET request on the URL endpoint
     request.open('GET', uri + '/scenario', true)
 
-    request.onload = function () {
+    request.onload = function() {
         // Begin accessing JSON data here
         var data = JSON.parse(this.response)
 
         var replay = $('#replayScenarios');
-        $.each(data, function (val, text) {
+        $.each(data, function(val, text) {
             var i = $('<button class="dropdown-item replay" type="button"></button>').val(text).html(text)
             replay.append(i);
         });
@@ -469,9 +470,9 @@ function replaySelectedScenario(e) {
 
     replayCount = 0
     replayPosition = 0
-    // show the replay progress bar
+        // show the replay progress bar
     showProgressValues(true)
-    // get the replay scenario details
+        // get the replay scenario details
     getReplayScenarioDescription(replay)
 }
 
@@ -485,7 +486,7 @@ function getReplayScenarioDescription(scenario) {
     // Open a new connection, using the GET request on the URL endpoint
     request.open('GET', uri + '/scenario/' + scenario, true)
 
-    request.onload = function () {
+    request.onload = function() {
         // Begin accessing JSON data here
         var data = JSON.parse(this.response)
         console.info("replay scenario description " + JSON.stringify(data))
@@ -581,13 +582,13 @@ function Save() {
 }
 
 function updateLEDs(data) {
+    var derived = 0;
+
     if (data.DTC0 > 0 || data.DTC1 > 0) {
-        setStatusLED(true, IndicatorECUFault, LEDFault);
         setStatusLED(data.CoolantTempSensorFault, IndicatorCoolantFault, LEDFault);
         setStatusLED(data.AirIntakeTempSensorFault, IndicatorAirFault, LEDFault);
         setStatusLED(data.ThrottlePotCircuitFault, IndicatorThrottleFault, LEDFault);
         setStatusLED(data.FuelPumpCircuitFault, IndicatorFuelFault, LEDFault);
-        setFaultStatusOnMenu(data);
     }
 
     setStatusLED(data.ClosedLoop, IndicatorClosedLoop, LEDStatus);
@@ -597,6 +598,7 @@ function updateLEDs(data) {
     // derived warnings
     if (data.IACPosition == 0 && data.IdleError >= 50 && data.IdleSwitch == false) {
         minIAC = true;
+        derived++;
     }
 
     // only evaluate lambda faults if we're in closed loop where
@@ -608,9 +610,12 @@ function updateLEDs(data) {
         // we have at least one occurence first
         if (minLambda && data.LambdaVoltage <= 10) {
             setStatusLED(true, IndicatorLambdaLowFault, LEDFault);
+            derived++;
         }
+
         if (data.LambdaVoltage <= 10) {
             minLambda = true;
+            derived++;
         }
 
         // evalute if a high lambda voltage has occured
@@ -619,29 +624,40 @@ function updateLEDs(data) {
         // we have at least one occurence first
         if (maxLambda && data.LambdaVoltage >= 900) {
             setStatusLED(true, IndicatorLambdaHighFault, LEDFault);
+            derived++;
         }
+
         if (data.LambdaVoltage >= 900) {
             maxLambda = true;
+            derived++;
         }
     }
 
+    setStatusLED(data.LambdaStatus == 0, IndicatorO2SystemFault, LEDFault);
     setStatusLED(data.Uk7d03 == 1, IndicatorRPMSensor, LEDWarning);
     setStatusLED(minLambda, IndicatorLambdaLow, LEDWarning);
     setStatusLED(maxLambda, IndicatorLambdaHigh, LEDWarning);
     setStatusLED(minIAC, IndicatorIACLow, LEDWarning);
+
+    setFaultStatusOnMenu(data, derived);
 }
 
-function setFaultStatusOnMenu(data) {
+function setFaultStatusOnMenu(data, derived = 0) {
     var count = 0
 
-    if (data.CoolantTempSensorFault == true) count++
-    if (data.AirIntakeTempSensorFault == true) count++
-    if (data.ThrottlePotCircuitFault == true) count++
-    if (data.FuelPumpCircuitFault == true) count++
+    if (data.CoolantTempSensorFault == true) count++;
+    if (data.AirIntakeTempSensorFault == true) count++;
+    if (data.ThrottlePotCircuitFault == true) count++;
+    if (data.FuelPumpCircuitFault == true) count++;
+    if (data.LambdaStatus == 0) count++;
+
+    count = count + derived;
 
     if (count > 0) {
+        setStatusLED(true, IndicatorECUFault, LEDFault);
         $("#ecu-fault-status").html(count.toString());
     } else {
+        setStatusLED(false, IndicatorECUFault, LEDFault);
         $("#ecu-fault-status").html('');
     }
 }
@@ -722,7 +738,7 @@ function showProgressValues(show) {
 }
 
 function setSerialPortSelection(ports) {
-    $.each(ports, function (key, value) {
+    $.each(ports, function(key, value) {
         console.log("serial port added " + key + " : " + value);
         $("#ports").append('<a class="dropdown-item" href="#" onclick="selectPort(this)">' + value + '</a>');
     });
