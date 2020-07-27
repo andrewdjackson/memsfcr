@@ -18,7 +18,7 @@ ARMDISTPATH=dist/arm
 ARM=$(ARMDISTPATH)/$(EXECUTABLE)-arm
 
 #VERSION=$(shell git describe --tags)
-VERSION="V1.5.1"
+VERSION="V1.5.2"
 BUILD=$(shell date +%FT%T%z)
 
 .PHONY: all clean
