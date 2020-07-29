@@ -1,4 +1,4 @@
-addData = function (chart, label, data) {
+addData = function(chart, label, data) {
     chart.data.labels.shift()
     chart.data.labels.push(label);
     chart.data.datasets.forEach((dataset) => {
@@ -8,11 +8,11 @@ addData = function (chart, label, data) {
     chart.update();
 }
 
-addScenarioData = function (chart, data) {
+addScenarioData = function(chart, data) {
     chart.data = data
 }
 
-createChart = function (id, title, low, high) {
+createChart = function(id, title, low, high) {
     var ctx = $('#' + id);
 
     return new Chart(ctx, {
@@ -22,9 +22,9 @@ createChart = function (id, title, low, high) {
             ChartRegressions
         ],
         data: {
-            labels: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            labels: Array.apply(null, Array(120)).map(function() { return '-' }),
             datasets: [{
-                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                data: Array.apply(null, Array(120)).map(function() { return 0 }),
                 borderColor: 'rgba(102,102,255,0.9)',
                 backgroundColor: 'rgba(102,153,204,0.1)',
                 fillColor: "rgba(102,153,51,0.2)",
@@ -43,7 +43,7 @@ createChart = function (id, title, low, high) {
             fontSize: 12,
             fontFamily: "'-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
             animation: {
-                duration: 300,
+                duration: 50,
             },
             hover: {
                 animationDuration: 0
@@ -54,8 +54,11 @@ createChart = function (id, title, low, high) {
             },
             elements: {
                 line: {
-                    cubicInterpolationMode: 'monotone',
-                }
+                    cubicInterpolationMode: 'default',
+                },
+                point: {
+                    radius: 0
+                },
             },
             title: {
                 fontSize: 14,
@@ -84,7 +87,7 @@ createChart = function (id, title, low, high) {
     });
 }
 
-createSpark = function (id) {
+createSpark = function(id) {
     var ctx = $('#' + id);
 
     return new Chart(ctx, {
@@ -128,16 +131,12 @@ createSpark = function (id) {
                 enabled: false
             },
             scales: {
-                yAxes: [
-                    {
-                        display: false
-                    }
-                ],
-                xAxes: [
-                    {
-                        display: false
-                    }
-                ]
+                yAxes: [{
+                    display: false
+                }],
+                xAxes: [{
+                    display: false
+                }]
             }
         },
     });
