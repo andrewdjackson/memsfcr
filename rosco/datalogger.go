@@ -88,17 +88,15 @@ func (logger *MemsDataLogger) openFile() {
 
 // writeToFile will print any string of text to a file safely by
 // checking for errors and syncing at the end.
-func (logger *MemsDataLogger) writeToFile(data string) error {
+func (logger *MemsDataLogger) writeToFile(data string) {
 	var err error
 
 	if _, err = logger.logfile.WriteString(data); err != nil {
 		utils.LogE.Printf("unable to write to file '%s' (%s)", logger.Filename, err)
-		return err
 	}
 
 	utils.LogI.Printf("wrote to log '%s'", data)
-
-	return logger.logfile.Sync()
+	_ = logger.logfile.Sync()
 }
 
 func (logger *MemsDataLogger) writeCSVHeader() {
@@ -110,8 +108,7 @@ func (logger *MemsDataLogger) writeCSVHeader() {
 		"7dx0B_long_term_fuel_trim,7dx0C_short_term_fuel_trim,7dx0D_carbon_canister_dutycycle,7dx0E_dtc3,7dx0F_idle_base_pos,7dx10_uk7,7dx11_dtc4,7dx12_ignition_advance2,7dx13_idle_speed_offset,7dx14_idle_error2," +
 		"7dx14-15_uk10,7dx16_dtc5,7dx17_uk11,7dx18_uk12,7dx19_uk13,7dx1A_uk14,7dx1B_uk15,7dx1C_uk16,7dx1D_uk17,7dx1E_uk18,7dx1F_uk19,0x7d_raw,0x80_raw\n"
 
-	s := fmt.Sprintf("%s", header)
-	logger.writeToFile(s)
+	logger.writeToFile(header)
 }
 
 func (logger *MemsDataLogger) writeCSVData(data MemsData) {

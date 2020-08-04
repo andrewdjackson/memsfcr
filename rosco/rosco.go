@@ -1,7 +1,6 @@
 package rosco
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
@@ -26,7 +25,6 @@ type MemsCommandResponse struct {
 type MemsConnection struct {
 	// SerialPort the serial connection
 	SerialPort  *serial.Port
-	portReader  *bufio.Reader
 	ECUID       []byte
 	command     []byte
 	response    []byte
@@ -160,13 +158,13 @@ func (mems *MemsConnection) initialise() {
 			mems.SerialPort.Flush()
 
 			mems.writeSerial(MEMSInitCommandA)
-			mems.readSerial()
+			_, _ = mems.readSerial()
 
 			mems.writeSerial(MEMSInitCommandB)
-			mems.readSerial()
+			_, _ = mems.readSerial()
 
 			mems.writeSerial(MEMSHeartbeat)
-			mems.readSerial()
+			_, _ = mems.readSerial()
 
 			mems.writeSerial(MEMSInitECUID)
 			mems.ECUID, _ = mems.readSerial()
@@ -272,7 +270,7 @@ func (mems *MemsConnection) ListenTxECUChannelLoop() {
 
 		m := <-mems.TxECU
 
-		if bytes.Compare(m.Command, MEMSDataFrame) == 0 {
+		if bytes.Equal(m.Command, MEMSDataFrame) {
 			// DataFrame request so make 2 calls, x7d and x80 commands
 			utils.LogI.Printf("%s request for DataFrame from TxECU channel", utils.ECUCommandTrace)
 			mems.ReadMemsData()
@@ -337,14 +335,6 @@ func (mems *MemsConnection) ReadMemsData() {
 	}
 
 	t := time.Now()
-
-	// calculate IAC postion, 0 closed - 180 fully open
-	// convert to %
-	iac := math.Round(float64(df80.IacPosition) / 1.8)
-	if iac > 100 {
-		// if value is > 100% then cap it
-		iac = 100
-	}
 
 	// build the Mems Data frame using the raw data and applying the relevant
 	// adjustments and calculations

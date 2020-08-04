@@ -74,3 +74,25 @@ var MEMSIgnitionAdvanceOffsetDecrement = []byte{0x94}
 
 // MEMSIgnitionAdvanceOffsetIncrement command
 var MEMSIgnitionAdvanceOffsetIncrement = []byte{0x93}
+
+// Actuators
+var MEMSFuelPumpOn = []byte{0x11}
+var MEMSFuelPumpOff = []byte{0x01}
+var MEMSPTCRelayOn = []byte{0x12}
+var MEMSPTCRelayOff = []byte{0x02}
+var MEMSACRelayOn = []byte{0x13}
+var MEMSACRelayOff = []byte{0x03}
+var MEMSPurgeValveOn = []byte{0x18}
+var MEMSPurgeValveOff = []byte{0x08}
+var MEMSO2HeaterOn = []byte{0x19}
+var MEMSO2HeaterOff = []byte{0x09}
+var MEMSBoostValveOn = []byte{0x1B}
+var MEMSBoostValveOff = []byte{0x0B}
+var MEMSFan1On = []byte{0x1D}
+var MEMSFan1Off = []byte{0x0D}
+var MEMSFan2On = []byte{0x1E}
+var MEMSFan2Off = []byte{0x0E}
+var MEMSTestInjectors = []byte{0xF7}
+var MEMSFireCoil = []byte{0xF8}
+var MEMSOpenIAC = []byte{0xFD}
+var MEMSCloseIAC = []byte{0xFE}
