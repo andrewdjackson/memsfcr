@@ -5,6 +5,10 @@ var minIAC = false;
 var dataframeLoop;
 var debug = false;
 var replay = "";
+var faultCount = 0
+var derivedFaultCount = 0
+var diagnosticsFaultCount = 0
+var diagnosticReport = { "AnalysisCode": "optimal", "IsEngineRunning": false, "IsEngineWarming": true, "IsAtOperatingTemp": false, "IsEngineIdle": false, "IsEngineIdleFault": false, "IsCruising": false, "IsClosedLoop": false, "ClosedLoopExpected": false, "MapFault": false, "VacuumFault": false, "IdleAirControlFault": false, "LambdaFault": false, "CoolantTempSensorFault": false, "IntakeAirTempSensorFault": false, "FuelPumpCircuitFault": false, "ThrottlePotCircuitFault": false, "IACPosition": 0 }
 
 // replay data
 var replayCount = 0
@@ -158,7 +162,7 @@ const SparkIgnition = "ignitionspark"
 
 
 // this function gets called as soon as the page load has completed
-window.onload = function() {
+window.onload = function () {
     // get the url of the current page to build the websocket url
     wsuri = window.location.href.split("/").slice(0, 3).join("/");
     wsuri = wsuri.replace("http:", "ws:");
@@ -167,22 +171,22 @@ window.onload = function() {
     // open, close and message events
     sock = new WebSocket(wsuri + "/ws");
 
-    sock.onopen = function() {
+    sock.onopen = function () {
         console.log("connected to " + wsuri);
         readConfig();
     };
 
-    sock.onclose = function(e) {
+    sock.onclose = function (e) {
         console.log("connection closed (" + e.code + ")");
     };
 
-    sock.onmessage = function(e) {
+    sock.onmessage = function (e) {
         console.log("message received: " + e.data);
         clearWaitForResponse()
         parseMessage(e.data);
     };
 
-    sock.onerror = function(error) {
+    sock.onerror = function (error) {
         alert(`[error] ${error.message}`);
     };
 
@@ -276,7 +280,7 @@ function parseMessage(m) {
         console.log("Dataframe --> " + msg.data);
 
         updateGauges(data);
-        updateLEDs(data);
+        updateFaultLEDs(data);
         updateGraphs(data);
         updateDataFrameValues(data);
         updateAdjustmentValues(data);
@@ -284,23 +288,52 @@ function parseMessage(m) {
         if (replay != "") {
             // increment the replay progress
             replayPosition = replayPosition + 1
-                // loop back to the start
+            // loop back to the start
             if (replayPosition > replayCount)
                 replayPosition = 1
-                // update progress display
+            // update progress display
             updateReplayProgress();
         }
     }
 
     if (msg.action == WebActionDiagnostics) {
-        //waitingForResponse = false;
         console.log(data);
+        parseDiagnosticsResponse(data)
+    }
+}
+
+function parseDiagnosticsResponse(data) {
+    diagnosticReport = data
+    diagnosticsFaultCount = 0
+
+    console.log("parseDiagnosticsResponse : " + diagnosticReport);
+
+    console.log("lambda fault " + diagnosticReport.LambdaFault)
+    if (diagnosticReport.LambdaFault == true) {
+        diagnosticsFaultCount++;
+    }
+
+    console.log("engine idle fault " + diagnosticReport.IsEngineIdleFault)
+    if (diagnosticReport.IsEngineIdleFault == true) {
+        diagnosticsFaultCount++;
+    }
+
+    if (diagnosticReport.ClosedLoopExpected == true) {
+        diagnosticsFaultCount++;
+    }
+
+    if (diagnosticReport.MapFault == true) {
+        diagnosticsFaultCount++;
+    }
+
+    if (diagnosticReport.VacuumFault == true) {
+        diagnosticsFaultCount++;
     }
 }
 
 function parseECUResponse(response) {
     var cmd = response.slice(0, 2)
-    var value = response.slice(2, )
+    var value = response.slice(2,)
     console.log("parsing response cmd : " + cmd + ", val : " + value)
 
     switch (cmd) {
@@ -427,12 +460,12 @@ function updateScenarios() {
     // Open a new connection, using the GET request on the URL endpoint
     request.open('GET', uri + '/scenario', true)
 
-    request.onload = function() {
+    request.onload = function () {
         // Begin accessing JSON data here
         var data = JSON.parse(this.response)
 
         var replay = $('#replayScenarios');
-        $.each(data, function(val, text) {
+        $.each(data, function (val, text) {
             var i = $('<button class="dropdown-item replay" type="button"></button>').val(text).html(text)
             replay.append(i);
         });
@@ -470,9 +503,9 @@ function replaySelectedScenario(e) {
 
     replayCount = 0
     replayPosition = 0
-        // show the replay progress bar
+    // show the replay progress bar
     showProgressValues(true)
-        // get the replay scenario details
+    // get the replay scenario details
     getReplayScenarioDescription(replay)
 }
 
@@ -486,7 +519,7 @@ function getReplayScenarioDescription(scenario) {
     // Open a new connection, using the GET request on the URL endpoint
     request.open('GET', uri + '/scenario/' + scenario, true)
 
-    request.onload = function() {
+    request.onload = function () {
         // Begin accessing JSON data here
         var data = JSON.parse(this.response)
         console.info("replay scenario description " + JSON.stringify(data))
@@ -581,8 +614,8 @@ function Save() {
     sendSocketMessage(msg);
 }
 
-function updateLEDs(data) {
-    var derived = 0;
+function updateFaultLEDs(data) {
+    var derived = derivedFaultCount;
 
     if (data.DTC0 > 0 || data.DTC1 > 0) {
         setStatusLED(data.CoolantTempSensorFault, IndicatorCoolantFault, LEDFault);
@@ -633,16 +666,19 @@ function updateLEDs(data) {
         }
     }
 
+    derivedFaultCount = derived
+
     setStatusLED(data.LambdaStatus == 0, IndicatorO2SystemFault, LEDFault);
     setStatusLED(data.Uk7d03 == 1, IndicatorRPMSensor, LEDWarning);
     setStatusLED(minLambda, IndicatorLambdaLow, LEDWarning);
     setStatusLED(maxLambda, IndicatorLambdaHigh, LEDWarning);
     setStatusLED(minIAC, IndicatorIACLow, LEDWarning);
 
-    setFaultStatusOnMenu(data, derived);
+    setFaultCount(data);
+    setFaultStatusOnMenu();
 }
 
-function setFaultStatusOnMenu(data, derived = 0) {
+function setFaultCount(data) {
     var count = 0
 
     if (data.CoolantTempSensorFault == true) count++;
@@ -651,7 +687,11 @@ function setFaultStatusOnMenu(data, derived = 0) {
     if (data.FuelPumpCircuitFault == true) count++;
     if (data.LambdaStatus == 0) count++;
 
-    count = count + derived;
+    faultCount = count;
+}
+
+function setFaultStatusOnMenu() {
+    count = faultCount + derivedFaultCount + diagnosticsFaultCount;
 
     if (count > 0) {
         setStatusLED(true, IndicatorECUFault, LEDFault);
@@ -738,7 +778,7 @@ function showProgressValues(show) {
 }
 
 function setSerialPortSelection(ports) {
-    $.each(ports, function(key, value) {
+    $.each(ports, function (key, value) {
         console.log("serial port added " + key + " : " + value);
         $("#ports").append('<a class="dropdown-item" href="#" onclick="selectPort(this)">' + value + '</a>');
     });

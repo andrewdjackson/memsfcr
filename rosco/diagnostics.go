@@ -18,6 +18,8 @@ const (
 	bestAFR             = 14.7 // Ideal Air to Fuel ratio
 	lambdaLow           = 10   // Lambda minimum operating voltage
 	lambdaHigh          = 900  // Lambda maximum operating voltage
+	lambdaStaticHigh    = 450  // Lambda mid-point high water mark
+	lambdaStaticLow     = 410  // Lambda mid-point low water mark
 	maxIdleError        = 50   // Max Idle Error
 	maxSamples          = 30   // ~30 seconds
 	minIAC              = 30   // Minimum normal operation steps for the IAC / Stepper Motor
@@ -158,7 +160,10 @@ func (diagnostics *MemsDiagnostics) GetMetricStatistics(metricName string) utils
 	}
 
 	// calculate the stats for this sample
-	return *utils.NewStats(metricName, metricSample)
+	stats := *utils.NewStats(metricName, metricSample)
+	utils.LogI.Printf("%s Stats for %s : %+v", utils.DiagnosticTrace, metricName, stats)
+
+	return stats
 }
 
 // IsEngineWarm uses the current engine temperature and the standard deviation in the sample to determine the
@@ -266,9 +271,17 @@ func (diagnostics *MemsDiagnostics) checkIdleAirControl() {
 func (diagnostics *MemsDiagnostics) checkLambdaStatus() {
 	if diagnostics.Analysis.IsEngineRunning && diagnostics.Analysis.IsClosedLoop {
 		if diagnostics.Stats["LambdaVoltage"].Min >= lambdaLow && diagnostics.Stats["LambdaVoltage"].Max <= lambdaHigh {
-			// lambda oprtating within exepcted parameters
+			// lambda operating within exepcted parameters
 			diagnostics.Analysis.LambdaFault = false
 		} else {
+			diagnostics.Analysis.LambdaFault = true
+		}
+	}
+
+	// The lambda voltage should oscillate, if the lambda is static for too long, lambda sensor maybe faulty
+	// sample must be a minimum of 30 before evaluation
+	if diagnostics.Stats["LambdaVoltage"].Count >= 30 {
+		if diagnostics.Stats["LambdaVoltage"].Stddev <= 0.1 && diagnostics.Stats["LambdaVoltage"].Trend < 0.1 {
 			diagnostics.Analysis.LambdaFault = true
 		}
 	}

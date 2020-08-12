@@ -10,6 +10,7 @@ import (
 type Stats struct {
 	Name       string
 	Value      float64
+	Count      int
 	Max        float64
 	Min        float64
 	Mean       float64
@@ -27,6 +28,8 @@ func NewStats(name string, data []float64) *Stats {
 		Name:  name,
 		Value: data[len(data)-1],
 	}
+
+	s.Count = len(data)
 
 	// get the sample stats
 	s.Min, s.Max = findMinAndMax(data)
