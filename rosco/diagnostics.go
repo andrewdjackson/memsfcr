@@ -189,14 +189,16 @@ func (diagnostics *MemsDiagnostics) checkIsEngineIdle() {
 		diagnostics.Analysis.IsCruising = diagnostics.Stats["EngineRPM"].Mean > maxIdleWarmRPM
 	}
 
-	if diagnostics.Analysis.IsAtOperatingTemp {
-		// use warm idle settings
-		diagnostics.Analysis.IsEngineIdleFault = !(diagnostics.Stats["EngineRPM"].Mean >= minIdleWarmRPM && diagnostics.Stats["EngineRPM"].Mean <= maxIdleWarmRPM)
-		diagnostics.Analysis.IsEngineWarming = false
-	} else {
-		// use cold idle settings
-		diagnostics.Analysis.IsEngineIdleFault = !(diagnostics.Stats["EngineRPM"].Mean >= minIdleColdRPM && diagnostics.Stats["EngineRPM"].Mean <= maxIdleColdRPM)
-		diagnostics.Analysis.IsEngineWarming = true
+	if diagnostics.Stats["EngineRPM"].Count >= 30 && diagnostics.Analysis.IsEngineRunning {
+		if diagnostics.Analysis.IsAtOperatingTemp {
+			// use warm idle settings
+			diagnostics.Analysis.IsEngineIdleFault = !(diagnostics.Stats["EngineRPM"].Mean >= minIdleWarmRPM && diagnostics.Stats["EngineRPM"].Mean <= maxIdleWarmRPM)
+			diagnostics.Analysis.IsEngineWarming = false
+		} else {
+			// use cold idle settings
+			diagnostics.Analysis.IsEngineIdleFault = !(diagnostics.Stats["EngineRPM"].Mean >= minIdleColdRPM && diagnostics.Stats["EngineRPM"].Mean <= maxIdleColdRPM)
+			diagnostics.Analysis.IsEngineWarming = true
+		}
 	}
 }
 
