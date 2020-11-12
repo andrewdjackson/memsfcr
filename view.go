@@ -10,7 +10,6 @@ import (
 	"github.com/andrewdjackson/memsfcr/ui"
 	"github.com/andrewdjackson/memsfcr/utils"
 	"github.com/pkg/browser"
-	"github.com/zserge/webview"
 )
 
 // webLoop services the channels processing messages send from the web interface
@@ -163,25 +162,11 @@ func openBrowser(url string) {
 	}
 }
 
-// displayWebView creates a webview
-// this must be run in the main thread
-func displayWebView(wi *ui.WebInterface, localView bool) {
+// displayWebView opens the browser
+func displayWebView(wi *ui.WebInterface, headless bool) {
 	url := fmt.Sprintf("http://127.0.0.1:%d/index.html", wi.HTTPPort)
 
-	if localView {
-		w := webview.New(true)
-		defer w.Destroy()
-
-		w.SetTitle("MEMS Fault Code Reader")
-		w.SetSize(1280, 1024, webview.HintNone)
-
-		w.Bind("quit", func() {
-			w.Terminate()
-		})
-
-		w.Navigate(url)
-		w.Run()
-	} else {
+	if !headless {
 		openBrowser(url)
 	}
 }

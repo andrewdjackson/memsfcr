@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 
@@ -12,14 +11,14 @@ import (
 // ReadmemsConfig readmems configuration
 type ReadmemsConfig struct {
 	// Config
-	Port       string
-	LogToFile  string
-	LogFolder  string
-	Loop       string
-	Ports      []string
-	Debug      string
-	Frequency  string
-	UseBrowser string
+	Port      string
+	LogToFile string
+	LogFolder string
+	Loop      string
+	Ports     []string
+	Debug     string
+	Frequency string
+	Headless  string
 }
 
 var config ReadmemsConfig
@@ -34,7 +33,7 @@ func NewConfig() *ReadmemsConfig {
 	config.LogToFile = "true"
 	config.Loop = "100000000"
 	config.Debug = "false"
-	config.UseBrowser = "false"
+	config.Headless = "false"
 	config.Frequency = "500"
 
 	return &config
@@ -61,25 +60,6 @@ func createDataFolders(home string) {
 	createFolder(logFolder)
 }
 
-// reads a whole file into memory and returns a slice of its lines.
-func readLines(path string) ([]string, error) {
-	file, err := os.Open(path)
-
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var lines []string
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	return lines, scanner.Err()
-}
-
 // WriteConfig write the config file
 func WriteConfig(c *ReadmemsConfig) {
 	// create the folders if they don't exist
@@ -87,7 +67,8 @@ func WriteConfig(c *ReadmemsConfig) {
 
 	filename := fmt.Sprintf("%s/memsfcr.cfg", appFolder)
 
-	os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
+	// create the file if it doesn't exist
+	_, _ = os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
 
 	cfg, err := ini.LooseLoad(filename)
 	if err != nil {
@@ -100,7 +81,7 @@ func WriteConfig(c *ReadmemsConfig) {
 	cfg.Section("").Key("logfolder").SetValue(c.LogFolder)
 	cfg.Section("").Key("debug").SetValue(c.Debug)
 	cfg.Section("").Key("frequency").SetValue(c.Frequency)
-	cfg.Section("").Key("usebrowser").SetValue(c.UseBrowser)
+	cfg.Section("").Key("headless").SetValue(c.Headless)
 
 	err = cfg.SaveTo(filename)
 
@@ -136,7 +117,7 @@ func ReadConfig() *ReadmemsConfig {
 	c.LogFolder = cfg.Section("").Key("logfolder").String()
 	c.Debug = cfg.Section("").Key("debug").String()
 	c.Frequency = cfg.Section("").Key("frequency").String()
-	c.UseBrowser = cfg.Section("").Key("usebrowser").String()
+	c.Headless = cfg.Section("").Key("headless").String()
 
 	LogI.Println("MemsFCR Config", c)
 	return c

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"runtime"
 
 	"github.com/andrewdjackson/memsfcr/rosco"
 	"github.com/andrewdjackson/memsfcr/ui"
@@ -57,7 +56,7 @@ func (r *MemsReader) fcrMainLoop() {
 		// send to the web
 		df := ui.WebMsg{}
 
-		if bytes.Compare(m.Command, rosco.MEMSDataFrame) == 0 {
+		if bytes.Equal(m.Command, rosco.MEMSDataFrame) {
 			// dataframe command
 			df.Action = ui.WebActionData
 			data, _ = json.Marshal(m.MemsDataFrame)
@@ -126,24 +125,11 @@ func main() {
 
 	utils.LogI.Printf("starting webview.. (%v)", memsReader.wi.HTTPPort)
 
-	// show the app in a local go webview window rather than in the web browser
-	// unless debug is enabled
-	showLocal := !debug
+	headless := false
 
-	// use default browser on Windows until I can get the Webview to work
-	if runtime.GOOS == "windows" {
-		showLocal = false
+	if memsReader.fcr.Config.Headless == "true" {
+		headless = true
 	}
 
-	// use the browser if the user has configured this option
-	if memsReader.fcr.Config.UseBrowser == "true" {
-		showLocal = false
-	}
-
-	// if debug enabled use the full browser
-	if memsReader.fcr.Config.Debug == "true" {
-		showLocal = false
-	}
-
-	displayWebView(memsReader.wi, showLocal)
+	displayWebView(memsReader.wi, headless)
 }
