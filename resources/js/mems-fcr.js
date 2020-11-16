@@ -92,6 +92,7 @@ function parseMessage(m) {
         setSerialPortSelection(data.Ports);
         setLogToFile(data.LogToFile, data.LogFolder);
         setECUQueryFrequency(data.Frequency);
+        updateVersionLabel(data.Version, data.Build)
 
         if (data.Debug == "true") {
             debug = data.Debug

@@ -283,3 +283,7 @@ function updateDataFrameValue(metric, data) {
 
     $("td#" + metric + ".raw").html(data);
 }
+
+function updateVersionLabel(version, build) {
+    $("li#version").html("Version " + version + "<br/>Build " + build);
+}
