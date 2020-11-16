@@ -61,35 +61,18 @@ func NewWebInterface() *WebInterface {
 	return wi
 }
 
-// fileExists reports whether the named file or directory exists.
-func (wi *WebInterface) fileExists(filename string) bool {
-	exists := false
-
-	if _, err := os.Stat(filename); err != nil {
-		if os.IsNotExist(err) {
-			exists = false
-		} else {
-			exists = true
-		}
-	}
-
-	utils.LogI.Printf("%s exists %t", filename, exists)
-
-	return exists
-}
-
 func (wi *WebInterface) newRouter() *mux.Router {
 	var webroot string
 
 	// determine the path to find the local html files
 	// based on the current executable path
-	exepath, err := os.Executable()
+	exepath, _ := os.Executable()
 	path, err := filepath.Abs(filepath.Dir(exepath))
 
 	// use default browser on Windows until I can get the Webview to work
 	if runtime.GOOS == "darwin" {
 		// MacOS use .app Resources
-		if strings.Index(path, "MacOS") > -1 {
+		if strings.Contains(path, "MacOS") {
 			// packaged app
 			webroot = strings.Replace(path, "MacOS", "Resources", -1)
 		} else {
@@ -147,14 +130,22 @@ func (wi *WebInterface) RunHTTPServer() {
 	utils.LogI.Printf("started http server on port %d", wi.HTTPPort)
 	wi.ServerRunning = true
 
-	http.Serve(listener, wi.router)
+	err = http.Serve(listener, wi.router)
+
+	if err != nil {
+		utils.LogE.Printf("error starting web interface (%s)", err)
+	}
 }
 
 // send message to the web interface over the websocket
 func (wi *WebInterface) sendMessageToWebInterface(m WebMsg) {
 	if wi.ws != nil {
-		wi.ws.WriteJSON(m)
-		utils.LogI.Printf("%s send message over websocket", utils.SendToWebTrace)
+		err := wi.ws.WriteJSON(m)
+		if err != nil {
+			utils.LogE.Printf("error sending message over websocket (%s)", err)
+		} else {
+			utils.LogI.Printf("%s send message over websocket", utils.SendToWebTrace)
+		}
 	} else {
 		utils.LogW.Printf("%s unable to send message over websocket, connected?", utils.SendToWebTrace)
 	}

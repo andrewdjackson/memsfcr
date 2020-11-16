@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/andrewdjackson/memsfcr/rosco"
 	"github.com/andrewdjackson/memsfcr/ui"
@@ -30,8 +32,15 @@ type MemsReader struct {
 func NewMemsReader() *MemsReader {
 	r := &MemsReader{}
 
+	// create a dynamic version label and build number when in development
+	// these values get automatically set by the make file on production build
+	if strings.Compare(Version, "") == 0 {
+		Version = "0.0.0"
+		currentTime := time.Now()
+		Build = currentTime.Format("2006-01-02")
+	}
 	// create the Mems Fault Code Reader
-	r.fcr = ui.NewMemsFCR()
+	r.fcr = ui.NewMemsFCR(Version, Build)
 
 	// create a mems instance and assign it to the fault code reader instance
 	r.fcr.ECU = rosco.NewMemsConnection()

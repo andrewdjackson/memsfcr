@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"strings"
+
 	"github.com/andrewdjackson/memsfcr/rosco"
 	"github.com/andrewdjackson/memsfcr/utils"
 	"go.bug.st/serial.v1"
@@ -8,6 +10,10 @@ import (
 
 // MemsFCR structure
 type MemsFCR struct {
+	// Version of the build
+	Version string
+	Build   string
+
 	// Config FCR configuration
 	Config *utils.ReadmemsConfig
 
@@ -28,8 +34,10 @@ type MemsFCR struct {
 }
 
 // NewMemsFCR creates an instance of a MEMs Fault Code Reader
-func NewMemsFCR() *MemsFCR {
+func NewMemsFCR(version string, build string) *MemsFCR {
 	memsfcr := &MemsFCR{}
+	memsfcr.Version = version
+	memsfcr.Build = build
 
 	// set up the channels
 	memsfcr.FCRSendToECU = make(chan rosco.MemsCommandResponse)
@@ -47,6 +55,13 @@ func NewMemsFCR() *MemsFCR {
 // read the configuration file and apply the values
 func (memsfcr *MemsFCR) readConfig() {
 	memsfcr.Config = utils.ReadConfig()
+
+	// override config build versions with current versions
+	// if the values are not in development values
+	if strings.Compare(memsfcr.Version, "0.0.0") != 0 {
+		memsfcr.Config.Version = memsfcr.Version
+		memsfcr.Config.Build = memsfcr.Build
+	}
 
 	if memsfcr.Config.Loop == "inf" {
 		// infitite loop, so set loop count to a very big number
@@ -98,12 +113,6 @@ func (memsfcr *MemsFCR) ConnectFCR() bool {
 	}
 
 	return memsfcr.ECU.Initialised
-}
-
-// Get the MemsDataFrame from the ECU by sending commands
-// 0x7d and 0x80 and combining the results into a data frame
-func (memsfcr *MemsFCR) getECUDataFrame() {
-	memsfcr.TxECU(rosco.MEMSDataFrame)
 }
 
 // TxECU send the command to the ECU from the FCR

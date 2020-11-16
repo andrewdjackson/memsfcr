@@ -114,6 +114,9 @@ func (r *MemsReader) sendConfigToWebView() {
 	// pass configuration to the web interface
 	m := ui.WebMsg{}
 	m.Action = ui.WebActionConfig
+	// add the build version
+	//r.fcr.Config.Version = Version
+	//r.fcr.Config.Build = Build
 	data, _ := json.Marshal(r.fcr.Config)
 	m.Data = string(data)
 	r.wi.ToWebChannel <- m

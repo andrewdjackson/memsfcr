@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/ini.v1"
@@ -19,6 +20,8 @@ type ReadmemsConfig struct {
 	Debug     string
 	Frequency string
 	Headless  string
+	Version   string
+	Build	  string
 }
 
 var config ReadmemsConfig
@@ -35,6 +38,10 @@ func NewConfig() *ReadmemsConfig {
 	config.Debug = "false"
 	config.Headless = "false"
 	config.Frequency = "500"
+	config.Version = "0.0.0"
+
+	currentTime := time.Now()
+	config.Build = currentTime.Format("2006-01-02")
 
 	return &config
 }
@@ -75,6 +82,8 @@ func WriteConfig(c *ReadmemsConfig) {
 		LogI.Printf("failed to read file: %v", err)
 	}
 
+	cfg.Section("").Key("version").SetValue(c.Version)
+	cfg.Section("").Key("build").SetValue(c.Build)
 	cfg.Section("").Key("port").SetValue(c.Port)
 	cfg.Section("").Key("loop").SetValue(c.Loop)
 	cfg.Section("").Key("logtofile").SetValue(c.LogToFile)
