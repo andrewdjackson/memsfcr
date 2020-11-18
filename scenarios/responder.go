@@ -35,6 +35,7 @@ type ScenarioDescription struct {
 	Name       string `json:"name"`
 	Count      int    `json:"count"`
 	Position   int    `json:"position"`
+	Status     string `json:"status"`
 	SampleData []int  `json:"sample"`
 }
 

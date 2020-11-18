@@ -46,7 +46,7 @@ func NewMemsReader() *MemsReader {
 	r.fcr.ECU = rosco.NewMemsConnection()
 
 	// create and run the web interfacce
-	r.wi = ui.NewWebInterface()
+	r.wi = ui.NewWebInterface(r.fcr)
 	utils.LogI.Printf("running web server %d", r.wi.HTTPPort)
 
 	return r
@@ -98,7 +98,7 @@ func (r *MemsReader) fcrMainLoop() {
 		df.Data = string(data)
 
 		select {
-		case r.wi.ToWebChannel <- df:
+		case r.wi.ToWebSocketChannel <- df:
 		default:
 		}
 
@@ -123,7 +123,7 @@ func main() {
 
 	// run the listener for messages sent to the web interface from
 	// the backend application
-	go memsReader.wi.ListenToWebChannelLoop()
+	go memsReader.wi.ListenToWebSocketChannelLoop()
 
 	// display the web interface, wait for the HTTP Server to start
 	for {

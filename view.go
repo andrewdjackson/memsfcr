@@ -16,7 +16,7 @@ import (
 // run as a goroutine
 func (r *MemsReader) webMainLoop() {
 	for {
-		m := <-r.wi.FromWebChannel
+		m := <-r.wi.FromWebSocketChannel
 		utils.LogI.Printf("%s received message FromWebChannel in main webLoop (%v)", utils.ReceiveFromWebTrace, m)
 
 		// evalute the message sent from the web interface
@@ -119,7 +119,7 @@ func (r *MemsReader) sendConfigToWebView() {
 	//r.fcr.Config.Build = Build
 	data, _ := json.Marshal(r.fcr.Config)
 	m.Data = string(data)
-	r.wi.ToWebChannel <- m
+	r.wi.ToWebSocketChannel <- m
 }
 
 // send a connection status message back to the web interface via a channel
@@ -137,8 +137,8 @@ func (r *MemsReader) sendConnectionStatusToWebView() {
 	data, _ := json.Marshal(c)
 	m.Data = string(data)
 
-	r.wi.ToWebChannel <- m
-	utils.LogI.Printf("%s sent connection status to web with ToWebChannel channel", utils.SendToWebTrace)
+	r.wi.ToWebSocketChannel <- m
+	utils.LogI.Printf("%s sent connection status to web with ToWebSocketChannel channel", utils.SendToWebTrace)
 }
 
 func (r *MemsReader) fcrSendDiagnosticsToWebView() {
@@ -148,7 +148,7 @@ func (r *MemsReader) fcrSendDiagnosticsToWebView() {
 	m.Data = string(data)
 
 	utils.LogI.Printf("%s sending diagnostics to web (%v)", utils.SendToWebTrace, m)
-	r.wi.ToWebChannel <- m
+	r.wi.ToWebSocketChannel <- m
 }
 
 func openBrowser(url string) {

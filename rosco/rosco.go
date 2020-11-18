@@ -16,9 +16,9 @@ import (
 
 // MemsCommandResponse communication pair
 type MemsCommandResponse struct {
-	Command       []byte
-	Response      []byte
-	MemsDataFrame MemsData
+	Command       []byte   `json:"Command"`
+	Response      []byte   `json:"Response"`
+	MemsDataFrame MemsData `json:"MemsData"`
 }
 
 // MemsConnection communtication structure for MEMS
@@ -39,10 +39,10 @@ type MemsConnection struct {
 
 // MemsConnectionStatus are we?
 type MemsConnectionStatus struct {
-	Connected   bool
-	Initialised bool
-	ECUID       string
-	IACPosition int
+	Connected   bool   `json:"Connected"`
+	Initialised bool   `json:"Initialised"`
+	ECUID       string `json:"ECUID"`
+	IACPosition int    `json:"IACPosition"`
 }
 
 // package init function
@@ -277,7 +277,7 @@ func (mems *MemsConnection) ListenTxECUChannelLoop() {
 		} else {
 			utils.LogI.Printf("%s '%x' command retrieved from TxECU channel", utils.ECUCommandTrace, m.Command)
 			// send the command
-			response, e := mems.sendCommand(m.Command)
+			response, e := mems.SendCommand(m.Command)
 			if e != nil {
 				utils.LogI.Printf("%s invalid response from serial interface (%v)", utils.ECUCommandTrace, e)
 			} else {
@@ -291,8 +291,8 @@ func (mems *MemsConnection) ListenTxECUChannelLoop() {
 	}
 }
 
-// sends a command and returns the response
-func (mems *MemsConnection) sendCommand(cmd []byte) ([]byte, error) {
+// SendCommand sends a command and returns the response
+func (mems *MemsConnection) SendCommand(cmd []byte) ([]byte, error) {
 	mems.writeSerial(cmd)
 	response, e := mems.readSerial()
 
@@ -307,8 +307,7 @@ func roundTo2DecimalPoints(x float32) float32 {
 	return float32(math.Round(float64(x)*100) / 100)
 }
 
-// ReadMemsData reads the raw dataframes and returns structured data
-func (mems *MemsConnection) ReadMemsData() {
+func (mems *MemsConnection) GetDataframes() MemsData {
 	utils.LogI.Printf("%s getting x7d and x80 dataframes", utils.ECUCommandTrace)
 
 	// read the raw dataframes
@@ -389,14 +388,21 @@ func (mems *MemsConnection) ReadMemsData() {
 		Dataframe7d:              hex.EncodeToString(d7d),
 	}
 
-	utils.LogI.Printf("%s built mems dataframe %v", utils.ECUCommandTrace, memsdata)
-
-	// run as a go routine so it doesn't block this function completing
-	go mems.sendMemsDataToChannel(memsdata)
-
 	// add the data for diagnostics
 	mems.Diagnostics.Add(memsdata)
 	mems.Diagnostics.Analyse()
+
+	utils.LogI.Printf("%s built mems dataframe %v", utils.ECUCommandTrace, memsdata)
+
+	return memsdata
+}
+
+// ReadMemsData reads the raw dataframes and returns structured data
+func (mems *MemsConnection) ReadMemsData() {
+	memsdata := mems.GetDataframes()
+
+	// run as a go routine so it doesn't block this function completing
+	go mems.sendMemsDataToChannel(memsdata)
 }
 
 func (mems *MemsConnection) sendMemsDataToChannel(memsdata MemsData) {

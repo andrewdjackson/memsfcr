@@ -24,33 +24,30 @@ type WebMsg struct {
 type WebInterface struct {
 	// mulitplex router interface
 	router *mux.Router
-
 	// websocket interface
 	httpDir  string
 	ws       *websocket.Conn
 	upgrader websocket.Upgrader
-
 	// HTTPPort used by the HTTP Server instance
 	HTTPPort int
-
-	// channel for communication to the web interface
-	ToWebChannel chan WebMsg
-
-	// channel for communication from the web interface
-	FromWebChannel chan WebMsg
-
+	// channels for communication over the websocket
+	ToWebSocketChannel   chan WebMsg
+	FromWebSocketChannel chan WebMsg
 	// ServerRunning inidicates where the server is active
 	ServerRunning bool
+	// Pointer to FCR
+	fcr *MemsFCR
 }
 
 // NewWebInterface creates a new web interface
-func NewWebInterface() *WebInterface {
+func NewWebInterface(fcr *MemsFCR) *WebInterface {
 	wi := &WebInterface{}
-	wi.ToWebChannel = make(chan WebMsg)
-	wi.FromWebChannel = make(chan WebMsg)
+	wi.ToWebSocketChannel = make(chan WebMsg)
+	wi.FromWebSocketChannel = make(chan WebMsg)
 	wi.HTTPPort = 0
 	wi.httpDir = ""
 	wi.ServerRunning = false
+	wi.fcr = fcr
 
 	wi.upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -98,9 +95,16 @@ func (wi *WebInterface) newRouter() *mux.Router {
 	// set a router and a hander to accept messages over the websocket
 	r := mux.NewRouter()
 	r.HandleFunc("/ws", wi.wsHandler)
-	r.HandleFunc("/scenario", wi.scenarioHandler).Methods("GET")
+	r.HandleFunc("/scenario", wi.getScenariosHandler).Methods("GET")
+	r.HandleFunc("/scenario", wi.putScenarioPlaybackHandler).Methods("PUT")
 	r.HandleFunc("/scenario/{scenarioId}", wi.scenarioDataHandler).Methods("GET")
-	r.HandleFunc("/config", wi.configHandler).Methods("GET", "POST")
+
+	r.HandleFunc("/rosco", wi.getECUConnectionStatus).Methods("GET")
+	r.HandleFunc("/rosco/dataframe", wi.getECUDataframeHandler).Methods("GET")
+	r.HandleFunc("/rosco/{command}", wi.getECUResponseHandler).Methods("GET")
+
+	r.HandleFunc("/config", wi.getConfigHandler).Methods("GET")
+	r.HandleFunc("/config", wi.updateConfigHandler).Methods("POST")
 
 	// Create a file server which serves files out of the "./ui/static" directory.
 	// Note that the path given to the http.Dir function is relative to the project
@@ -119,7 +123,7 @@ func (wi *WebInterface) RunHTTPServer() {
 
 	// We can then pass our router (after declaring all our routes) to this method
 	// (where previously, we were leaving the secodn argument as nil)
-	listener, err := net.Listen("tcp", ":0")
+	listener, err := net.Listen("tcp", ":8081")
 
 	if err != nil {
 		utils.LogE.Printf("error starting web interface (%s)", err)
@@ -151,14 +155,14 @@ func (wi *WebInterface) sendMessageToWebInterface(m WebMsg) {
 	}
 }
 
-// ListenToWebChannelLoop loop for listening for messages over the ToWebChannel
+// ListenToWebSocketChannelLoop loop for listening for messages over the ToWebSocketChannel
 // these are messages that are to be passed to the web interface over the websocket
 // from the backend application
 // to be run as a go routine as the channel is coded to be non blocking
-func (wi *WebInterface) ListenToWebChannelLoop() {
+func (wi *WebInterface) ListenToWebSocketChannelLoop() {
 	for {
-		m := <-wi.ToWebChannel
+		m := <-wi.ToWebSocketChannel
 		wi.sendMessageToWebInterface(m)
-		utils.LogI.Printf("%s sent message '%s : %s' on ToWebChannel", utils.SendToWebTrace, m.Action, m.Data)
+		utils.LogI.Printf("%s sent message '%s : %s' on ToWebSocketChannel", utils.SendToWebTrace, m.Action, m.Data)
 	}
 }
