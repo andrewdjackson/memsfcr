@@ -74,7 +74,7 @@ func (responder *Responder) openFile(filepath string) error {
 func (responder *Responder) loadScenarioCSV(filepath string) error {
 	var err error
 
-	responder.openFile(filepath)
+	_ = responder.openFile(filepath)
 
 	if err = gocsv.Unmarshal(responder.file, &responder.RawData); err != nil {
 		utils.LogE.Printf("unable to parse file %s", err)

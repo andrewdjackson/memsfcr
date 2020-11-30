@@ -53,7 +53,7 @@ func GetScenarios() ([]string, error) {
 func GetScenario(id string) ScenarioDescription {
 	file := GetScenarioPath(id)
 	r := NewResponder()
-	r.LoadScenario(file)
+	_ = r.LoadScenario(file)
 
 	scenario := ScenarioDescription{}
 	scenario.Count = r.playbook.count
