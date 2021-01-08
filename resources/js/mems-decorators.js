@@ -227,7 +227,7 @@ function setConnectionStatusMessage(connected) {
         document.getElementById(id).textContent = "connected to " + msg
         $('#' + id).addClass("alert-success");
     } else {
-        document.getElementById(id).textContent = "unable to connect to " + msg
+        document.getElementById(id).textContent = "unable to connect to ECU, check connection and settings"
         $('#' + id).addClass("alert-danger");
     }
 }

@@ -6,6 +6,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
+	"log"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -107,7 +111,27 @@ func (r *MemsReader) fcrMainLoop() {
 	}
 }
 
+func get_logfilename() string {
+	currentTime := time.Now()
+	dateTime := currentTime.Format("2006-01-02 15:04:05")
+	dateTime = strings.ReplaceAll(dateTime, ":", "")
+	dateTime = strings.ReplaceAll(dateTime, " ", "-")
+	filename := fmt.Sprintf("logs/%s.log", dateTime)
+	return filepath.FromSlash(filename)
+}
+
 func main() {
+	// write logs to file and console
+	filename := get_logfilename()
+
+	f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening log file: %v", err)
+	}
+	defer f.Close()
+	mw := io.MultiWriter(os.Stdout, f)
+	log.SetOutput(mw)
+
 	utils.LogI.Printf("\nMemsFCR\nVersion %s (Build %s)\n\n", Version, Build)
 
 	var debug bool
