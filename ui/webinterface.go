@@ -96,10 +96,11 @@ func (wi *WebInterface) newRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/ws", wi.wsHandler)
 	r.HandleFunc("/scenario", wi.getScenariosHandler).Methods("GET")
-	r.HandleFunc("/scenario", wi.putScenarioPlaybackHandler).Methods("PUT")
+	r.HandleFunc("/scenario/run", wi.postScenarioPlaybackHandler).Methods("POST")
 	r.HandleFunc("/scenario/{scenarioId}", wi.scenarioDataHandler).Methods("GET")
 
 	r.HandleFunc("/rosco", wi.getECUConnectionStatus).Methods("GET")
+	r.HandleFunc("/rosco/connect", wi.postECUConnect).Methods("POST")
 	r.HandleFunc("/rosco/dataframe", wi.getECUDataframeHandler).Methods("GET")
 	r.HandleFunc("/rosco/{command}", wi.getECUResponseHandler).Methods("GET")
 

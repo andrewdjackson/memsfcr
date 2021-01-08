@@ -3,13 +3,11 @@ package ui
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
-	"github.com/andrewdjackson/memsfcr/rosco"
 	"github.com/andrewdjackson/memsfcr/scenarios"
 	"github.com/andrewdjackson/memsfcr/utils"
 )
@@ -39,7 +37,7 @@ func (wi *WebInterface) scenarioDataHandler(w http.ResponseWriter, r *http.Reque
 
 // REST API : PUT Scenario Playback State
 // changes the state of the scenario playback
-func (wi *WebInterface) putScenarioPlaybackHandler(w http.ResponseWriter, r *http.Request) {
+func (wi *WebInterface) postScenarioPlaybackHandler(w http.ResponseWriter, r *http.Request) {
 	// get the body of our POST request
 	reqBody, _ := ioutil.ReadAll(r.Body)
 
@@ -104,6 +102,11 @@ func (wi *WebInterface) updateConfigHandler(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 }
 
+type ECUResponse struct {
+	Command  string
+	Response string
+}
+
 // REST API : GET ECU Response
 // send the specified command and returns the response data
 func (wi *WebInterface) getECUResponseHandler(w http.ResponseWriter, r *http.Request) {
@@ -112,17 +115,20 @@ func (wi *WebInterface) getECUResponseHandler(w http.ResponseWriter, r *http.Req
 
 	if err == nil {
 		response, _ := wi.fcr.ECU.SendCommand(command)
-		var ecu rosco.MemsCommandResponse
-		ecu.Command = command
-		ecu.Response = response
+
+		ecu := ECUResponse{}
+		ecu.Command = hex.EncodeToString(command)
+		ecu.Response = hex.EncodeToString(response)
 
 		utils.LogI.Printf("%s REST getECUResponseHandler (%v)", utils.ReceiveFromWebTrace, ecu)
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-		if err := json.NewEncoder(w).Encode(r); err != nil {
+		if err := json.NewEncoder(w).Encode(ecu); err != nil {
 			// return a error code
 			w.WriteHeader(http.StatusInternalServerError)
+		} else {
+			w.WriteHeader(http.StatusOK)
 		}
 	} else {
 		utils.LogE.Printf("%s error in REST getECUResponseHandler (%v)(%v)", utils.ReceiveFromWebTrace, command, err)
@@ -150,18 +156,58 @@ func (wi *WebInterface) getECUDataframeHandler(w http.ResponseWriter, r *http.Re
 // REST API : GET ECU Response
 // send the specified command and returns the response data
 func (wi *WebInterface) getECUConnectionStatus(w http.ResponseWriter, r *http.Request) {
-	var status rosco.MemsConnectionStatus
-
-	status.Connected = wi.fcr.ECU.Connected
-	status.Initialised = wi.fcr.ECU.Initialised
-	status.ECUID = fmt.Sprintf("%X", wi.fcr.ECU.ECUID)
-	status.IACPosition = wi.fcr.ECU.Diagnostics.Analysis.IACPosition
+	status := wi.fcr.ECU.Status
 
 	utils.LogI.Printf("%s REST getECUConnectionStatus (%v)", utils.ReceiveFromWebTrace, status)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	if err := json.NewEncoder(w).Encode(status); err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+type ECUConnectionPort struct {
+	Port string
+}
+
+// REST API : POST ECU Connect
+// connects the ECU
+func (wi *WebInterface) postECUConnect(w http.ResponseWriter, r *http.Request) {
+	if wi.fcr.ECU.Connected {
+		// return status if already connected
+		w.WriteHeader(http.StatusAlreadyReported)
+	} else {
+		// get the body of our POST request
+		// unmarshal this into a new Config struct
+		defer r.Body.Close()
+		reqBody, _ := ioutil.ReadAll(r.Body)
+
+		// get the current configuration
+		var port ECUConnectionPort
+		_ = json.Unmarshal(reqBody, &port)
+
+		utils.LogI.Printf("%s REST postECUConnect (%v)", utils.ReceiveFromWebTrace, port)
+
+		wi.fcr.ECU.ConnectAndInitialiseECU(port.Port)
+
+		if wi.fcr.ECU.Connected {
+			// return a 200 status code
+			w.WriteHeader(http.StatusOK)
+		} else {
+			// return service unavailable if unable to connect
+			w.WriteHeader(http.StatusServiceUnavailable)
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if err := json.NewEncoder(w).Encode(wi.fcr.ECU.Status); err != nil {
 		// return a error code
 		w.WriteHeader(http.StatusInternalServerError)
 	}

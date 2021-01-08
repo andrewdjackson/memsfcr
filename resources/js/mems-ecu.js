@@ -3,7 +3,7 @@
 //-------------------------------------
 
 // Connect to the ECU
-function connectECU() {
+function wsConnectECU() {
     var port = document.getElementById(SettingPort).value;
     var msg = formatSocketMessage(WebActionConnect, port);
     sendSocketMessage(msg);
@@ -13,6 +13,32 @@ function connectECU() {
 
     // disable all buttons
     disableAllButtons()
+}
+
+function connectECU() {
+    var port = document.getElementById(SettingPort).value
+    // show connecting
+    setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connecting..", "btn-warning", connectECU);
+
+    uri = window.location.href.split("/").slice(0, 3).join("/");
+
+    // Create a request variable and assign a new XMLHttpRequest object to it.
+    var request = new XMLHttpRequest()
+
+    // Open a new connection, using the GET request on the URL endpoint
+    request.open('POST', uri + '/rosco/connect', true)
+    request.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
+
+    request.onload = function () {
+        // Begin accessing JSON data here
+        var data = JSON.parse(this.response)
+        console.info("connect request response " + JSON.stringify(data))
+        updateConnected(data.Initialised);
+        //setConnectionStatusMessage(data.Connected)
+    }
+
+    // Send request
+    request.send(JSON.stringify({ "port": port }))
 }
 
 // startDataframeLoop configures a timer interval to make

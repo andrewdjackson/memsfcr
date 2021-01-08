@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"math"
 	"strings"
 	"time"
@@ -35,6 +36,7 @@ type MemsConnection struct {
 	Emulated    bool
 	Diagnostics *MemsDiagnostics
 	responder   *scenarios.Responder
+	Status      *MemsConnectionStatus
 }
 
 // MemsConnectionStatus are we?
@@ -73,6 +75,12 @@ func NewMemsConnection() *MemsConnection {
 	m.RxECU = make(chan MemsCommandResponse)
 	// engine diagnostics
 	m.Diagnostics = NewMemsDiagnostics()
+	// set status
+	m.Status = &MemsConnectionStatus{}
+	m.Status.Connected = m.Connected
+	m.Status.Initialised = m.Initialised
+	m.Status.ECUID = fmt.Sprintf("%X", m.ECUID)
+	m.Status.IACPosition = m.Diagnostics.Analysis.IACPosition
 
 	return m
 }
@@ -97,6 +105,16 @@ func (mems *MemsConnection) ConnectAndInitialiseECU(port string) {
 			mems.initialise()
 		}
 	}
+
+	// update status
+	mems.Status.Connected = mems.Connected
+	mems.Status.Initialised = mems.Initialised
+	mems.Status.ECUID = fmt.Sprintf("%X", mems.ECUID)
+	mems.Status.IACPosition = mems.Diagnostics.Analysis.IACPosition
+}
+
+func (mems *MemsConnection) GetStatus() MemsConnectionStatus {
+	return *mems.Status
 }
 
 // connect to MEMS via serial port
