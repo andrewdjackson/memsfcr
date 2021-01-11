@@ -1,4 +1,5 @@
 // set to true to use the REST interface instead of the WebSocket
+//
 var useREST = false;
 
 var sock = null;

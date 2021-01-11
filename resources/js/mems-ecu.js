@@ -2,8 +2,8 @@
 // ECU Command Requests 
 //-------------------------------------
 
-function ConnectECU() {
-    if useREST {
+function connectECU() {
+    if (useREST) {
         restConnectECU()
     } else {
         wsConnectECU()
