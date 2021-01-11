@@ -2,6 +2,14 @@
 // ECU Command Requests 
 //-------------------------------------
 
+function ConnectECU() {
+    if useREST {
+        restConnectECU()
+    } else {
+        wsConnectECU()
+    }
+}
+
 // Connect to the ECU
 function wsConnectECU() {
     var port = document.getElementById(SettingPort).value;
@@ -15,7 +23,11 @@ function wsConnectECU() {
     disableAllButtons()
 }
 
-function connectECU() {
+//
+// connect to the ECU via the REST interface
+//
+
+function restConnectECU() {
     var port = document.getElementById(SettingPort).value
     // show connecting
     setConnectButtonStyle("<i class='fa fa-plug'>&nbsp</i>Connecting..", "btn-warning", connectECU);
@@ -34,7 +46,6 @@ function connectECU() {
         var data = JSON.parse(this.response)
         console.info("connect request response " + JSON.stringify(data))
         updateConnected(data.Initialised);
-        //setConnectionStatusMessage(data.Connected)
     }
 
     // Send request
