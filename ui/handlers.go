@@ -1,10 +1,12 @@
 package ui
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -17,6 +19,8 @@ import (
 func (wi *WebInterface) scenarioDataHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	scenarioID := vars["scenarioId"]
+
+	defer r.Body.Close()
 
 	data := scenarios.GetScenario(scenarioID)
 
@@ -39,6 +43,7 @@ func (wi *WebInterface) scenarioDataHandler(w http.ResponseWriter, r *http.Reque
 // changes the state of the scenario playback
 func (wi *WebInterface) postScenarioPlaybackHandler(w http.ResponseWriter, r *http.Request) {
 	// get the body of our POST request
+	defer r.Body.Close()
 	reqBody, _ := ioutil.ReadAll(r.Body)
 
 	// get the current configuration
@@ -60,6 +65,8 @@ func (wi *WebInterface) postScenarioPlaybackHandler(w http.ResponseWriter, r *ht
 func (wi *WebInterface) getScenariosHandler(w http.ResponseWriter, r *http.Request) {
 	scenarios, _ := scenarios.GetScenarios()
 
+	defer r.Body.Close()
+
 	utils.LogI.Printf("%+v", scenarios)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -74,6 +81,8 @@ func (wi *WebInterface) getScenariosHandler(w http.ResponseWriter, r *http.Reque
 // returns the contents of the Config file as a JSON response
 func (wi *WebInterface) getConfigHandler(w http.ResponseWriter, r *http.Request) {
 	config := utils.ReadConfig()
+
+	defer r.Body.Close()
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -110,6 +119,8 @@ type ECUResponse struct {
 // REST API : GET ECU Response
 // send the specified command and returns the response data
 func (wi *WebInterface) getECUResponseHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
 	vars := mux.Vars(r)
 	command, err := hex.DecodeString(vars["command"])
 
@@ -156,6 +167,8 @@ func (wi *WebInterface) getECUDataframeHandler(w http.ResponseWriter, r *http.Re
 // REST API : GET ECU Response
 // send the specified command and returns the response data
 func (wi *WebInterface) getECUConnectionStatus(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
 	status := wi.fcr.ECU.Status
 
 	utils.LogI.Printf("%s REST getECUConnectionStatus (%v)", utils.ReceiveFromWebTrace, status)
@@ -180,13 +193,14 @@ type ECUConnectionPort struct {
 // REST API : POST ECU Connect
 // connects the ECU
 func (wi *WebInterface) postECUConnect(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
 	if wi.fcr.ECU.Connected {
 		// return status if already connected
 		w.WriteHeader(http.StatusAlreadyReported)
 	} else {
 		// get the body of our POST request
 		// unmarshal this into a new Config struct
-		defer r.Body.Close()
 		reqBody, _ := ioutil.ReadAll(r.Body)
 
 		// get the current configuration
@@ -211,6 +225,26 @@ func (wi *WebInterface) postECUConnect(w http.ResponseWriter, r *http.Request) {
 		// return a error code
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+// REST POST
+func (wi *WebInterface) GetREST(data string) []byte {
+	requestBody, _ := json.Marshal(map[string]string{
+		"item1": "item1value",
+	})
+
+	timeout := time.Duration(2 * time.Second)
+	client := http.Client{Timeout: timeout}
+
+	request, _ := http.NewRequest("GET", "http://localhost:8081/rosco/", bytes.NewBuffer(requestBody))
+	request.Header.Set("Content-type", "application/json")
+
+	response, _ := client.Do(request)
+	defer response.Body.Close()
+
+	body, _ := ioutil.ReadAll(response.Body)
+
+	return body
 }
 
 // WEBSOCKET Handler
