@@ -4,7 +4,7 @@ set DISTPATH=dist
 set RESOURCESPATH=resources
 set WINDOWSDISTPATH=dist/windows
 set WINDOWS=%WINDOWSDISTPATH%/%EXECUTABLE%.exe
-set VERSION=1.5.4
+set VERSION=1.5.5
 set VCNEXE="C:\Program Files\CodeNotary\vcn"
 
 go build -i -v -o %WINDOWS% -ldflags="-H windowsgui -s -w -X main.version=%VERSION%"
