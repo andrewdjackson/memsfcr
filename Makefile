@@ -57,17 +57,18 @@ signapp:
 
 
 packageapp:
-	appdmg $(DISTPATH)/dmgspec.json $(DARWINDISTPATH)/MemsFCR.dmg 
+	appdmg $(DISTPATH)/dmgspec.json $(DARWINDISTPATH)/$(APPNAME).dmg 
 
 	# check signature with:
 	#   codesign -display --deep -vvv $(APPNAME).app
 	#
 	# the app will need notarizing with the following command:
-	#   xcrun altool --notarize-app -f $(APPNAME).dmg --primary-bundle-id "{bundle-id}" -u {username} -p {password}
+	cd $(DARWINDISTPATH) && \
+		xcrun altool --notarize-app -f $(APPNAME).dmg --primary-bundle-id "com.github.andrewdjackson.memsfcr" -u $(APPLEDEVUSR) -p $(APPLEDEVPWD)
 	#
 	# if successful 'staple' the app for offline installation
-	#   xcrun stapler staple "$(APPNAME).app"
-	#   xcrun stapler staple "$(APPNAME).dmg"
+	#   xcrun stapler staple $(DARWINDISTPATH)/$(APPNAME).app
+	#   xcrun stapler staple $(DARWINDISTPATH)/$(APPNAME).dmg
 	
 
 clean: ## Remove previous build
