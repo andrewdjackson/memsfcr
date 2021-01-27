@@ -17,8 +17,6 @@ type MemsReader struct {
 	ECU *rosco.MemsConnection
 	// Webserver
 	WebServer *WebServer
-	// datalogger
-	// dataLogger *fcr.MemsDataLogger
 }
 
 func NewMemsReader() *MemsReader {
@@ -30,7 +28,7 @@ func NewMemsReader() *MemsReader {
 	// set up the connection to the ECU
 	// this is also used to 'emulate' the ECU if
 	// a pre-recorded scenario is played back
-	reader.ECU = rosco.NewMemsConnection()
+	reader.ECU = rosco.NewMemsConnection(reader.Config.LogFolder)
 
 	// set up the webserver for websocket
 	// and REST endpoints

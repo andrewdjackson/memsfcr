@@ -22,7 +22,7 @@ type WebMsg struct {
 
 // WebServer the web interface
 type WebServer struct {
-	// mulitplex router interface
+	// multiplex router interface
 	router *mux.Router
 	// websocket interface
 	httpDir  string
@@ -33,7 +33,7 @@ type WebServer struct {
 	// channels for communication over the websocket
 	ToWebSocketChannel   chan WebMsg
 	FromWebSocketChannel chan WebMsg
-	// ServerRunning inidicates where the server is active
+	// ServerRunning indicates where the server is active
 	ServerRunning bool
 	// Pointer to Mems Fault Code Reader
 	reader *MemsReader
@@ -92,12 +92,14 @@ func (webserver *WebServer) newRouter() *mux.Router {
 		log.Errorf("unable to find the current path to the local html files (%s)", err)
 	}
 
-	// set a router and a hander to accept messages over the websocket
+	// set a router and a handler to accept messages over the websocket
 
 	r := mux.NewRouter()
-	//r.HandleFunc("/ws", webserver.wsHandler)
+	//r.HandleFunc("/ws", webserver.websocketHandler)
+	r.HandleFunc("/heartbeat", webserver.browserHeartbeatHandler)
 
 	r.HandleFunc("/config", webserver.getConfigHandler).Methods("GET")
+	r.HandleFunc("/config/ports", webserver.getSerialPortsHandler).Methods("GET")
 	r.HandleFunc("/config", webserver.updateConfigHandler).Methods("POST")
 
 	r.HandleFunc("/scenario", webserver.getListofScenarios).Methods("GET")

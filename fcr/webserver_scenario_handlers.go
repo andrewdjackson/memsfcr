@@ -11,7 +11,7 @@ import (
 // REST API : GET Scenario
 // returns the details of the specified scenario
 func (webserver *WebServer) getScenarioDetails(w http.ResponseWriter, r *http.Request) {
-	log.Info("REST GET Scenario Details")
+	log.Info("rest get scenario details")
 
 	vars := mux.Vars(r)
 	scenarioID := vars["scenarioId"]
@@ -38,7 +38,7 @@ func (webserver *WebServer) getScenarioDetails(w http.ResponseWriter, r *http.Re
 // REST API : GET Scenarios
 // returns a list of available scenarios
 func (webserver *WebServer) getListofScenarios(w http.ResponseWriter, r *http.Request) {
-	log.Info("REST GET List of Scenarios")
+	log.Info("rest-get list of scenarios")
 	scenarios, _ := rosco.GetScenarios()
 
 	log.Infof("%+v", scenarios)

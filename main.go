@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -61,28 +59,32 @@ func init() {
 }
 
 func setupLogging() {
-	// create a log file using the current date and time
-	// this saves trying to roll logs
-	currentTime := time.Now()
-	dateTime := currentTime.Format("2006-01-02 15:04:05")
-	dateTime = strings.ReplaceAll(dateTime, ":", "")
-	dateTime = strings.ReplaceAll(dateTime, " ", "-")
-	filename := fmt.Sprintf("logs/debug-%s.log", dateTime)
-	filename = filepath.FromSlash(filename)
+	/*
+		// create a log file using the current date and time
+		// this saves trying to roll logs
+		currentTime := time.Now()
+		dateTime := currentTime.Format("2006-01-02 15:04:05")
+		dateTime = strings.ReplaceAll(dateTime, ":", "")
+		dateTime = strings.ReplaceAll(dateTime, " ", "-")
+		filename := fmt.Sprintf("logs/debug-%s.log", dateTime)
+		filename = filepath.FromSlash(filename)
 
-	// write logs to file and console
-	f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Warn("error opening log file")
-	}
+		// write logs to file and console
+		f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			log.WithFields(log.Fields{"error": err}).Warn("error opening log file")
+		}
 
-	multilogwriter := io.MultiWriter(os.Stdout, f)
-	log.SetOutput(multilogwriter)
+		multilogwriter := io.MultiWriter(os.Stdout, f)
+		log.SetOutput(multilogwriter)
+	*/
+
+	log.SetOutput(os.Stdout)
 
 	log.SetFormatter(&log.TextFormatter{
-		ForceColors: false,
-		DisableColors: false,
-		FullTimestamp: true,
+		ForceColors:     false,
+		DisableColors:   false,
+		FullTimestamp:   true,
 		TimestampFormat: "15:04:05.000",
 	})
 
@@ -95,13 +97,18 @@ func main() {
 	log.Infof("MemsFCR Home Folder %s", HomeFolder)
 	log.Infof("MemsFCR App Folder %s", AppFolder)
 
+	// create a channel to notify app to exit
+	exit := make(chan int)
+
 	// set up and initialise the fault code reader
 	reader := fcr.NewMemsReader()
 	// start the web server
 	reader.StartWebServer()
 	// open the browser view
-	// reader.OpenBrowser()
+	reader.OpenBrowser()
 
-	// don't exit
-	for { select{ } }
+	// wait for exit on the channel
+	for {
+		<-exit
+	}
 }

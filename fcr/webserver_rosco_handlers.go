@@ -2,10 +2,9 @@ package fcr
 
 import (
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type ECUConnectionPort struct {
@@ -20,13 +19,29 @@ type ECUActivate struct {
 	Activate bool `json:"activate"`
 }
 
+type ECUActivateResponse struct {
+	Actuator string `json:"actuator"`
+	Activate bool   `json:"activate"`
+}
+
 type ActionResponse struct {
 	Success bool `json:"success"`
 }
 
 type AdjustmentResponse struct {
-	Value int `json:"value"`
+	Adjustment string `json:"adjustment"`
+	Value      int    `json:"value"`
 }
+
+const ActuatorFuelPump = "fuelpump"
+const ActuatorPTC = "ptc"
+const ActuatorAircon = "aircon"
+const ActuatorPurgeValve = "purgevalve"
+const ActuatorBoostValve = "boostvalve"
+const ActuatorFan1 = "fan1"
+const ActuatorFan2 = "fan2"
+const ActuatorInjectors = "injectors"
+const ActuatorCoil = "coil"
 
 //
 // Connection Status
@@ -153,7 +168,7 @@ func (webserver *WebServer) getECUIAC(w http.ResponseWriter, r *http.Request) {
 
 	if webserver.isECUConnected(w) {
 		value := webserver.reader.ECU.GetIACPosition()
-		response := AdjustmentResponse{Value: value}
+		response := AdjustmentResponse{Adjustment: "iac", Value: value}
 
 		log.Infof("rest-get ecu iac position (%v)", value)
 
@@ -170,7 +185,7 @@ func (webserver *WebServer) getECUIAC(w http.ResponseWriter, r *http.Request) {
 //
 func (webserver *WebServer) postECUHeartbeat(w http.ResponseWriter, r *http.Request) {
 	log.Infof("rest-post send heartbeat")
-	value := webserver.reader.ECU.ResetECU()
+	value := webserver.reader.ECU.SendHeartbeat()
 	webserver.updateECUState(w, r, value)
 }
 
@@ -209,7 +224,6 @@ func (webserver *WebServer) updateECUState(w http.ResponseWriter, r *http.Reques
 		defer r.Body.Close()
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-		value := webserver.reader.ECU.ResetECU()
 		response := ActionResponse{Success: value}
 
 		if err := json.NewEncoder(w).Encode(response); err != nil {
@@ -234,7 +248,9 @@ func (webserver *WebServer) postECUAdjustSTFT(w http.ResponseWriter, r *http.Req
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.AdjustShortTermFuelTrim(data.Steps)
-	webserver.updateAdjustableValue(w, r, value)
+	adjustment := AdjustmentResponse{Adjustment: "stft", Value: value}
+
+	webserver.updateAdjustableValue(w, r, adjustment)
 }
 
 //
@@ -251,7 +267,9 @@ func (webserver *WebServer) postECUAdjustLTFT(w http.ResponseWriter, r *http.Req
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.AdjustLongTermFuelTrim(data.Steps)
-	webserver.updateAdjustableValue(w, r, value)
+	adjustment := AdjustmentResponse{Adjustment: "ltft", Value: value}
+
+	webserver.updateAdjustableValue(w, r, adjustment)
 }
 
 //
@@ -268,7 +286,9 @@ func (webserver *WebServer) postECUAdjustIdleDecay(w http.ResponseWriter, r *htt
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.AdjustIdleDecay(data.Steps)
-	webserver.updateAdjustableValue(w, r, value)
+	adjustment := AdjustmentResponse{Adjustment: "idledecay", Value: value}
+
+	webserver.updateAdjustableValue(w, r, adjustment)
 }
 
 //
@@ -285,7 +305,9 @@ func (webserver *WebServer) postECUAdjustIdleSpeed(w http.ResponseWriter, r *htt
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.AdjustIdleSpeed(data.Steps)
-	webserver.updateAdjustableValue(w, r, value)
+	adjustment := AdjustmentResponse{Adjustment: "idlespeed", Value: value}
+
+	webserver.updateAdjustableValue(w, r, adjustment)
 }
 
 //
@@ -302,7 +324,9 @@ func (webserver *WebServer) postECUAdjustIgnitionAdvance(w http.ResponseWriter, 
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.AdjustIgnitionAdvanceOffset(data.Steps)
-	webserver.updateAdjustableValue(w, r, value)
+	adjustment := AdjustmentResponse{Adjustment: "ignitionadvance", Value: value}
+
+	webserver.updateAdjustableValue(w, r, adjustment)
 }
 
 //
@@ -319,18 +343,21 @@ func (webserver *WebServer) postECUAdjustIAC(w http.ResponseWriter, r *http.Requ
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.AdjustIACPosition(data.Steps)
-	webserver.updateAdjustableValue(w, r, value)
+	adjustment := AdjustmentResponse{Adjustment: "iac", Value: value}
+
+	webserver.updateAdjustableValue(w, r, adjustment)
 }
 
 //
 // update the adjustable value
 //
-func (webserver *WebServer) updateAdjustableValue(w http.ResponseWriter, r *http.Request, value int) {
+func (webserver *WebServer) updateAdjustableValue(w http.ResponseWriter, r *http.Request, adjustment AdjustmentResponse) {
 	if webserver.isECUConnected(w) {
 		defer r.Body.Close()
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-		response := AdjustmentResponse{Value: value}
+		log.Infof("rest-post adjustable value response")
+		response := AdjustmentResponse{Adjustment: adjustment.Adjustment, Value: adjustment.Value}
 
 		if err := json.NewEncoder(w).Encode(response); err != nil {
 			log.Warnf("rest-call response failed")
@@ -354,7 +381,14 @@ func (webserver *WebServer) postECUTestFuelPump(w http.ResponseWriter, r *http.R
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.TestFuelPump(data.Activate)
-	webserver.updateTestActuator(w, r, value)
+
+	if !value {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	actuatorResponse := ECUActivateResponse{Actuator: ActuatorFuelPump, Activate: data.Activate}
+
+	webserver.updateTestActuator(w, r, actuatorResponse)
 }
 
 //
@@ -371,7 +405,14 @@ func (webserver *WebServer) postECUTestPTC(w http.ResponseWriter, r *http.Reques
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.TestPTCRelay(data.Activate)
-	webserver.updateTestActuator(w, r, value)
+
+	if !value {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	actuatorResponse := ECUActivateResponse{Actuator: ActuatorPTC, Activate: data.Activate}
+
+	webserver.updateTestActuator(w, r, actuatorResponse)
 }
 
 //
@@ -387,8 +428,15 @@ func (webserver *WebServer) postECUTestAircon(w http.ResponseWriter, r *http.Req
 	body, _ := ioutil.ReadAll(r.Body)
 	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.TestPTCRelay(data.Activate)
-	webserver.updateTestActuator(w, r, value)
+	value := webserver.reader.ECU.TestACRelay(data.Activate)
+
+	if !value {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	actuatorResponse := ECUActivateResponse{Actuator: ActuatorAircon, Activate: data.Activate}
+
+	webserver.updateTestActuator(w, r, actuatorResponse)
 }
 
 //
@@ -405,7 +453,14 @@ func (webserver *WebServer) postECUTestPurgeValve(w http.ResponseWriter, r *http
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.TestPurgeValve(data.Activate)
-	webserver.updateTestActuator(w, r, value)
+
+	if !value {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	actuatorResponse := ECUActivateResponse{Actuator: ActuatorPurgeValve, Activate: data.Activate}
+
+	webserver.updateTestActuator(w, r, actuatorResponse)
 }
 
 //
@@ -422,7 +477,14 @@ func (webserver *WebServer) postECUTestBoostValve(w http.ResponseWriter, r *http
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.TestBoostValve(data.Activate)
-	webserver.updateTestActuator(w, r, value)
+
+	if !value {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	actuatorResponse := ECUActivateResponse{Actuator: ActuatorBoostValve, Activate: data.Activate}
+
+	webserver.updateTestActuator(w, r, actuatorResponse)
 }
 
 //
@@ -439,7 +501,14 @@ func (webserver *WebServer) postECUTestFan1(w http.ResponseWriter, r *http.Reque
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.TestFan1(data.Activate)
-	webserver.updateTestActuator(w, r, value)
+
+	if !value {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	actuatorResponse := ECUActivateResponse{Actuator: ActuatorFan1, Activate: data.Activate}
+
+	webserver.updateTestActuator(w, r, actuatorResponse)
 }
 
 //
@@ -456,7 +525,14 @@ func (webserver *WebServer) postECUTestFan2(w http.ResponseWriter, r *http.Reque
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.TestFan2(data.Activate)
-	webserver.updateTestActuator(w, r, value)
+
+	if !value {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	actuatorResponse := ECUActivateResponse{Actuator: ActuatorFan2, Activate: data.Activate}
+
+	webserver.updateTestActuator(w, r, actuatorResponse)
 }
 
 //
@@ -473,7 +549,14 @@ func (webserver *WebServer) postECUTestInjectors(w http.ResponseWriter, r *http.
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.TestInjectors(data.Activate)
-	webserver.updateTestActuator(w, r, value)
+
+	if !value {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	actuatorResponse := ECUActivateResponse{Actuator: ActuatorInjectors, Activate: data.Activate}
+
+	webserver.updateTestActuator(w, r, actuatorResponse)
 }
 
 //
@@ -490,20 +573,25 @@ func (webserver *WebServer) postECUTestCoil(w http.ResponseWriter, r *http.Reque
 	json.Unmarshal(body, &data)
 
 	value := webserver.reader.ECU.TestCoil(data.Activate)
-	webserver.updateTestActuator(w, r, value)
+
+	if !value {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	actuatorResponse := ECUActivateResponse{Actuator: ActuatorCoil, Activate: data.Activate}
+
+	webserver.updateTestActuator(w, r, actuatorResponse)
 }
 
 //
 // update the actuator status
 //
-func (webserver *WebServer) updateTestActuator(w http.ResponseWriter, r *http.Request, value bool) {
+func (webserver *WebServer) updateTestActuator(w http.ResponseWriter, r *http.Request, actuatorResponse ECUActivateResponse) {
 	if webserver.isECUConnected(w) {
 		defer r.Body.Close()
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-		response := ActionResponse{Success: value}
-
-		if err := json.NewEncoder(w).Encode(response); err != nil {
+		if err := json.NewEncoder(w).Encode(actuatorResponse); err != nil {
 			log.Warnf("rest-call response failed")
 			// return a error code
 			w.WriteHeader(http.StatusInternalServerError)
