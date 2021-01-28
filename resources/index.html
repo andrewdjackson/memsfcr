@@ -14,6 +14,7 @@
 
     <!-- CSS -->
     <link href="/css/bootstrap.css" rel="stylesheet" />
+	<link href="/css/bootstrap-toggle.min.css" rel="stylesheet">
     <link href="/fontawesome/css/all.css" rel="stylesheet" />
     <link href="/css/pro-sidebar.css" rel="stylesheet" />
     <link href="/css/sidebar-themes.css" rel="stylesheet" />
@@ -29,6 +30,28 @@
         <a id="show-sidebar" class="btn btn-sm btn-dark" href="#">
             <i class="fas fa-caret-square-right"></i>
         </a>
+		<!-- Load Scenario Modal Dialog -->
+		<div class="modal fade" id="scenarioModalCenter" tabindex="-1" role="dialog" aria-labelledby="scenarioModalCenterTitle" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="scenarioModalLongTitle">Replay</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<div class="list-group" id="replayList"></div>
+						<div class="dropdown-menu" id="replayScenarios" aria-labelledby="dropdownMenuButton">
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+						<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="loadScenario()">Run</button>
+					</div>
+				</div>
+			</div>
+		</div>
         <nav id="sidebar" class="sidebar-wrapper">
             <div class="sidebar-content">
                 <div class="sidebar-brand">
@@ -40,19 +63,15 @@
 
                 <div class="sidebar-header">
                     <div class="d-flex justify-content-center mb-3">
-                        <button class="btn btn-outline-success" id="connectECUbtn" type="button">
+                        <button class="btn btn-outline-success btn-sm" id="connectECUbtn" type="button">
 							<i class="fa fa-plug">&nbsp</i>Connect
 						</button> &nbsp;
-
-                        <div class="btn-group">
-                            <div class="dropdown">
-                                <button class="btn btn-outline-info" id="replayECUbtn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									<i class="fa fa-folder-open">&nbsp</i>Replay
-								</button> &nbsp;
-                                <div class="dropdown-menu" id="replayScenarios" aria-labelledby="dropdownMenuButton">
-                                </div>
-                            </div>
-                        </div>
+						<button class="btn btn-outline-success btn-sm" id="playPauseECUbtn" type="button">
+							<i class="fa fa-play-circle">&nbsp</i>Run
+						</button> &nbsp;
+						<button class="btn btn-outline-info btn-sm" id="replayECUbtn" type="button" data-toggle="modal" data-target="#scenarioModalCenter">
+							<i class="fa fa-folder-open">&nbsp</i>Replay
+						</button>
                     </div>
                     <div class="overflow-hidden">
                         <div class="alert alert-light alert-connect invisible font-weight-light text-wrap" role="alert" id="connectionMessage">
@@ -92,18 +111,20 @@
 								>
 							</li>
 							<li class="nav-item">
-								<a href="#data" data-toggle="tab" class="nav-link"
-									><i class="fa fa-list-ol">&nbsp;</i>ECU Data</a
-								>
+								<a href="#alerts" data-toggle="tab" class="nav-link"
+								><i class="fa fa-bell">&nbsp;</i>Fault Codes & Alerts<span id="ecu-fault-status" class="badge badge-pill badge-danger notification"></span></a>
 							</li>
 							<li class="nav-item">
 								<a href="#adjustments" data-toggle="tab" class="nav-link"
-									><i class="fa fa-terminal">&nbsp;</i>Adaptive Values</a
-								>
+									><i class="fa fa-terminal">&nbsp;</i>Adaptive Values</a>
 							</li>
 							<li class="nav-item">
-								<a href="#alerts" data-toggle="tab" class="nav-link"
-									><i class="fa fa-bell">&nbsp;</i>Fault Codes & Alerts<span id="ecu-fault-status" class="badge badge-pill badge-danger notification"></span></a
+								<a href="#actuators" data-toggle="tab" class="nav-link"
+								><i class="fa fa-cogs">&nbsp;</i>Test Actuators</a>
+							</li>
+							<li class="nav-item">
+								<a href="#data" data-toggle="tab" class="nav-link"
+								><i class="fa fa-list-ol">&nbsp;</i>ECU Data</a
 								>
 							</li>
 							<li class="nav-item">
@@ -301,7 +322,7 @@
 							<h2>ECU Data</h2>
 							<div class="card">
 								<div class="card-body">
-									<div class="mb-3 col-mb-1"><button type="button" class="btn btn-danger mb-3" onclick="resetECU();"><i class="fa fa-exclamation-triangle">&nbsp</i>Reset ECU</button>
+									<div class="mb-3 col-mb-1"><button type="button" class="btn btn-danger mb-3" onclick="resetECU();" data-toggle="tooltip" data-placement="left" title="Clears all faults, learnt parameters and adjustments."><i class="fa fa-exclamation-triangle">&nbsp</i>Reset ECU</button>
 										&nbsp;</div>
 									<div class="container-fluid">
 										<div class="row">
@@ -311,74 +332,71 @@
 														<tr>
 															<th scope="col">DataFrame 0x7D</th>
 															<th scope="col">Description</th>
-															<th scope="col">Recieved</th>
+															<th scope="col">Received</th>
 														</tr>
 													</thead>
 													<tbody>
-														<tr>
+													<tr data-toggle="tooltip" data-placement="left" title="Shows the state (ON/OFF) of the ignition switch as read by the MEMS ECU. Errors in reading the ignition switch may lead to cutting out, failure to power down (causing flat battery) or failure to start.">
 															<th scope="row">0x01</th>
 															<td>Ignition Switch</td>
 															<td class="raw" id="IgnitionSwitch">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title=" Shows the position of the throttle disc obtained from the MEMS ECU using the throttle potentiometer. This value should change from a low value to a high value as the throttle pedal is depressed.">
 															<th scope="row">0x02</th>
 															<td>Throttle Angle (°)</td>
 															<td class="raw" id="ThrottleAngle">-</td>
-							
 														</tr>
 														<tr>
 															<th scope="row">0x03</th>
 															<td>Unknown</td>
 															<td class="raw" id="Uk7d03">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="">
 															<th scope="row">0x04</th>
 															<td>Air : Fuel Ratio</td>
 															<td class="raw" id="AirFuelRatio">-</td>
-							
 														</tr>
 														<tr>
 															<th scope="row">0x05</th>
 															<td>DTC 2</td>
 															<td class="raw" id="DTC2">-</td>
 														</tr>
-														<tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This shows the voltage across the oxygen sensor as read by the MEMS ECU. Once the engine is fully warm, during most idle and driving conditions, this voltage will switch rapidly between a value between 0.0v-0.2v to a value between 0.7v and 1.0v. The sensor detects the presence or absence of oxygen in the exhaust gas. When the exhaust gas has oxygen present the ECU will read a low voltage.">
 															<th scope="row">0x06</th>
 															<td>Lambda Voltage (mV)</td>
 															<td class="raw" id="LambdaVoltage">-</td>
-							
 														</tr>
-														<th scope="row">0x07</th>
+														<tr data-toggle="tooltip" data-placement="left" title="">
+															<th scope="row">0x07</th>
 															<td>Lambda Frequency</td>
 															<td class="raw" id="LambdaFrequency">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="">
 															<th scope="row">0x08</th>
 															<td>Lambda Duty Cycle</td>
 															<td class="raw" id="LambdaDutycycle">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="A status of 1 indicates a fault in the Closed Loop / Lambda system. The MEMS ECU will remain in open loop operation.">
 															<th scope="row">0x09</th>
 															<td>Lambda Status</td>
 															<td class="raw" id="LambdaStatus">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This shows whether the fuelling is being controlled using feedback from the oxygen sensors. A displayed value of ON indicates that closed loop fuelling is active, a displayed value of OFF indicates fuelling open loop. On a fully warm vehicle, Loop Status should indicate closed loop under most driving and idling conditions.">
 															<th scope="row">0x0A</th>
 															<td>Loop Indicator</td>
 															<td class="raw" id="ClosedLoop">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="">
 															<th scope="row">0x0B</th>
 															<td>Long Term Fuel Trim (LTFT)</td>
 															<td class="raw" id="LongTermFuelTrim">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="">
 															<th scope="row">0x0C</th>
 															<td>Short Term Fuel Trim (STFT)</td>
 															<td class="raw" id="ShortTermFuelTrim">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="The purge valve closes on idle. It should open when over 75 degree">
 															<th scope="row">0x0D</th>
 															<td>Carbon Canister Purge Valve (%)</td>
 															<td class="raw" id="CarbonCanisterPurgeValve">-</td>
@@ -388,7 +406,7 @@
 															<td>DTC 3</td>
 															<td class="raw" id=DTC3 "">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This is the number of steps from 0 which the ECU will use as guide for starting idle speed control during engine warm up. The value will start at quite a high value (>100 steps) on a very cold engine and fall to < 50 steps on a fully warm engine. A high value on a fully warm engine or a low value on a cold engine will cause poor idle speed control. Idle base position is calculated by the ECU using the engine coolant temperature sensor.">
 															<th scope="row">0x0F</th>
 															<td>Idle Base Position</td>
 															<td class="raw" id="IdleBasePosition">-</td>
@@ -403,12 +421,12 @@
 															<td>DTC 4</td>
 															<td class="raw" id="DTC4">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="Shows the value of the service ignition offset currently being used by the MEMS ECU. This is a special service adjustment for countries which use low octane fuel. The value is an Adjustable Value and can be cleared by using the Reset Adjustments function found in the same section.">
 															<th scope="row">0x12</th>
 															<td>Ignition Advance Offset</td>
 															<td class="raw" id="IgnitionAdvanceOffset7d">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This is a facility which is built into the MEMS ECU to overcome some situations during the service life of a vehicle where it might be wished to eradicate a problem such as a rattle or engine wear by slightly increasing the idle speed of the engine. This offset adds approximately 50 RPM to the Idle target speed. The function can be removed by resetting the adaptive values.">
 															<th scope="row">0x13</th>
 															<td>Idle Speed Offset (RPM)</td>
 															<td class="raw" id="IdleSpeedOffset">-</td>
@@ -468,7 +486,7 @@
 															<td>Unknown</td>
 															<td class="raw" id="Uk7d1e">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="On systems using a throttle body where the idle air is controlled by a stepper motor which directly acts on the throttle disk (normally metal inlet manifold), the count indicates the number of times the ECU has had to re-learn the relationship between the stepper position and the throttle position. If this count is high or increments each time the ignition is turned off, then there may be a problem with the stepper motor, throttle cable adjustment or the throttle pot. On systems using a plastic throttle body/manifold, the count is a warning that the MEMS ECU has never seen the throttle fully closed. The count is increased for each journey with no closed throttle, indicating a throttle adjustment problem.">
 															<th scope="row">0x1F</th>
 															<td>Jack Count</td>
 															<td class="raw" id="JackCount">-</td>
@@ -483,61 +501,61 @@
 														<tr>
 															<th scope="col">DataFrame 0x80</th>
 															<th scope="col">Description</th>
-															<th scope="col">Recieved</th>
+															<th scope="col">Received</th>
 														</tr>
 													</thead>
 													<tbody>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="The rotational speed of the engine calculated by the MEMS ECU using the crankshaft sensor. Faults in the crankshaft sensor or associated wiring may be indicated if this display reads 0 during engine cranking.">
 															<th scope="row">0x01-02</th>
 															<td>Engine Speed (RPM)</td>
 															<td class="raw" id="EngineRPM">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This shows the coolant temperature as measured by the ECU. If the sensor is open circuit, a default value of about 60C will be displayed. During engine warm up, the value should rise smoothly from ambient to approximately 90C. Sensor faults may cause several symptoms including poor starting, fast idle speed, poor fuel consumption and cooling fans running continuously.">
 															<th scope="row">0x03</th>
 															<td>Coolant Temperature (°C)</td>
 															<td class="raw" id="CoolantTemp">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This shows the temperature measured by the ECU using the ambient air temperature sensor (if fitted). If the sensor is open circuit then a fixed default value will be displayed. The sensor is used by the ECU to measure the air temperature in the engine bay. This is usually done to control an extra engine bay cooling fan on vehicles which require this. The effect of a faulty sensor is normally incorrect operation of the engine bay cooling fan. On MEMS ECUs which don't support this sensor the value will display 255.">
 															<th scope="row">0x04</th>
 															<td>Ambient Temperature (°C)</td>
 															<td class="raw" id="AmbientTemp">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This shows the temperature measured by the ECU using the inlet air temperature sensor (if fitted). If the sensor is open circuit, then a fixed default value will be displayed. The inlet air temperature is used by the ECU to retard the ignition timing to avoid knock and trim the fuelling when hot. If the sensor is not operating correctly the engine performance may be impaired slightly.">
 															<th scope="row">0x05</th>
 															<td>Intake Air Temperature (°C)</td>
 															<td class="raw" id="IntakeAirTemp">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This shows the temperature measured by the ECU using the fuel rail temperature sensor (if fitted). If the sensor is open circuit, then a fixed default value will be displayed. The fuel rail temperature is used by the ECU as an aid to hot starting and to make corrections to fuelling. If the sensor is not operating correctly hot starting and engine performance may be impaired slightly. On MEMS ECUs which don't support this sensor the value will display 255.">
 															<th scope="row">0x06</th>
 															<td>Fuel Temperature (°C)</td>
 															<td class="raw" id="FuelTemp">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="Shows the pressure measure by the internal MEMS air pressure sensor. This value should show atmospheric pressure of 100 KPa when the engine is stopped and a lower value between 25 - 40 KPa during engine idle conditions. Very high values may indicate problems with the sensor inside the MEMS or more likely a blocked or disconnected vacuum pipe. Moderately raised values may indicate mechanical problems with the engine.">
 															<th scope="row">0x07</th>
 															<td>Mainfold Absolute Pressure (kPa)</td>
 															<td class="raw" id="ManifoldAbsolutePressure">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This shows the voltage of the vehicle supply measured internally by the ECU. Large errors in this measurement will lead to possible poor starting and errors in idle CO.">
 															<th scope="row">0x08</th>
 															<td>Battery Voltage (V)</td>
 															<td class="raw" id="BatteryVoltage">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This value shows the signal received by the ECU from the Throttle Position Sensor (Throttle Pot). The value is displayed in bits and has a range from 0(closed) to 255(open). The full range of values will not be seen in practice.">
 															<th scope="row">0x09</th>
 															<td>Throttle Pot. Sensor (V)</td>
 															<td class="raw" id="ThrottlePotSensor">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="">
 															<th scope="row">0x0A</th>
 															<td>Idle Switch</td>
 															<td class="raw" id="IdleSwitch">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This shows the state of the air conditioning request signal at the MEMS ECU. This signal depends on the state of the air conditioning switch, the blower fan control, the air conditioning thermal switch and the trinary high/low pressure switch. The ECU will not show air conditioning on unless all of these switches are on. The thermal switch will be off if the temperature of the air leaving the evaporator is less than about 3C and the high/low pressure switch will be off if the pressure of the refrigerant is too high or too low.">
 															<th scope="row">0x0B</th>
 															<td>Aircon Switch</td>
 															<td class="raw" id="AirconSwitch">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This shows the state of the park neutral switch as measured by the MEMS ECU. This switch is used to improve the quality of engine idle speed control on automatic or CVT (Constantly Variable Transmission) gearbox vehicles. A fault with this switch will cause the idle speed to dip or rise suddenly when the gear selection is changed between neutral and drive. This display will not work on manual gearbox vehicles.">
 															<th scope="row">0x0C</th>
 															<td>Neutral Switch</td>
 															<td class="raw" id="ParkNeutralSwitch">-</td>
@@ -552,12 +570,12 @@
 															<td>DTC 1</td>
 															<td class="raw" id="DTC1">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="If an idle service offset has been set up in this ECU, the offset from the normal idle RPM is shown here. Normally, only two values will ever be displayed. 0 RPM or 49 RPM.">
 															<th scope="row">0x0F</th>
 															<td>Idle Set Point</td>
 															<td class="raw" id="IdleSetPoint">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This is the number of IACV steps from fully closed (0) which the ECU has learned as the correct position to maintain the target idle speed with a fully warmed up engine. If this value is outside the range 10 - 50 steps, then this is an indication of a possible fault condition or poor adjustment.">
 															<th scope="row">0x10</th>
 															<td>Idle Hot / Idle Decay</td>
 															<td class="raw" id="IdleHot">-</td>
@@ -567,32 +585,34 @@
 															<td>Unknown</td>
 															<td class="raw" id="Uk8011">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="Shows the position of the IACV stepper motor as calculated by the ECU. The ECU has no method of actually measuring this position but instead works it out by remembering how may steps it has moved the stepper since the last time the ignition was switched off. If a stepper motor fault exists, this number will be incorrect. This value will normally be changing during idle condition as the ECU makes minor changes to the idle speed. A value of 0 during idle conditions indicates a fault condition or poor adjustment, as does a very high value.">
 															<th scope="row">0x12</th>
-															<td>Stepper Motor Position<br/>(Idle Air Control)</td>
+															<td>Stepper Motor Position<br/>
+																(Idle Air Control)<br/>
+															</td>
 															<td class="raw" id="IACPosition">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This is the current difference between the target idle speed set by the MEMS ECU and the actual engine speed. A value of more than 100 RPM indicates that the ECU is not in control of the idle speed. This indicates a possible fault condition. A quick addition of this value and the current engine RPM will also tell what the value is of the ECU's target Idle Speed.">
 															<th scope="row">0x13-14</th>
 															<td>Idle Speed Deviation (RPM)</td>
 															<td class="raw" id="IdleSpeedDeviation">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="Shows the value of the service ignition offset currently being used by the MEMS ECU. This is a special service adjustment for countries which use low octane fuel.">
 															<th scope="row">0x15</th>
 															<td>Ignition Advance Offset</td>
 															<td class="raw" id="IgnitionAdvanceOffset80">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This is a facility which is built into the MEMS ECU to overcome some situations during the service life of a vehicle where it might be wished to eradicate a problem such as a low octane fuel being constantly used or engine wear by slightly advancing the ignition timing. the idle speed of the engine. The function can be removed by resetting the adaptive values.">
 															<th scope="row">0x16</th>
 															<td>Ignition Advance (°)</td>
 															<td class="raw" id="IgnitionAdvance">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="This is the time for the ignition coil to charge up to its specified current, as measured by the MEMS ECU. With a battery voltage of about 14V, this value should be about 2-3mS. A high value for coil charge time may indicate a problem with the ignition coil primary circuit.">
 															<th scope="row">0x17-18</th>
 															<td>Coil Time (ms)</td>
 															<td class="raw" id="CoilTime">-</td>
 														</tr>
-														<tr>
+														<tr data-toggle="tooltip" data-placement="left" title="The rotational speed of the engine calculated by the MEMS ECU using the crankshaft sensor. Faults in the crankshaft sensor or associated wiring may be indicated if this display reads 0 during engine cranking.">
 															<th scope="row">0x19</th>
 															<td>Crankshaft Position Sensor</td>
 															<td class="raw" id="CrankshaftPositionSensor">-</td>
@@ -620,13 +640,13 @@
 							<h2>Adaptive Values</h2>
 							<div class="card">
 								<div class="card-body">
-									<div class="mb-3 col-mb-1"><button type="button" class="btn btn-warning mb-3" onclick="resetAdj();"><i class="fa fa-undo">&nbsp</i>Reset Adjustments</button>
+									<div class="mb-3 col-mb-1"><button type="button" class="btn btn-warning mb-3" onclick="resetAdj();" data-toggle="tooltip" data-placement="left" title="Clear all adjustments made to the Adaptive values."><i class="fa fa-undo">&nbsp</i>Reset Adjustments</button>
 										&nbsp;</div>
 									<table class="table">
 										<tbody>
-											<tr>
+											<tr data-toggle="tooltip" data-placement="left" title="Sets the desired idle engine speed (warm engine, but should also influence cold/fast-idle). Granularity is +1 step = +25 rpm. The adjustments can be removed by resetting the adaptive values.">
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('idlespeed');">Slower&nbsp<i class="fa fa-angle-left"></i></button></td>
-												<td class="adjustment"><i class="fa fa-tachometer-alt" style="width:50px"></i>Idle Speed
+												<td class="adjustment"><i class="fa fa-tachometer-alt" style="width:50px"></i>Idle Speed Offset
 													<div class="range-slider">
 													<input id="idlespeed" class="range-slider__range" type="range" value="128" min="120" max="136" disabled>
 														<span id="idlespeed" class="range-slider__value">0</span>
@@ -634,29 +654,49 @@
 												</td>
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('idlespeed');"><i class="fa fa-angle-right">&nbsp</i>Faster</button></td>
 											</tr>
-											<tr>
-												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('idlehot');">Decrease&nbsp<i class="fa fa-angle-left"></i></button></td>
-												<td class="adjustment"><i class="fa fa-thermometer-full" style="width:50px"></i>Hot Idle
+											<tr data-toggle="tooltip" data-placement="left" title="This adjusts the number of IACV (Idle Air Control Valve) steps from fully closed (0) which the MEMS ECU uses as the correct position to maintain the target idle speed with a fully warmed up engine. This value should be within the range of 10 to 50 steps.">
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('iac');">Close&nbsp<i class="fa fa-angle-left"></i></button></td>
+												<td class="adjustment"><i class="fa fa-compress" style="width:50px"></i>Idle Air Control Valve (Steps)
 													<div class="range-slider">
-														<input id="hotidle" class="range-slider__range" type="range" value="35" min="10" max="60" disabled aria-disabled="true">
-														<span id="hotidle" class="range-slider__value">0</span>
+														<input id="iac" class="range-slider__range" type="range" value="10" min="0" max="50" disabled>
+														<span id="iac" class="range-slider__value">0</span>
 													</div>
 												</td>
-												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('idlehot');"><i class="fa fa-angle-right">&nbsp</i>Increase</button></td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('iac');"><i class="fa fa-angle-right">&nbsp</i>Open</button></td>
 											</tr>
-											<tr>
-												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('fueltrim');">Leaner&nbsp<i class="fas fa-angle-left"></i></button></td>
-												<td class="adjustment"><i class="far fa-gas-pump" style="width:50px"></i>Fuel Trim
+											<tr data-toggle="tooltip" data-placement="left" title="Adjusts the rate the engine returns to idle speed. Its effect is best visible during gear change, the engine will maintain the revs a bit longer before it returns to idle (or shorter, depending if increased or decreased the value)">
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('idledecay');">Decrease&nbsp<i class="fa fa-angle-left"></i></button></td>
+												<td class="adjustment"><i class="fa fa-tachometer-alt" style="width:50px"></i>Idle Decay (Hot Idle)
 													<div class="range-slider">
-														<input id="fueltrim" class="range-slider__range" type="range" value="138" min="0" max="254" disabled aria-disabled="true">
-														<span id="fueltrim" class="range-slider__value">0</span>
+														<input id="idledecay" class="range-slider__range" type="range" value="35" min="10" max="60" disabled aria-disabled="true">
+														<span id="idledecay" class="range-slider__value">0</span>
 													</div>
 												</td>
-												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('fueltrim');"><i class="far fa-angle-right">&nbsp</i>Richer</button></td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('idledecay');"><i class="fa fa-angle-right">&nbsp</i>Increase</button></td>
 											</tr>
-											<tr>
+											<tr data-toggle="tooltip" data-placement="left" title="Adjusts the Short Term Fuel Trim (STFT) which sets the base idle fueling trim. This is an offset from the main idle map. One should increment or decrement so that the FuelTrim value equals 100 (meaning no additional feedback is needed from the lambda sensor). Sometimes might be useful to set it a little bit on the rich side (FuelTrim <100)">
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('stft');">Leaner&nbsp<i class="fas fa-angle-left"></i></button></td>
+												<td class="adjustment"><i class="far fa-faucet" style="width:50px"></i>Short Term Fuel Trim
+													<div class="range-slider">
+														<input id="stft" class="range-slider__range" type="range" value="138" min="0" max="254" disabled aria-disabled="true">
+														<span id="stft" class="range-slider__value">0</span>
+													</div>
+												</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('stft');"><i class="far fa-angle-right">&nbsp</i>Richer</button></td>
+											</tr>
+											<tr data-toggle="tooltip" data-placement="left" title="Adjusts the Long Term Fuel Trim (LTFT). Not a particularly useful setting as this is learnt by the ECU.">
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('ltft');">Leaner&nbsp<i class="fas fa-angle-left"></i></button></td>
+												<td class="adjustment"><i class="far fa-faucet" style="width:50px"></i>Long Term Fuel Trim
+													<div class="range-slider">
+														<input id="ltft" class="range-slider__range" type="range" value="138" min="0" max="254" disabled aria-disabled="true">
+														<span id="ltft" class="range-slider__value">0</span>
+													</div>
+												</td>
+												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('ltft');"><i class="far fa-angle-right">&nbsp</i>Richer</button></td>
+											</tr>
+											<tr data-toggle="tooltip" data-placement="left" title="Adjusts the ignition advance to overcome some situations during the service life of a vehicle where it might be wished to eradicate a problem such as a low octane fuel being constantly used or engine wear by slightly advancing the ignition timing the idle speed of the engine. The adjustments can be removed by resetting the adaptive values">
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('ignitionadvance');">Earlier&nbsp<i class="fa fa-angle-left"></i></button></td>
-												<td class="adjustment"><i class="fa fa-stopwatch" style="width:50px"></i>Ignition Advance
+												<td class="adjustment"><i class="fa fa-bolt" style="width:50px"></i>Ignition Advance
 													<div class="range-slider">
 														<input id="ignitionadvance" class="range-slider__range" type="range" value="128" min="116" max="140" disabled>
 														<span id="ignitionadvance" class="range-slider__value">0</span>
@@ -669,7 +709,55 @@
 								</div>
 							</div>
 						</div>
-						
+
+						<div id="actuators" class="tab-pane container">
+							<h2>Test Actuators</h2>
+							<div class="card">
+								<div class="card-body">
+									<table class="table">
+										<tbody>
+										<tr data-toggle="tooltip" data-placement="left" title="">
+											<td>Fuel Pump</td>
+											<td><input id="fuelpump" onchange="activateActuator(this)" type="checkbox" data-toggle="toggle" data-on="On" data-off="Off" data-onstyle="success"></td>
+										</tr>
+										<tr data-toggle="tooltip" data-placement="left" title="">
+											<td>PTC Heater</td>
+											<td><input id="ptc" type="checkbox" data-toggle="toggle" data-on="On" data-off="Off" data-onstyle="success"></td>
+										</tr>
+										<tr data-toggle="tooltip" data-placement="left" title="">
+											<td>AirCon</td>
+											<td><input id="aircon" type="checkbox" data-toggle="toggle" data-on="On" data-off="Off" data-onstyle="success"></td>
+										</tr>
+										<tr data-toggle="tooltip" data-placement="left" title="">
+											<td>Purge Valve</td>
+											<td><input id="purgevalve" type="checkbox" data-toggle="toggle" data-on="On" data-off="Off" data-onstyle="success"></td>
+										</tr>
+										<tr data-toggle="tooltip" data-placement="left" title="">
+											<td>Boost Valve</td>
+											<td><input id="boostvalve" type="checkbox" data-toggle="toggle" data-on="On" data-off="Off" data-onstyle="success"></td>
+										</tr>
+										<tr data-toggle="tooltip" data-placement="left" title="">
+											<td>Fan 1</td>
+											<td><input id="fan1" type="checkbox" data-toggle="toggle" data-on="On" data-off="Off" data-onstyle="success"></td>
+										</tr>
+										<tr data-toggle="tooltip" data-placement="left" title="">
+											<td>Fan 2</td>
+											<td><input id="fan2" type="checkbox" data-toggle="toggle" data-on="On" data-off="Off" data-onstyle="success"></td>
+										</tr>
+										<tr data-toggle="tooltip" data-placement="left" title="">
+											<td>Injectors</td>
+											<td><input id="injectors" type="checkbox" data-toggle="toggle" data-on="On" data-off="Off" data-onstyle="success"></td>
+										</tr>
+										<tr data-toggle="tooltip" data-placement="left" title="">
+											<td>Coil</td>
+											<td><input id="coil" type="checkbox" data-toggle="toggle" data-on="On" data-off="Off" data-onstyle="success"></td>
+										</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+
 						<div id="alerts" class="tab-pane container">
 							<h2>Fault Codes and Alerts</h2>
 							<div class="card bg-light">
@@ -723,8 +811,8 @@
 											
 											<div class="input-group mb-3">
 												<div class="input-group-prepend">
-													<button type="button" class="btn btn-outline-secondary">Serial Port</button>
-													<button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+													<button type="button" class="btn btn-outline-secondary" onclick="getAvailableSerialPorts()">Serial Port</button>
+													<button type="button" onfocus="getAvailableSerialPorts()" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 														<span class="sr-only">Toggle Dropdown</span>
 													</button>
 													<div class="dropdown-menu" id="ports">
@@ -733,7 +821,7 @@
 												<input type="text" class="form-control" id="port" placeholder="/dev/usb.serial" aria-label="Serial Port">
 											</div>	
 
-											<div class="input-group mb-3">
+											<div class="input-group mb-3 d-none">
 												<div class="input-group-prepend">
 													<div class="input-group-text">
 														<input type="checkbox" id="logtofile" aria-label="Checkbox for following text input">
@@ -774,6 +862,8 @@
 		<script type="text/javascript" src="/js/jquery-3.5.0.min.js"></script>
 		<script type="text/javascript" src="/js/popper.min.js"></script>
 		<script type="text/javascript" src="/js/bootstrap.js"></script>
+
+		<script type="text/javascript" src="/js/bootstrap-toggle.min.js"></script>
 		<script type="text/javascript" src="/fontawesome/js/fontawesome.min.js"></script>
 		<script type="text/javascript" src="/js/pro-sidebar.js"></script>
 		<script type="text/javascript" src="/js/gauge.min.js"></script>
@@ -782,13 +872,16 @@
 		<script type="text/javascript" src="/js/Chart.js"></script>
 
 		<!-- MemsFCR javascript functions -->
+		<script type="text/javascript" src="/js/memsfcr.js"></script>
+	<!--
 		<script type="text/javascript" src="/js/mems-constants.js"></script>
-		<script type="text/javascript" src="/js/mems-rangeslider.js"></script>
 		<script type="text/javascript" src="/js/mems-decorators.js"></script>
 		<script type="text/javascript" src="/js/mems-config.js"></script>
 		<script type="text/javascript" src="/js/mems-replay.js"></script>
 		<script type="text/javascript" src="/js/mems-ecu.js"></script>
         <script type="text/javascript" src="/js/mems-fcr.js"></script>
+    -->
+		<script type="text/javascript" src="/js/mems-rangeslider.js"></script>
         <script type="text/javascript" src="/js/mems-historical.js"></script>
         <script type="text/javascript" src="/js/mems-dashboard.js"></script>
 	</body>
