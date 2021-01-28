@@ -533,6 +533,9 @@ function readConfig() {
 }
 
 function updateConfigSettings(data) {
+    console.info("Version " + data.Version + " Build " + data.Build)
+    $("#version").text("Version " + data.Version + " Build " + data.Build)
+
     setPort(data.Port);
     setSerialPortSelection(data.Ports);
     setLogToFile(data.LogToFile, data.LogFolder);

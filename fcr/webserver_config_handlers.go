@@ -15,7 +15,7 @@ type AvailablePorts struct {
 // REST API : GET Config
 // returns the contents of the Config file as a JSON response
 func (webserver *WebServer) getConfigHandler(w http.ResponseWriter, r *http.Request) {
-	config := ReadConfig()
+	config := webserver.reader.Config
 	log.Infof("rest-get config (%v)", config)
 
 	defer r.Body.Close()

@@ -19,11 +19,13 @@ type MemsReader struct {
 	WebServer *WebServer
 }
 
-func NewMemsReader() *MemsReader {
+func NewMemsReader(version string, build string) *MemsReader {
 	reader := &MemsReader{}
 
 	// read the config
 	reader.Config = ReadConfig()
+	reader.Config.Version = version
+	reader.Config.Build = build
 
 	// set up the connection to the ECU
 	// this is also used to 'emulate' the ECU if

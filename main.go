@@ -101,7 +101,7 @@ func main() {
 	exit := make(chan int)
 
 	// set up and initialise the fault code reader
-	reader := fcr.NewMemsReader()
+	reader := fcr.NewMemsReader(Version, Build)
 	// start the web server
 	reader.StartWebServer()
 	// open the browser view

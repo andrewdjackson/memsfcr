@@ -102,7 +102,7 @@ func WriteConfig(c *Config) {
 	log.Infof("updated config: %s", filename)
 }
 
-// ReadConfig readsthe config file
+// ReadConfig reads the config file
 func ReadConfig() *Config {
 	// create the folders if they don't exist
 	createDataFolders(homeFolder)
