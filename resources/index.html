@@ -644,7 +644,7 @@
 										&nbsp;</div>
 									<table class="table">
 										<tbody>
-											<tr data-toggle="tooltip" data-placement="left" title="The Idle Speed can be adjusted to overcome some situations during the service life of a vehicle where it might be wished to eradicate a problem such as a rattle or engine wear by slightly increasing the idle speed of the engine. This offset adds approximately 50 RPM to the Idle target speed. The adjustments can be removed by resetting the adaptive values.">
+											<tr data-toggle="tooltip" data-placement="left" title="Sets the desired idle engine speed (warm engine, but should also influence cold/fast-idle). Granularity is +1 step = +25 rpm. The adjustments can be removed by resetting the adaptive values.">
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('idlespeed');">Slower&nbsp<i class="fa fa-angle-left"></i></button></td>
 												<td class="adjustment"><i class="fa fa-tachometer-alt" style="width:50px"></i>Idle Speed Offset
 													<div class="range-slider">
@@ -654,7 +654,7 @@
 												</td>
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('idlespeed');"><i class="fa fa-angle-right">&nbsp</i>Faster</button></td>
 											</tr>
-											<tr data-toggle="tooltip" data-placement="left" title="Adjust Idle Air Control valve (IACV).  This is the number of IACV (Idle Air Control Valve) steps from fully closed (0) which the MEMS ECU uses as the correct position to maintain the target idle speed with a fully warmed up engine. This value should be within the range of 10 to 50 steps.">
+											<tr data-toggle="tooltip" data-placement="left" title="This adjusts the number of IACV (Idle Air Control Valve) steps from fully closed (0) which the MEMS ECU uses as the correct position to maintain the target idle speed with a fully warmed up engine. This value should be within the range of 10 to 50 steps.">
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('iac');">Close&nbsp<i class="fa fa-angle-left"></i></button></td>
 												<td class="adjustment"><i class="fa fa-compress" style="width:50px"></i>Idle Air Control Valve (Steps)
 													<div class="range-slider">
@@ -664,7 +664,7 @@
 												</td>
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('iac');"><i class="fa fa-angle-right">&nbsp</i>Open</button></td>
 											</tr>
-											<tr data-toggle="tooltip" data-placement="left" title="">
+											<tr data-toggle="tooltip" data-placement="left" title="Adjusts the rate the engine returns to idle speed. Its effect is best visible during gear change, the engine will maintain the revs a bit longer before it returns to idle (or shorter, depending if increased or decreased the value)">
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('idledecay');">Decrease&nbsp<i class="fa fa-angle-left"></i></button></td>
 												<td class="adjustment"><i class="fa fa-tachometer-alt" style="width:50px"></i>Idle Decay (Hot Idle)
 													<div class="range-slider">
@@ -674,7 +674,7 @@
 												</td>
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('idledecay');"><i class="fa fa-angle-right">&nbsp</i>Increase</button></td>
 											</tr>
-											<tr data-toggle="tooltip" data-placement="left" title="Adjusts the Short Term Fuel Trim (STFT).">
+											<tr data-toggle="tooltip" data-placement="left" title="Adjusts the Short Term Fuel Trim (STFT) which sets the base idle fueling trim. This is an offset from the main idle map. One should increment or decrement so that the FuelTrim value equals 100 (meaning no additional feedback is needed from the lambda sensor). Sometimes might be useful to set it a little bit on the rich side (FuelTrim <100)">
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('stft');">Leaner&nbsp<i class="fas fa-angle-left"></i></button></td>
 												<td class="adjustment"><i class="far fa-faucet" style="width:50px"></i>Short Term Fuel Trim
 													<div class="range-slider">
@@ -684,7 +684,7 @@
 												</td>
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-left float-right" onclick="increase('stft');"><i class="far fa-angle-right">&nbsp</i>Richer</button></td>
 											</tr>
-											<tr data-toggle="tooltip" data-placement="left" title="Adjusts the Long Term Fuel Trim (LTFT).">
+											<tr data-toggle="tooltip" data-placement="left" title="Adjusts the Long Term Fuel Trim (LTFT). Not a particularly useful setting as this is learnt by the ECU.">
 												<td><button type="button" style="width:150px" class="btn btn-outline-info text-right" onclick="decrease('ltft');">Leaner&nbsp<i class="fas fa-angle-left"></i></button></td>
 												<td class="adjustment"><i class="far fa-faucet" style="width:50px"></i>Long Term Fuel Trim
 													<div class="range-slider">
