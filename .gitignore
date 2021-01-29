@@ -113,3 +113,5 @@ logs
 /dist/darwin
 /dist/windows
 memsfcr
+go_build_
+resources/memsfcr
