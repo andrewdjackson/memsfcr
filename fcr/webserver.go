@@ -63,8 +63,11 @@ func (webserver *WebServer) newRouter() *mux.Router {
 
 	// determine the path to find the local html files
 	// based on the current executable path
-	exepath, _ := os.Executable()
-	path, err := filepath.Abs(filepath.Dir(exepath))
+	dir, _ := os.Getwd()
+	exepath := filepath.FromSlash(dir)
+	path, err := filepath.Abs(exepath)
+
+	log.Infof("path to the local html files (%s) on (%s)", path, runtime.GOOS)
 
 	// use default browser on Windows until I can get the Webview to work
 	if runtime.GOOS == "darwin" {
