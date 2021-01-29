@@ -1,6 +1,9 @@
 package main
 
 import (
+	"flag"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -53,21 +56,20 @@ func init() {
 	// get the application binary current directory
 	dir, _ = os.Getwd()
 	AppFolder = filepath.FromSlash(dir)
-
-	// intialise the logging
-	setupLogging()
 }
 
-func setupLogging() {
-	/*
+func setupLogging(debug bool) {
+	if debug {
 		// create a log file using the current date and time
 		// this saves trying to roll logs
 		currentTime := time.Now()
 		dateTime := currentTime.Format("2006-01-02 15:04:05")
 		dateTime = strings.ReplaceAll(dateTime, ":", "")
 		dateTime = strings.ReplaceAll(dateTime, " ", "-")
-		filename := fmt.Sprintf("logs/debug-%s.log", dateTime)
+		filename := fmt.Sprintf("%s/memsfcr/logs/debug-%s.log", HomeFolder, dateTime)
 		filename = filepath.FromSlash(filename)
+
+		log.Infof("debug logging to %s", filename)
 
 		// write logs to file and console
 		f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -75,24 +77,38 @@ func setupLogging() {
 			log.WithFields(log.Fields{"error": err}).Warn("error opening log file")
 		}
 
+		log.SetFormatter(&log.TextFormatter{
+			DisableColors:   true,
+			FullTimestamp:   true,
+			TimestampFormat: "15:04:05.000",
+		})
+
 		multilogwriter := io.MultiWriter(os.Stdout, f)
 		log.SetOutput(multilogwriter)
-	*/
+	} else {
+		log.SetOutput(os.Stdout)
 
-	log.SetOutput(os.Stdout)
-
-	log.SetFormatter(&log.TextFormatter{
-		ForceColors:     false,
-		DisableColors:   false,
-		FullTimestamp:   true,
-		TimestampFormat: "15:04:05.000",
-	})
+		log.SetFormatter(&log.TextFormatter{
+			ForceColors:     false,
+			DisableColors:   false,
+			FullTimestamp:   true,
+			TimestampFormat: "15:04:05.000",
+		})
+	}
 
 	// disable function logging
 	log.SetReportCaller(false)
 }
 
 func main() {
+	var debug bool
+
+	flag.BoolVar(&debug, "debug", false, "output to a debug file")
+	flag.Parse()
+
+	// initialise the logging
+	setupLogging(debug)
+
 	log.Infof("MemsFCR Version %s, Build %s", Version, Build)
 	log.Infof("MemsFCR Home Folder %s", HomeFolder)
 	log.Infof("MemsFCR App Folder %s", AppFolder)
