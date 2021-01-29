@@ -69,6 +69,10 @@ func (webserver *WebServer) newRouter() *mux.Router {
 
 	// use default browser on Windows until I can get the Webview to work
 	if runtime.GOOS == "darwin" {
+		// get the executable path on MacOS
+		exepath, _ = os.Executable()
+		path, err = filepath.Abs(filepath.Dir(exepath))
+
 		// MacOS use .app Resources
 		if strings.Contains(path, "MacOS") {
 			// packaged app
@@ -79,6 +83,7 @@ func (webserver *WebServer) newRouter() *mux.Router {
 		}
 	} else if runtime.GOOS == "linux" {
 		// linux path
+		// get the executable path
 		webroot = fmt.Sprintf("%s/resources", path)
 	} else {
 		// windows use the exe subdirectory
