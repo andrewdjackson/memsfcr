@@ -67,8 +67,6 @@ func (webserver *WebServer) newRouter() *mux.Router {
 	exepath := filepath.FromSlash(dir)
 	path, err := filepath.Abs(exepath)
 
-	log.Infof("path to the local html files (%s) on (%s)", path, runtime.GOOS)
-
 	// use default browser on Windows until I can get the Webview to work
 	if runtime.GOOS == "darwin" {
 		// MacOS use .app Resources
@@ -89,7 +87,7 @@ func (webserver *WebServer) newRouter() *mux.Router {
 
 	webserver.httpDir = filepath.ToSlash(webroot)
 
-	log.Infof("path to the local html files (%s)", webserver.httpDir)
+	log.Infof("path to the local html files (%s) on (%s)", webserver.httpDir, runtime.GOOS)
 
 	if err != nil {
 		log.Errorf("unable to find the current path to the local html files (%s)", err)
