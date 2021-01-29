@@ -16,6 +16,10 @@ body {
     flex-direction: column;
 }
 
+.sidebar-wrapper .sidebar-menu {
+    padding-bottom: 100px;
+}
+
 .card {
     margin-bottom: 15px;
     border-radius: 0;
