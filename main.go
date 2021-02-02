@@ -69,8 +69,6 @@ func setupLogging(debug bool) {
 		filename := fmt.Sprintf("%s/memsfcr/logs/debug-%s.log", HomeFolder, dateTime)
 		filename = filepath.FromSlash(filename)
 
-		log.Infof("debug logging to %s", filename)
-
 		// write logs to file and console
 		f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
 		if err != nil {
@@ -85,6 +83,7 @@ func setupLogging(debug bool) {
 
 		multilogwriter := io.MultiWriter(os.Stdout, f)
 		log.SetOutput(multilogwriter)
+		log.Infof("debug logging to %s", filename)
 	} else {
 		log.SetOutput(os.Stdout)
 
