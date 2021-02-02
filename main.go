@@ -72,7 +72,7 @@ func setupLogging(debug bool) {
 		log.Infof("debug logging to %s", filename)
 
 		// write logs to file and console
-		f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
 		if err != nil {
 			log.WithFields(log.Fields{"error": err}).Warn("error opening log file")
 		}
