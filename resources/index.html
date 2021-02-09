@@ -14,7 +14,7 @@
 
     <!-- CSS -->
     <link href="/css/bootstrap.css" rel="stylesheet" />
-	<link href="/css/bootstrap-toggle.min.css" rel="stylesheet">
+	<link href="/css/bootstrap4-toggle.min.css" rel="stylesheet">
     <link href="/fontawesome/css/all.css" rel="stylesheet" />
     <link href="/css/pro-sidebar.css" rel="stylesheet" />
     <link href="/css/sidebar-themes.css" rel="stylesheet" />
@@ -148,7 +148,7 @@
 			<main class="page-content">
 				<div class="container-fluid">
 					<div class="tab-content">
-						
+
 						<div id="dashboard" class="tab-pane active container">
 							<div class="card">
 								<div class="card-body">
@@ -173,7 +173,7 @@
 												<div class="spark-container">
 													<canvas id="mapspark"></canvas>
 												</div>
-											</div>	
+											</div>
 										</div>
 										<div class="col">
 											<div class="dashboard-container">
@@ -184,8 +184,8 @@
 												<div class="spark-container">
 													<canvas id="throttlespark"></canvas>
 												</div>
-											</div>	
-										</div> 
+											</div>
+										</div>
 										<div class="col">
 											<div class="dashboard-container">
 												<div class="gauge-label-container">(IAC) Stepper Motor Position (Steps)</div>
@@ -196,7 +196,7 @@
 													<canvas id="iacspark"></canvas>
 												</div>
 											</div>
-										</div> 
+										</div>
 
 										<div class="col">
 											<div class="dashboard-container">
@@ -208,7 +208,7 @@
 													<canvas id="batteryspark"></canvas>
 												</div>
 											</div>
-										</div> 
+										</div>
 										<div class="col">
 											<div class="dashboard-container">
 												<div class="gauge-label-container">(CTS) Coolant Temperature (°C)</div>
@@ -219,7 +219,7 @@
 													<canvas id="coolantspark"></canvas>
 												</div>
 											</div>
-										</div> 
+										</div>
 										<div class="col">
 											<div class="dashboard-container">
 												<div class="gauge-label-container">(ATS) Air Intake Temperature (°C)</div>
@@ -230,8 +230,8 @@
 													<canvas id="airspark"></canvas>
 												</div>
 											</div>
-										</div> 
-										<div class="col">	
+										</div>
+										<div class="col">
 											<div class="dashboard-container">
 												<div class="gauge-label-container">(OS) Lamdba Voltage (mV)</div>
 												<div class="gauge-container" data-toggle="tooltip" data-placement="top" title="Signal voltage ranges from about 0.2 volts, to about 0.9 volts, which the ECU interprets as changes in the oxygen content of the exhaust stream. A signal voltage of 0.45 represents an air/fuel mixture that is at, or close to the stoichiometric value, and signal voltages above or below this value represent either a rich, or a lean mixture.">
@@ -244,7 +244,7 @@
 													<canvas id="lambdaspark"></canvas>
 												</div>
 											</div>
-										</div> 
+										</div>
 
 										<div class="col">
 											<div class="dashboard-container">
@@ -256,7 +256,7 @@
 													<canvas id="fuelspark"></canvas>
 												</div>
 											</div>
-										</div> 
+										</div>
 										<div class="col">
 											<div class="dashboard-container">
 												<div class="gauge-label-container">Long Term Fuel Trim (%)</div>
@@ -267,7 +267,7 @@
 													<canvas id="ltfuelspark"></canvas>
 												</div>
 											</div>
-										</div> 
+										</div>
 										<div class="col">
 											<div class="dashboard-container">
 												<div class="gauge-label-container">Fuel : Air Ratio</div>
@@ -278,7 +278,7 @@
 													<canvas id="airfuelspark"></canvas>
 												</div>
 											</div>
-										</div> 
+										</div>
 										<div class="col">
 											<div class="dashboard-container">
 												<div class="gauge-label-container">Ignition Advance (°)</div>
@@ -289,12 +289,12 @@
 													<canvas id="ignitionspark"></canvas>
 												</div>
 											</div>
-										</div> 
+										</div>
 									</div>
 								</div>
 							</div>
 						</div>
-						
+
 						<div id="profiling" class="tab-pane container">
 							<h2>Running Performance</h2>
 							<div class="card">
@@ -317,7 +317,7 @@
 								</div>
 							</div>
 						</div>
-						
+
 						<div id="data" class="tab-pane container">
 							<h2>ECU Data</h2>
 							<div class="card">
@@ -494,7 +494,7 @@
 													</tbody>
 												</table>
 											</div>
-							
+
 											<div class="col-md-6">
 												<table class="table">
 													<thead class="thead-light">
@@ -635,7 +635,7 @@
 								</div>
 							</div>
 						</div>
-						
+
 						<div id="adjustments" class="tab-pane container">
 							<h2>Adaptive Values</h2>
 							<div class="card">
@@ -765,7 +765,7 @@
 									<div class="mb-5">
 										<button type="button" class="btn btn-success" onclick="clearFaultCodes();"><i class="fa fa-stethoscope">&nbsp</i>Clear Faults</button>
 									</div>
-										
+
 									<span>
 									<div class="led-box"><div class="led-green-off" id="idleswitch"></div><p>Idle Switch</p></div>
 									<div class="led-box"><div class="led-green-off" id="parkswitch"></div><p>Park / Neutral Switch</p></div>
@@ -808,7 +808,7 @@
 								<div class="card-body">
 									<form>
 										<div class="form-group">
-											
+
 											<div class="input-group mb-3">
 												<div class="input-group-prepend">
 													<button type="button" class="btn btn-outline-secondary" onclick="getAvailableSerialPorts()">Serial Port</button>
@@ -819,7 +819,7 @@
 													</div>
 												</div>
 												<input type="text" class="form-control" id="port" placeholder="/dev/usb.serial" aria-label="Serial Port">
-											</div>	
+											</div>
 
 											<div class="input-group mb-3 d-none">
 												<div class="input-group-prepend">
@@ -834,13 +834,13 @@
 											<div class="input-group mb-3">
 												<div class="input-group-prepend">
 													<label class="input-group-text" for="range-slider">ECU Sample Rate (ms)</label>
-											
+
 													<div class="range-slider-settings" data-toggle="tooltip" data-placement="top" title="The ECU will be called twice per ECU Sample as data requests require 2 calls. A value <500ms can introduce instability.">
 														<input id="ecuqueryfrequency" class="range-slider__range" type="range" value="950" min="250" max="1500" step="50" enabled>
 														<span id="ecuqueryfrequency" class="range-slider__value">0</span>
 													</div>
-												</div>	
-											</div>		
+												</div>
+											</div>
 
 											<span class="input-group-btn">
 											<button class="btn btn-default btn-outline-success my-2 my-sm-0" id="applySettings" onclick="Save();" type="button">Apply</button>
@@ -862,7 +862,7 @@
 		<script type="text/javascript" src="/js/jquery-3.5.0.min.js"></script>
 		<script type="text/javascript" src="/js/popper.min.js"></script>
 		<script type="text/javascript" src="/js/bootstrap.js"></script>
-		<script type="text/javascript" src="/js/bootstrap-toggle.min.js"></script>
+		<script type="text/javascript" src="/js/bootstrap4-toggle.min.js"></script>
 		<script type="text/javascript" src="/fontawesome/js/fontawesome.min.js"></script>
 		<script type="text/javascript" src="/js/pro-sidebar.js"></script>
 		<script type="text/javascript" src="/js/gauge.min.js"></script>
