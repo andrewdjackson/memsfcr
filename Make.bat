@@ -8,6 +8,7 @@ set VERSION=2.1.2
 set VCNEXE="C:\Program Files\CodeNotary\vcn"
 
 go build -i -v -o %WINDOWS% -ldflags="-H windowsgui -s -w -X main.version=%VERSION%"
-rem %VCNEXE% notarize %WINDOWS%
-rem %VCNEXE% login
-rem %VCNEXE% authenticate %WINDOWS%
+
+%VCNEXE% notarize %WINDOWS%
+%VCNEXE% login
+%VCNEXE% authenticate %WINDOWS%
