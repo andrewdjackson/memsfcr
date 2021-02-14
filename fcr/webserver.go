@@ -117,6 +117,7 @@ func (webserver *WebServer) newRouter() *mux.Router {
 	r.HandleFunc("/rosco/dataframe", webserver.getECUDataframes).Methods("GET")
 	r.HandleFunc("/rosco/heartbeat", webserver.postECUHeartbeat).Methods("POST")
 	r.HandleFunc("/rosco/iac", webserver.getECUIAC).Methods("GET")
+	r.HandleFunc("/rosco/diagnostics", webserver.getDiagnostics).Methods("GET")
 
 	r.HandleFunc("/rosco/reset", webserver.postECUReset).Methods("POST")
 	r.HandleFunc("/rosco/reset/ecu", webserver.postECUReset).Methods("POST")

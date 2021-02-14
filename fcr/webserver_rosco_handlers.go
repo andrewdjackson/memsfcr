@@ -156,6 +156,25 @@ func (webserver *WebServer) getECUDataframes(w http.ResponseWriter, r *http.Requ
 }
 
 //
+// Diagnostics
+// returns the diagnostics
+//
+func (webserver *WebServer) getDiagnostics(w http.ResponseWriter, r *http.Request) {
+	log.Infof("rest-get read diagnostics")
+	defer r.Body.Close()
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	webserver.reader.ECU.Diagnostics.Analyse()
+	diagnostics := webserver.reader.ECU.Diagnostics
+
+	if err := json.NewEncoder(w).Encode(diagnostics); err != nil {
+		log.Warnf("rest-post response failed (%+v)", err)
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+//
 // Read the IAC Position
 // the iac position is used by the ecu to adjust the air fuel ratio
 // by incrementing and decrementing the stepper motor.
