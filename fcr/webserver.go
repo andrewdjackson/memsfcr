@@ -1,7 +1,10 @@
 package fcr
 
 import (
+	"encoding/json"
 	"fmt"
+	"html/template"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -38,6 +41,11 @@ type WebServer struct {
 	// Pointer to Mems Fault Code Reader
 	reader *MemsReader
 }
+
+const (
+	indexTemplate = "resources/index.template.html"
+	indexData     = "resources/index.template.json"
+)
 
 // NewWebInterface creates a new web interface
 func NewWebServer(reader *MemsReader) *WebServer {
@@ -142,14 +150,44 @@ func (webserver *WebServer) newRouter() *mux.Router {
 	r.HandleFunc("/rosco/test/injectors", webserver.postECUTestInjectors).Methods("POST")
 	r.HandleFunc("/rosco/test/coil", webserver.postECUTestCoil).Methods("POST")
 
+	r.HandleFunc("/", webserver.renderIndex)
+
 	// Create a file server which serves files out of the "./ui/static" directory.
 	// Note that the path given to the http.Dir function is relative to the project
 	// directory root.
 	fileServer := http.FileServer(http.Dir(webserver.httpDir))
-	r.Handle("/", fileServer)
+	//r.Handle("/", fileServer)
 	r.PathPrefix("/").Handler(fileServer).Methods("GET")
 
 	return r
+}
+
+func (webserver *WebServer) renderIndex(w http.ResponseWriter, r *http.Request) {
+	log.Infof("rendering html template")
+	page, err := template.ParseFiles(indexTemplate)
+
+	if err != nil {
+		log.Errorf("template error: ", err)
+	}
+
+	data := map[string]interface{}{}
+	jsondata, err := ioutil.ReadFile(indexData)
+
+	if err != nil {
+		log.Errorf("template error: ", err)
+	}
+
+	if err := json.Unmarshal(jsondata, &data); err != nil {
+		log.Errorf("template error: ", err)
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	err = page.Execute(w, data)
+
+	if err != nil {
+		log.Errorf("\nRender Error: %v\n", err)
+		return
+	}
 }
 
 // RunHTTPServer run the server
@@ -158,7 +196,7 @@ func (webserver *WebServer) RunHTTPServer() {
 	webserver.router = webserver.newRouter()
 
 	// We can then pass our router (after declaring all our routes) to this method
-	// (where previously, we were leaving the secodn argument as nil)
+	// (where previously, we were leaving the second argument as nil)
 	listener, err := net.Listen("tcp", ":8081")
 
 	if err != nil {

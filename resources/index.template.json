@@ -1,0 +1,9 @@
+{
+  "Navigation" : [
+    {
+      "Id": "",
+      "Name" : "Profiling",
+      "Panel" :  "#profiling"
+    }
+  ]
+}

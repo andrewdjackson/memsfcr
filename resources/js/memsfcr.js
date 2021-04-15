@@ -57,6 +57,11 @@ const IndicatorRPMSensor = "rpmsensor"
 const IndicatorIACLow = "iaclow"
 const IndicatorO2SystemFault = "systemfault"
 
+// Analytics LEDs
+const AnalyticsEngineRunning = "enginerunning"
+const AnalyticsCrankshaftSensorFault = "crankshaftsensor"
+const AnalyticsMapFault = "mapfault"
+
 // LED statuses
 const LEDFault = "fault"
 const LEDStatus = "status"
@@ -407,6 +412,26 @@ function setStatusLED(status, id, statustype = LEDStatus) {
     $(id).removeClass("led-" + led);
     $(id).removeClass("led-" + led + "-off");
     $(id).addClass(c);
+}
+
+function setTooltip(id, message) {
+    id = "#" + id;
+    $(id).tooltip({title: message});
+}
+
+function updateAnalytics() {
+    if (memsreader.memsdata.Analytics.IsEngineRunning) {
+        setStatusLED(true, AnalyticsEngineRunning, LEDStatus);
+        setTooltip(AnalyticsCrankshaftSensorFault, "Engine is running")
+    }
+    if (memsreader.memsdata.Analytics.CrankshaftSensorFault) {
+        setStatusLED(true, AnalyticsCrankshaftSensorFault, LEDFault);
+        setTooltip(AnalyticsCrankshaftSensorFault, "Crankshaft Sensor Fault, unable to start engine")
+    }
+    if (memsreader.memsdata.Analytics.MapFault) {
+        setStatusLED(true, AnalyticsMapFault, LEDFault);
+        setTooltip(AnalyticsCrankshaftSensorFault, "MAP Sensor Fault detected, check the vacuum pipes")
+    }
 }
 
 function setConnectButtonStyle(name, style, f) {
@@ -864,6 +889,7 @@ function updateECUDataframe(data) {
     updateGraphs(data);
     updateDataFrameValues(data);
     updateAdjustmentValues(data);
+    updateAnalytics()
 
     if (memsreader.status.emulated) {
         // increment the replay progress
