@@ -64,6 +64,9 @@
             </div>
 
             <div class="sidebar-header">
+                {{if .NewVersion}}
+                    <div class="font-weight-light small"><a target="_blank" class="link-danger" href='https://memsfcr.co.uk/download/'>{{.Version}}</a></div>
+                {{ end }}
                 <div class="d-flex justify-content-center mb-3">
                     <button class="btn btn-outline-success btn-sm" id="connectECUbtn" type="button">
                         <i class="fa fa-plug">&nbsp</i>Connect

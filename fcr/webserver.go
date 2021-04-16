@@ -1,6 +1,7 @@
 package fcr
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -181,6 +182,14 @@ func (webserver *WebServer) renderIndex(w http.ResponseWriter, r *http.Request) 
 		log.Errorf("template error: ", err)
 	}
 
+	data["Version"] = webserver.reader.Config.Version
+	latestVersion := webserver.newVersionAvailable()
+	if latestVersion == webserver.reader.Config.Version {
+		data["Version"] = "New Version! Click to Download"
+		data["NewVersion"] = true
+		log.Infof("%s", data["Version"])
+	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	err = page.Execute(w, data)
 
@@ -239,4 +248,26 @@ func (webserver *WebServer) ListenToWebSocketChannelLoop() {
 		webserver.sendMessageToWebInterface(m)
 		log.Infof("sent message '%s : %s' on ToWebSocketChannel", m.Action, m.Data)
 	}
+}
+
+func (webserver *WebServer) newVersionAvailable() string {
+	versionUrl := "https://raw.githubusercontent.com/andrewdjackson/memsfcr/master/version"
+	latestVersion := webserver.reader.Config.Version
+	response, err := http.Get(versionUrl)
+	defer response.Body.Close()
+
+	if err == nil {
+		var lines []string
+		scanner := bufio.NewScanner(response.Body)
+		for scanner.Scan() {
+			lines = append(lines, scanner.Text())
+		}
+
+		log.Infof("repo version %s", lines[0])
+		latestVersion = lines[0]
+	} else {
+		log.Warnf("version check failed %s", err)
+	}
+
+	return latestVersion
 }

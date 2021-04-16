@@ -43,6 +43,7 @@ func init() {
 			Version = "0.0.0"
 		} else {
 			Version = string(version)
+			Version = strings.TrimSuffix(Version, "\n")
 		}
 	}
 
