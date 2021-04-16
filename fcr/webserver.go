@@ -24,12 +24,18 @@ type WebMsg struct {
 	Data   string `json:"data"`
 }
 
+type RelativePaths struct {
+	Webroot string
+	ExePath string
+}
+
 // WebServer the web interface
 type WebServer struct {
 	// multiplex router interface
 	router *mux.Router
 	// websocket interface
 	httpDir  string
+	paths    RelativePaths
 	ws       *websocket.Conn
 	upgrader websocket.Upgrader
 	// HTTPPort used by the HTTP Server instance
@@ -44,8 +50,8 @@ type WebServer struct {
 }
 
 const (
-	indexTemplate = "resources/index.template.html"
-	indexData     = "resources/index.template.json"
+	indexTemplate = "index.template.html"
+	indexData     = "index.template.json"
 )
 
 // NewWebInterface creates a new web interface
@@ -57,6 +63,7 @@ func NewWebServer(reader *MemsReader) *WebServer {
 	webserver.httpDir = ""
 	webserver.ServerRunning = false
 	webserver.reader = reader
+	webserver.paths = RelativePaths{}
 
 	webserver.upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -67,45 +74,51 @@ func NewWebServer(reader *MemsReader) *WebServer {
 	return webserver
 }
 
-func (webserver *WebServer) newRouter() *mux.Router {
-	var webroot string
+func (webserver *WebServer) getRelativePaths() RelativePaths {
+	paths := RelativePaths{}
 
 	// determine the path to find the local html files
 	// based on the current executable path
 	dir, _ := os.Getwd()
 	exepath := filepath.FromSlash(dir)
-	path, err := filepath.Abs(exepath)
+	paths.ExePath, _ = filepath.Abs(exepath)
 
 	// use default browser on Windows until I can get the Webview to work
 	if runtime.GOOS == "darwin" {
 		// get the executable path on MacOS
 		exepath, _ = os.Executable()
-		path, err = filepath.Abs(filepath.Dir(exepath))
+		paths.ExePath, _ = filepath.Abs(filepath.Dir(exepath))
 
 		// MacOS use .app Resources
-		if strings.Contains(path, "MacOS") {
+		if strings.Contains(paths.ExePath, "MacOS") {
 			// packaged app
-			webroot = strings.Replace(path, "MacOS", "Resources", -1)
+			paths.Webroot = strings.Replace(paths.ExePath, "MacOS", "Resources", -1)
 		} else {
 			// running a local or dev version
-			webroot = fmt.Sprintf("%s/Resources", path)
+			paths.Webroot = fmt.Sprintf("%s/Resources", paths.ExePath)
 		}
 	} else if runtime.GOOS == "linux" {
 		// linux path
 		// get the executable path
-		webroot = fmt.Sprintf("%s/resources", path)
+		paths.Webroot = fmt.Sprintf("%s/resources", paths.ExePath)
 	} else {
 		// windows use the exe subdirectory
-		webroot = fmt.Sprintf("%s\\resources", path)
+		paths.Webroot = fmt.Sprintf("%s\\resources", paths.ExePath)
 	}
 
-	webserver.httpDir = filepath.ToSlash(webroot)
+	paths.Webroot = filepath.ToSlash(paths.Webroot)
+
+	log.Infof("path to the local html files (%s)", paths.Webroot)
+
+	return paths
+}
+
+func (webserver *WebServer) newRouter() *mux.Router {
+	webserver.paths = webserver.getRelativePaths()
+
+	webserver.httpDir = webserver.paths.Webroot
 
 	log.Infof("path to the local html files (%s) on (%s)", webserver.httpDir, runtime.GOOS)
-
-	if err != nil {
-		log.Errorf("unable to find the current path to the local html files (%s)", err)
-	}
 
 	// set a router and a handler to accept messages over the websocket
 
@@ -165,14 +178,21 @@ func (webserver *WebServer) newRouter() *mux.Router {
 
 func (webserver *WebServer) renderIndex(w http.ResponseWriter, r *http.Request) {
 	log.Infof("rendering html template")
-	page, err := template.ParseFiles(indexTemplate)
+
+	templateFile := fmt.Sprintf("%s/%s", webserver.paths.Webroot, indexTemplate)
+	templateFile = filepath.ToSlash(templateFile)
+
+	dataFile := fmt.Sprintf("%s/%s", webserver.paths.Webroot, indexData)
+	dataFile = filepath.ToSlash(dataFile)
+
+	page, err := template.ParseFiles(templateFile)
 
 	if err != nil {
 		log.Errorf("template error: ", err)
 	}
 
 	data := map[string]interface{}{}
-	jsondata, err := ioutil.ReadFile(indexData)
+	jsondata, err := ioutil.ReadFile(dataFile)
 
 	if err != nil {
 		log.Errorf("template error: ", err)
