@@ -204,7 +204,7 @@ func (webserver *WebServer) renderIndex(w http.ResponseWriter, r *http.Request) 
 
 	data["Version"] = webserver.reader.Config.Version
 	latestVersion := webserver.newVersionAvailable()
-	if latestVersion == webserver.reader.Config.Version {
+	if latestVersion != webserver.reader.Config.Version {
 		data["Version"] = "New Version! Click to Download"
 		data["NewVersion"] = true
 		log.Infof("%s", data["Version"])
