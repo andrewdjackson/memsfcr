@@ -12,7 +12,7 @@ var replayPosition = 0
 // duration in milliseconds between calls to the ECU for
 // dataframes. the ECU will struggle to respond with a
 // value less than 450ms
-var ECUQueryInterval = 450
+var ECUQueryInterval = 1000
 var ECUHeartbeatInterval = 2000
 var dataframeLoop
 
@@ -334,7 +334,7 @@ function updateLEDs(data) {
         // this must be evaluated before we set the minLambda warning to ensure
         // we have at least one occurrence first
         if (minLambda && data.LambdaVoltage <= 10) {
-            setStatusLED(true, IndicatorLambdaLowFault, LEDFault);
+            setStatusLED(true, IndicatorLambdaLowFault, LEDWarning);
             derived++;
         }
 
@@ -348,7 +348,7 @@ function updateLEDs(data) {
         // this must be evaluated before we set the maxLambda warning to ensure
         // we have at least one occurrence first
         if (maxLambda && data.LambdaVoltage >= 900) {
-            setStatusLED(true, IndicatorLambdaHighFault, LEDFault);
+            setStatusLED(true, IndicatorLambdaHighFault, LEDWarning);
             derived++;
         }
 

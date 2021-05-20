@@ -1,4 +1,464 @@
 {
+  "ECUQueryInterval" : {
+    "Value": 1000,
+    "Min": 500,
+    "Max": 2000,
+    "Steps": 50
+  },
+  "Adjustments" : [
+    {
+      "Id": "idlespeed",
+      "Name": "Idle Speed Offset",
+      "Description": "Sets the desired idle engine speed (warm engine, but should also influence cold/fast-idle). Granularity is +1 step = +25 rpm. The adjustments can be removed by resetting the adaptive values.",
+      "Icon": "fa-tachometer-alt",
+      "DecreaseLabel": "Slower",
+      "IncreaseLabel": "Faster",
+      "Value": 128,
+      "Min": 120,
+      "Max": 136,
+      "Steps": 1
+    },
+    {
+      "Id": "iac",
+      "Name": "Idle Air Control Valve (Steps)",
+      "Description": "This adjusts the number of IACV (Idle Air Control Valve) steps from fully closed (0) which the MEMS ECU uses as the correct position to maintain the target idle speed with a fully warmed up engine. This value should be within the range of 10 to 50 steps.",
+      "Icon": "fa-compress",
+      "DecreaseLabel": "Open",
+      "IncreaseLabel": "Close",
+      "Value": 10,
+      "Min": 0,
+      "Max": 50,
+      "Steps": 1
+    },
+    {
+      "Id": "idledecay",
+      "Name": "Idle Decay (Hot Idle)",
+      "Description": "Adjusts the rate the engine returns to idle speed. Its effect is best visible during gear change, the engine will maintain the revs a bit longer before it returns to idle (or shorter, depending if increased or decreased the value)",
+      "Icon": "fa-tachometer-alt",
+      "DecreaseLabel": "Decrease",
+      "IncreaseLabel": "Increase",
+      "Value": 35,
+      "Min": 10,
+      "Max": 60,
+      "Steps": 1
+    },
+    {
+      "Id": "stft",
+      "Name": "Short Term Fuel Trim",
+      "Description": "Adjusts the Short Term Fuel Trim (STFT) which sets the base idle fueling trim. This is an offset from the main idle map. One should increment or decrement so that the FuelTrim value equals 100 (meaning no additional feedback is needed from the lambda sensor). Sometimes might be useful to set it a little bit on the rich side (FuelTrim <100)",
+      "Icon": "",
+      "DecreaseLabel": "Leaner",
+      "IncreaseLabel": "Richer",
+      "Value": 138,
+      "Min": 10,
+      "Max": 254,
+      "Steps": 1
+    },
+    {
+    "Id": "ltft",
+    "Name": "Long Term Fuel Trim",
+    "Description": "Adjusts the Long Term Fuel Trim (LTFT). Not a particularly useful setting as this is learnt by the ECU",
+    "Icon": "fa-faucet",
+    "DecreaseLabel": "Leaner",
+    "IncreaseLabel": "Richer",
+    "Value": 138,
+    "Min": 10,
+    "Max": 254,
+    "Steps": 1
+    },
+    {
+      "Id": "ignitionadvance",
+      "Name": "Ignition Advance",
+      "Description": "Adjusts the ignition advance to overcome some situations during the service life of a vehicle where it might be wished to eradicate a problem such as a low octane fuel being constantly used or engine wear by slightly advancing the ignition timing the idle speed of the engine. The adjustments can be removed by resetting the adaptive values",
+      "Icon": "fa-bolt",
+      "DecreaseLabel": "Earlier",
+      "IncreaseLabel": "Later",
+      "Value": 128,
+      "Min": 116,
+      "Max": 140,
+      "Steps": 1
+    }
+  ],
+  "Actuators": [
+    {
+      "Id": "fuelpump",
+      "Name": "Fuel Pump",
+      "Description": ""
+    },
+    {
+      "Id": "ptc",
+      "Name": "PTC Heater",
+      "Description": ""
+    },
+    {
+      "Id": "aircon",
+      "Name": "Air Con",
+      "Description": ""
+    },
+    {
+      "Id": "purgevalve",
+      "Name": "Purge Valve",
+      "Description": ""
+    },
+    {
+      "Id": "boostvalve",
+      "Name": "Boost Valve",
+      "Description": ""
+    },
+    {
+      "Id": "fan1",
+      "Name": "Fan 1",
+      "Description": ""
+    },
+    {
+      "Id": "fan2",
+      "Name": "Fan 2",
+      "Description": ""
+    },
+    {
+      "Id": "injectors",
+      "Name": "Injectors",
+      "Description": ""
+    },    {
+      "Id": "coil",
+      "Name": "Coil",
+      "Description": ""
+    }
+  ],
+  "Dataframe80": [
+    {
+      "Description":"The rotational speed of the engine calculated by the MEMS ECU using the crankshaft sensor. Faults in the crankshaft sensor or associated wiring may be indicated if this display reads 0 during engine cranking.",
+      "BytePosition": "0x01-02",
+      "Name":"Engine Speed (RPM)",
+      "Id": "EngineRPM"
+    },
+      {
+        "Description":"This shows the coolant temperature as measured by the ECU. If the sensor is open circuit, a default value of about 60C will be displayed. During engine warm up, the value should rise smoothly from ambient to approximately 90C. Sensor faults may cause several symptoms including poor starting, fast idle speed, poor fuel consumption and cooling fans running continuously.",
+        "BytePosition": "0x03",
+        "Name":"Coolant Temperature (°C)",
+        "Id": "CoolantTemp"
+      },
+      {
+        "Description":"This shows the temperature measured by the ECU using the ambient air temperature sensor (if fitted). If the sensor is open circuit then a fixed default value will be displayed. The sensor is used by the ECU to measure the air temperature in the engine bay. This is usually done to control an extra engine bay cooling fan on vehicles which require this. The effect of a faulty sensor is normally incorrect operation of the engine bay cooling fan. On MEMS ECUs which don't support this sensor the value will display 255.",
+        "BytePosition": "0x04",
+        "Name":"Ambient Temperature (°C)",
+        "Id": "AmbientTemp"
+      },
+      {
+        "Description":"This shows the temperature measured by the ECU using the inlet air temperature sensor (if fitted). If the sensor is open circuit, then a fixed default value will be displayed. The inlet air temperature is used by the ECU to retard the ignition timing to avoid knock and trim the fuelling when hot. If the sensor is not operating correctly the engine performance may be impaired slightly.",
+        "BytePosition": "0x05",
+        "Name":"Intake Air Temperature (°C)",
+        "Id": "IntakeAirTemp"
+      },
+      {
+        "Description":"This shows the temperature measured by the ECU using the fuel rail temperature sensor (if fitted). If the sensor is open circuit, then a fixed default value will be displayed. The fuel rail temperature is used by the ECU as an aid to hot starting and to make corrections to fuelling. If the sensor is not operating correctly hot starting and engine performance may be impaired slightly. On MEMS ECUs which don't support this sensor the value will display 255.",
+        "BytePosition": "0x06",
+        "Name":"Fuel Temperature (°C)",
+        "Id": "FuelTemp"
+      },
+      {
+        "Description":"Shows the pressure measure by the internal MEMS air pressure sensor. This value should show atmospheric pressure of 100 KPa when the engine is stopped and a lower value between 25 - 40 KPa during engine idle conditions. Very high values may indicate problems with the sensor inside the MEMS or more likely a blocked or disconnected vacuum pipe. Moderately raised values may indicate mechanical problems with the engine.",
+        "BytePosition": "0x07",
+        "Name":"Manifold Pressure (kPa)",
+        "Id": "ManifoldAbsolutePressure"
+      },
+      {
+        "Description":"This shows the voltage of the vehicle supply measured internally by the ECU. Large errors in this measurement will lead to possible poor starting and errors in idle CO.",
+        "BytePosition": "0x08",
+        "Name":"Battery Voltage (V)",
+        "Id": "BatteryVoltage"
+      },
+      {
+        "Description":"This value shows the signal received by the ECU from the Throttle Position Sensor (Throttle Pot). The value is displayed in bits and has a range from 0(closed) to 255(open). The full range of values will not be seen in practice.",
+        "BytePosition": "0x09",
+        "Name":"Throttle Pot. Sensor (V)",
+        "Id": "ThrottlePotSensor"
+      },
+      {
+        "Description": "",
+        "BytePosition": "0x0A",
+        "Name":"Idle Switch",
+        "Id": "IdleSwitch"
+      },
+      {
+        "Description":"This shows the state of the air conditioning request signal at the MEMS ECU. This signal depends on the state of the air conditioning switch, the blower fan control, the air conditioning thermal switch and the trinary high/low pressure switch. The ECU will not show air conditioning on unless all of these switches are on. The thermal switch will be off if the temperature of the air leaving the evaporator is less than about 3C and the high/low pressure switch will be off if the pressure of the refrigerant is too high or too low.",
+        "BytePosition": "0x0B",
+        "Name":"Aircon Switch",
+        "Id": "AirconSwitch"
+      },
+      {
+        "Description":"This shows the state of the park neutral switch as measured by the MEMS ECU. This switch is used to improve the quality of engine idle speed control on automatic or CVT (Constantly Variable Transmission) gearbox vehicles. A fault with this switch will cause the idle speed to dip or rise suddenly when the gear selection is changed between neutral and drive. This display will not work on manual gearbox vehicles.",
+        "BytePosition": "0x0C",
+        "Name":"Neutral Switch",
+        "Id": "ParkNeutralSwitch"
+      },
+      {
+        "Description":"",
+        "BytePosition": "0x0D",
+        "Name":"DTC 0",
+        "Id": "DTC0"
+      },
+      {
+        "Description":"",
+        "BytePosition": "0x0E",
+        "Name":"DTC 1",
+        "Id": "DTC1"
+      },
+      {
+        "Description":"If an idle service offset has been set up in this ECU, the offset from the normal idle RPM is shown here. Normally, only two values will ever be displayed. 0 RPM or 49 RPM.",
+        "BytePosition": "0x0F",
+        "Name":"Idle Set Point",
+        "Id": "IdleSetPoint"
+      },
+      {
+        "Description":"This is the number of IACV steps from fully closed (0) which the ECU has learned as the correct position to maintain the target idle speed with a fully warmed up engine. If this value is outside the range 10 - 50 steps, then this is an indication of a possible fault condition or poor adjustment.",
+        "BytePosition": "0x10",
+        "Name":"Idle Hot / Idle Decay",
+        "Id": "IdleHot"
+      },
+      {
+        "Description":"",
+        "BytePosition": "0x11",
+        "Name":"Unknown",
+        "Id": "Uk8011"
+      },
+      {
+        "Description":"Shows the position of the IACV stepper motor as calculated by the ECU. The ECU has no method of actually measuring this position but instead works it out by remembering how may steps it has moved the stepper since the last time the ignition was switched off. If a stepper motor fault exists, this number will be incorrect. This value will normally be changing during idle condition as the ECU makes minor changes to the idle speed. A value of 0 during idle conditions indicates a fault condition or poor adjustment, as does a very high value.",
+        "BytePosition": "0x12",
+        "Name":"Idle Air Control Position",
+        "Id": "IACPosition"
+      },
+      {
+        "Description":"This is the current difference between the target idle speed set by the MEMS ECU and the actual engine speed. A value of more than 100 RPM indicates that the ECU is not in control of the idle speed. This indicates a possible fault condition. A quick addition of this value and the current engine RPM will also tell what the value is of the ECU's target Idle Speed.",
+        "BytePosition": "0x13-14",
+        "Name":"Idle Speed Deviation (RPM)",
+        "Id": "IdleSpeedDeviation"
+      },
+      {
+        "Description":"Shows the value of the service ignition offset currently being used by the MEMS ECU. This is a special service adjustment for countries which use low octane fuel.",
+        "BytePosition": "0x15",
+        "Name":"Ignition Advance Offset",
+        "Id": "IgnitionAdvanceOffset80"
+      },
+      {
+        "Description":"This is a facility which is built into the MEMS ECU to overcome some situations during the service life of a vehicle where it might be wished to eradicate a problem such as a low octane fuel being constantly used or engine wear by slightly advancing the ignition timing. the idle speed of the engine. The function can be removed by resetting the adaptive values.",
+        "BytePosition": "0x16",
+        "Name":"Ignition Advance (°)",
+        "Id": "IgnitionAdvance"
+      },
+      {
+        "Description":"This is the time for the ignition coil to charge up to its specified current, as measured by the MEMS ECU. With a battery voltage of about 14V, this value should be about 2-3mS. A high value for coil charge time may indicate a problem with the ignition coil primary circuit.",
+        "BytePosition": "0x17-18",
+        "Name":"Coil Time (ms)",
+        "Id": "CoilTime"
+      },
+      {
+        "Description":"The rotational speed of the engine calculated by the MEMS ECU using the crankshaft sensor. Faults in the crankshaft sensor or associated wiring may be indicated if this display reads 0 during engine cranking.",
+        "BytePosition": "0x19",
+        "Name":"Crankshaft Position Sensor",
+        "Id": "CrankshaftPositionSensor"
+      },
+      {
+        "Description":"",
+        "BytePosition": "0x1A",
+        "Name":"Unknown",
+        "Id": "Uk801a"
+      },
+      {
+        "Description":"",
+        "BytePosition": "0x1B",
+        "Name":"Unknown",
+        "Id": "Uk801b"
+      }
+  ],
+  "Dataframe7d" : [{
+    "Description":"Shows the state (ON/OFF) of the ignition switch as read by the MEMS ECU. Errors in reading the ignition switch may lead to cutting out, failure to power down (causing flat battery) or failure to start.",
+    "BytePosition":"0x01",
+    "Name":"Ignition Switch",
+    "Id":"IgnitionSwitch"
+  },
+    {
+      "Description":" Shows the position of the throttle disc obtained from the MEMS ECU using the throttle potentiometer. This value should change from a low value to a high value as the throttle pedal is depressed.",
+      "BytePosition":"0x02",
+      "Name":"Throttle Angle (°)",
+      "Id":"ThrottleAngle"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x03",
+      "Name":"Unknown",
+      "Id":"Uk7d03"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x04",
+      "Name":"Air : Fuel Ratio",
+      "Id":"AirFuelRatio"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x05",
+      "Name":"DTC 2",
+      "Id":"DTC2"
+    },
+    {
+      "Description":"This shows the voltage across the oxygen sensor as read by the MEMS ECU. Once the engine is fully warm, during most idle and driving conditions, this voltage will switch rapidly between a value between 0.0v-0.2v to a value between 0.7v and 1.0v. The sensor detects the presence or absence of oxygen in the exhaust gas. When the exhaust gas has oxygen present the ECU will read a low voltage.",
+      "BytePosition":"0x06",
+      "Name":"Lambda Voltage (mV)",
+      "Id":"LambdaVoltage"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x07",
+      "Name":"Lambda Frequency",
+      "Id":"LambdaFrequency"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x08",
+      "Name":"Lambda Duty Cycle",
+      "Id":"LambdaDutycycle"
+    },
+    {
+      "Description":"A status of 1 indicates a fault in the Closed Loop / Lambda system. The MEMS ECU will remain in open loop operation.",
+      "BytePosition":"0x09",
+      "Name":"Lambda Status",
+      "Id":"LambdaStatus"
+    },
+    {
+      "Description":"This shows whether the fuelling is being controlled using feedback from the oxygen sensors. A displayed value of ON indicates that closed loop fuelling is active, a displayed value of OFF indicates fuelling open loop. On a fully warm vehicle, Loop Status should indicate closed loop under most driving and idling conditions.",
+      "BytePosition":"0x0A",
+      "Name":"Loop Indicator",
+      "Id":"ClosedLoop"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x0B",
+      "Name":"Long Term Fuel Trim (LTFT)",
+      "Id":"LongTermFuelTrim"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x0C",
+      "Name":"Short Term Fuel Trim (STFT)",
+      "Id":"ShortTermFuelTrim"
+    },
+    {
+      "Description":"The purge valve closes on idle. It should open when over 75 degree",
+      "BytePosition":"0x0D",
+      "Name":"Carbon Canister Purge Valve (%)",
+      "Id":"CarbonCanisterPurgeValve"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x0E",
+      "Name":"DTC 3",
+      "Id":"DTC3"
+    },
+    {
+      "Description":"This is the number of steps from 0 which the ECU will use as guide for starting idle speed control during engine warm up. The value will start at quite a high value (>100 steps) on a very cold engine and fall to < 50 steps on a fully warm engine. A high value on a fully warm engine or a low value on a cold engine will cause poor idle speed control. Idle base position is calculated by the ECU using the engine coolant temperature sensor.",
+      "BytePosition":"0x0F",
+      "Name":"Idle Base Position",
+      "Id":"IdleBasePosition"
+    },
+    {
+      "Description":"",
+
+      "BytePosition":"0x10",
+      "Name":"Unknown",
+      "Id":"Uk7d10"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x11",
+      "Name":"DTC 4",
+      "Id":"DTC4"
+    },
+    {
+      "Description":"Shows the value of the service ignition offset currently being used by the MEMS ECU. This is a special service adjustment for countries which use low octane fuel. The value is an Adjustable Value and can be cleared by using the Reset Adjustments function found in the same section.",
+      "BytePosition":"0x12",
+      "Name":"Ignition Advance Offset",
+      "Id":"IgnitionAdvanceOffset7d"
+    },
+    {
+      "Description":"This is a facility which is built into the MEMS ECU to overcome some situations during the service life of a vehicle where it might be wished to eradicate a problem such as a rattle or engine wear by slightly increasing the idle speed of the engine. This offset adds approximately 50 RPM to the Idle target speed. The function can be removed by resetting the adaptive values.",
+      "BytePosition":"0x13",
+      "Name":"Idle Speed Offset (RPM)",
+      "Id":"IdleSpeedOffset"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x14",
+      "Name":"Unknown",
+      "Id":"Uk7d14"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x15",
+      "Name":"Unknown",
+      "Id":"Uk7d15"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x16",
+      "Name":"DTC 5",
+      "Id":"DTC5"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x17",
+      "Name":"Unknown",
+      "Id":"Uk7d17"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x18",
+      "Name":"Unknown",
+      "Id":"Uk7d18"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x19",
+      "Name":"Unknown",
+      "Id":"Uk7d19"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x1A",
+      "Name":"Unknown",
+      "Id":"Uk7d1a"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x1B",
+      "Name":"Unknown",
+      "Id":"Uk7d1b"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x1C",
+      "Name":"Unknown",
+      "Id":"Uk7d1c"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x1D",
+      "Name":"Unknown",
+      "Id":"Uk7d1d"
+    },
+    {
+      "Description":"",
+      "BytePosition":"0x1E",
+      "Name":"Unknown",
+      "Id":"Uk7d1e"
+    },
+    {
+      "Description":"On systems using a throttle body where the idle air is controlled by a stepper motor which directly acts on the throttle disk (normally metal inlet manifold), the count indicates the number of times the ECU has had to re-learn the relationship between the stepper position and the throttle position. If this count is high or increments each time the ignition is turned off, then there may be a problem with the stepper motor, throttle cable adjustment or the throttle pot. On systems using a plastic throttle body/manifold, the count is a warning that the MEMS ECU has never seen the throttle fully closed. The count is increased for each journey with no closed throttle, indicating a throttle adjustment problem.",
+      "BytePosition":"0x1F",
+      "Name":"Jack Count",
+      "Id":"JackCount"
+    }
+  ],
   "Navigation" : [
     {
       "Id": "",
