@@ -459,6 +459,109 @@
       "Id":"JackCount"
     }
   ],
+  "ECUStatusLeds": [
+    {
+      "Description": "",
+      "LedColour": "green",
+      "Id": "idleswitch",
+      "Name":"Idle Switch"
+    },
+    {
+      "Description": "",
+      "LedColour": "green",
+      "Id": "parkswitch",
+      "Name":"Park / Neutral Switch"
+    },
+    {
+      "Description": "",
+      "LedColour": "green",
+      "Id": "aclosedloop",
+      "Name":"Lambda Active (Closed Loop)"
+    }
+  ],
+  "ECUFaultLeds": [
+    {
+      "Description": "",
+      "LedColour": "red",
+      "Id": "coolantfault",
+      "Name":"Coolant Sensor Fault"
+    },
+    {
+      "Description": "",
+      "LedColour": "red",
+      "Id": "airfault",
+      "Name":"Air Temperature Sensor Fault"
+    },
+    {
+      "Description": "",
+      "LedColour": "red",
+      "Id": "fuelfault",
+      "Name":"Fuel Pump Circuit Fault"
+    },
+    {
+      "Description": "",
+      "LedColour": "red",
+      "Id": "throttlefault",
+      "Name":"Throttle Position Sensor Fault"
+    }],
+  "ECUWarningLeds": [
+    {
+      "Description": "",
+      "LedColour": "yellow",
+      "Id": "rpmsensor",
+      "Name":"Signal RPM and TDC Sensor"
+    },
+    {
+      "Description": "",
+      "LedColour": "yellow",
+      "Id": "lambdalow",
+      "Name":"Lamba < 10mV"
+    },
+    {
+      "Description": "",
+      "LedColour": "yellow",
+      "Id": "lambdahigh",
+      "Name":"Lambda > 900mV"
+    },
+    {
+      "Description": "",
+      "LedColour": "yellow",
+      "Id": "iaclow",
+      "Name":"IAC Low Reading"
+    }
+  ],
+  "ECUDiagnosticLeds": [
+    {
+      "Description":"ECU has detected an O2 System Fault, check lambda heater circuit. If lambda voltage is stable between 400mV - 500mV if there is a fault on the lambda circuit",
+      "LedColour": "red",
+      "Id": "systemfault",
+      "Name":"O2 System Fault"
+    },
+    {
+      "Description": "",
+      "LedColour": "yellow",
+      "Id": "lambdalowfault",
+      "Name":"Lambda Reading Lean"
+    },
+    {
+      "Description": "",
+      "LedColour": "yellow",
+      "Id": "lambdahighfault",
+      "Name":"Lambda Reading Rich"
+    },
+    {
+      "Description": "",
+      "LedColour": "yellow",
+      "Id": "iaclowfault",
+      "Name":"IAC Low Readings"
+    },
+    {
+      "Description": "",
+      "LedColour": "yellow",
+      "Id": "jackfault",
+      "Name":"Jack Count Max Threshold"
+    }
+  ],
   "Navigation" : [
     {
       "Id": "",
