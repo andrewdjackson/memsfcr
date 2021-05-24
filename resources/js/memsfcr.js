@@ -227,11 +227,11 @@ function initialiseSparklines() {
 }
 
 function initialiseGraphs() {
-    rpmChart = createChart(ChartRPM, "Engine (RPM)", 850, 1200);
-    lambdaChart = createChart(ChartLambda, "Lambda Voltage (mV)");
-    loopChart = createChart(ChartLoopIndicator, "Loop Indicator (0 Closed, 1 Open)");
+    rpmChart = createChart(ChartRPM, "Engine (RPM)");
+    lambdaChart = createChart(ChartLambda, "Lambda (mV)");
+    loopChart = createChart(ChartLoopIndicator, "O2 Loop (0 = Active)");
     afrChart = createChart(ChartAFR, "Air : Fuel Ratio");
-    coolantChart = createChart(ChartCoolant, "Coolant Temp (°C)", 80, 105);
+    coolantChart = createChart(ChartCoolant, "Coolant (°C)");
 }
 
 function updateGauges(Responsedata) {

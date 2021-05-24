@@ -5,85 +5,69 @@ addData = function(chart, label, data) {
         dataset.data.push(data);
         dataset.data.shift()
     });
-    chart.update();
+    chart.update('none');
 }
 
 addScenarioData = function(chart, data) {
     chart.data = data
 }
 
-createChart = function(id, title, low, high) {
+createChart = function(id, title) {
     var ctx = $('#' + id);
 
     return new Chart(ctx, {
         type: 'line',
-        plugins: [
-            // This chart will use the plugin
-            ChartRegressions
-        ],
         data: {
-            labels: Array.apply(null, Array(120)).map(function() { return '-' }),
+            labels: Array.apply(null, Array(120)).map(function() { return '' }),
             datasets: [{
                 data: Array.apply(null, Array(120)).map(function() { return 0 }),
+                cubicInterpolationMode: 'monotone',
+                tension: 0.4,
                 borderColor: 'rgba(102,102,255,0.9)',
                 backgroundColor: 'rgba(102,153,204,0.1)',
-                fillColor: "rgba(102,153,51,0.2)",
+                fillColor: "rgba(102,153,51,0.1)",
                 strokeColor: "rgba(220,220,220,1)",
                 borderWidth: 1,
-                regressions: {
-                    type: "linear",
-                    line: { color: "red", width: 0.5, dash: [8, 2] },
-                },
+                fill: true,
             }],
         },
         options: {
-            maintainAspectRatio: false,
             responsive: true,
+            maintainAspectRatio: false,
             spanGaps: true,
-            fontSize: 12,
-            fontFamily: "'-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
-            animation: {
-                duration: 50,
-            },
-            hover: {
-                animationDuration: 0
-            },
-            responsiveAnimationDuration: 0,
-            legend: {
-                display: false,
-            },
-            elements: {
-                line: {
-                    cubicInterpolationMode: 'default',
-                },
-                point: {
-                    radius: 0
-                },
-            },
-            title: {
-                fontSize: 14,
-                fontStyle: "normal",
-                fontFamily: "'-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
-                display: true,
-                text: title,
+            radius: 0,
+            plugins: {
+                legend: {
+                    display: false,
+                }
             },
             scales: {
-                yAxes: [{
+                y: {
+                    beginAtZero: true,
                     stacked: false,
-                    gridLines: {
-                        display: true,
+                    grid: {
                         fontStyle: "normal",
                         fontFamily: "'-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
                         color: "rgba(102,153,0,0.2)"
-                    }
-                }],
-                xAxes: [{
-                    gridLines: {
+                    },
+                    title: {
+                        fontSize: 14,
+                        fontStyle: "normal",
+                        fontFamily: "'-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
+                        display: true,
+                        text: title,
+                    },
+                },
+                x: {
+                    grid: {
                         display: false
-                    }
-                }]
+                    },
+                    ticks: {
+                        display:false
+                    },
+                }
             },
-        },
+        }
     });
 }
 
@@ -101,43 +85,43 @@ createSpark = function(id) {
                 fillColor: "rgba(102,153,51,0.2)",
                 strokeColor: "rgba(220,220,220,1)",
                 borderWidth: 1,
+                cubicInterpolationMode: 'monotone',
+                tension: 0.4,
+                fill: true,
             }],
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             spanGaps: true,
-            legend: {
-                display: false
-            },
-            animation: {
-                duration: 0,
-            },
-            hover: {
-                animationDuration: 0,
-            },
-            responsiveAnimationDuration: 0,
-            elements: {
-                line: {
-                    borderColor: '#000000',
-                    borderWidth: 1,
-                    cubicInterpolationMode: 'monotone',
-                },
-                point: {
-                    radius: 0
+            radius: 0,
+            plugins: {
+                legend: {
+                    display: false,
                 }
             },
             tooltips: {
                 enabled: false
             },
             scales: {
-                yAxes: [{
-                    display: false
-                }],
-                xAxes: [{
-                    display: false
-                }]
+                y: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        display:false
+                    },
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        display:false
+                    },
+                }
             }
         },
     });
 }
+
