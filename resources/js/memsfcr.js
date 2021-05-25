@@ -727,8 +727,23 @@ function updateReplayProgress() {
 }
 
 //-------------------------------------
+// Clear the event handlers
+//-------------------------------------
+
+function removeConnectEventListeners() {
+    memsreader.connectButton.removeEventListener('click', connectECU)
+    memsreader.connectButton.removeEventListener('click', disconnectECU)
+}
+
+function removePlayEventListeners() {
+    memsreader.playPauseButton.removeEventListener('click', pauseDataframeLoop)
+    memsreader.playPauseButton.removeEventListener('click', startDataframeLoop)
+}
+
+//-------------------------------------
 // ECU Command Requests
 //-------------------------------------
+
 function restError() {
     memsreader.status.emulated = false
     console.warn("post request failed (" + self.uri.connect + ")")
@@ -769,10 +784,13 @@ function connected(event) {
             updateButton("#connectECUbtn", "<i class='fa fa-power-off'></i>Disconnect", "btn-danger")
         }
 
+        removeConnectEventListeners()
         memsreader.connectButton.addEventListener('click', disconnectECU, {once: true})
 
         // set play button to pause the dataframe loop
         updateButton("#playPauseECUbtn", "<i class='fa fa-pause-circle'></i>Pause", "btn-warning")
+
+        removePlayEventListeners()
         memsreader.playPauseButton.addEventListener('click', pauseDataframeLoop, {once: true})
         memsreader.playPauseButton.disabled = false
 
@@ -785,6 +803,7 @@ function connected(event) {
         startDataframeLoop();
     } else {
         setStatusLED(true, IndicatorECUConnected, LEDFault);
+        removeConnectEventListeners()
         memsreader.connectButton.addEventListener('click', connectECU, {once: true})
     }
 }
@@ -824,6 +843,7 @@ function disconnected(event) {
     clearConnectMessage()
 
     memsreader.status.emulated = false
+    removeConnectEventListeners()
     memsreader.connectButton.addEventListener('click', connectECU, {once: true})
 }
 
@@ -833,6 +853,8 @@ function startDataframeLoop() {
     console.info('start dataframe loop')
     memsreader.status.paused = false
     updateButton("#playPauseECUbtn", "<i class='fa fa-pause-circle'></i>Pause", "btn-warning")
+
+    removePlayEventListeners()
     memsreader.playPauseButton.addEventListener('click', pauseDataframeLoop, {once: true})
 
     // reset interval
@@ -853,6 +875,8 @@ function pauseDataframeLoop() {
     console.debug('pause dataframe loop')
     memsreader.status.paused = true
     updateButton("#playPauseECUbtn", "<i class='fa fa-play-circle'></i>Resume", "btn-success flashing-button")
+
+    removePlayEventListeners()
     memsreader.playPauseButton.addEventListener('click', startDataframeLoop, {once: true})
 
     // set dataframe loop to send heartbeats
