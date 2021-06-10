@@ -143,14 +143,26 @@ func (webserver *WebServer) getECUDataframes(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	if webserver.isECUConnected(w) {
-		memsdata := webserver.reader.ECU.GetDataframes()
+		if !webserver.waitingForECUResponse {
+			// set the flag to prevent calls mid protocol
+			webserver.waitingForECUResponse = true
+			// get the ECU data
+			memsdata := webserver.reader.ECU.GetDataframes()
 
-		log.Infof("rest-get ecu dataframes (%v)", memsdata)
+			log.Infof("rest-get ecu dataframes (%v)", memsdata)
 
-		if err := json.NewEncoder(w).Encode(memsdata); err != nil {
-			log.Warnf("rest-get response failed")
+			if err := json.NewEncoder(w).Encode(memsdata); err != nil {
+				log.Warnf("rest-get response failed")
+				// return a error code
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+
+			// clear the flag
+			webserver.waitingForECUResponse = false
+		} else {
+			log.Warnf("rest-get already waiting for ECU")
 			// return a error code
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusTooManyRequests)
 		}
 	}
 }

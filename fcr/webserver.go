@@ -38,6 +38,8 @@ type WebServer struct {
 	ServerRunning bool
 	// Pointer to Mems Fault Code Reader
 	reader *MemsReader
+	// waiting for a response from the ECU
+	waitingForECUResponse bool
 }
 
 const (
@@ -200,6 +202,8 @@ func (webserver *WebServer) renderIndex(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Etag", webserver.reader.Config.Build)
+
 	err = page.Execute(w, data)
 
 	if err != nil {
