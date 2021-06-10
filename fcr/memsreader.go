@@ -43,10 +43,6 @@ func (reader *MemsReader) StartWebServer() {
 	// run the web server as a concurrent process
 	go reader.WebServer.RunHTTPServer()
 
-	// run the listener for messages sent to the web interface from
-	// the backend application
-	go reader.WebServer.ListenToWebSocketChannelLoop()
-
 	// display the web interface, wait for the HTTP Server to start
 	for {
 		if reader.WebServer.ServerRunning {

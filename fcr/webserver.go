@@ -18,12 +18,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// WebMsg structure fro sending / receiving over the websocket
-type WebMsg struct {
-	Action string `json:"action"`
-	Data   string `json:"data"`
-}
-
 type RelativePaths struct {
 	Webroot string
 	ExePath string
@@ -40,9 +34,6 @@ type WebServer struct {
 	upgrader websocket.Upgrader
 	// HTTPPort used by the HTTP Server instance
 	HTTPPort int
-	// channels for communication over the websocket
-	ToWebSocketChannel   chan WebMsg
-	FromWebSocketChannel chan WebMsg
 	// ServerRunning indicates where the server is active
 	ServerRunning bool
 	// Pointer to Mems Fault Code Reader
@@ -57,8 +48,6 @@ const (
 // NewWebInterface creates a new web interface
 func NewWebServer(reader *MemsReader) *WebServer {
 	webserver := &WebServer{}
-	webserver.ToWebSocketChannel = make(chan WebMsg)
-	webserver.FromWebSocketChannel = make(chan WebMsg)
 	webserver.HTTPPort = 0
 	webserver.httpDir = ""
 	webserver.ServerRunning = false
@@ -241,32 +230,6 @@ func (webserver *WebServer) RunHTTPServer() {
 
 	if err != nil {
 		log.Errorf("error starting web interface (%s)", err)
-	}
-}
-
-// send message to the web interface over the websocket
-func (webserver *WebServer) sendMessageToWebInterface(m WebMsg) {
-	if webserver.ws != nil {
-		err := webserver.ws.WriteJSON(m)
-		if err != nil {
-			log.Errorf("error sending message over websocket (%s)", err)
-		} else {
-			log.Infof("send message over websocket")
-		}
-	} else {
-		log.Warnf("unable to send message over websocket, connected?")
-	}
-}
-
-// ListenToWebSocketChannelLoop loop for listening for messages over the ToWebSocketChannel
-// these are messages that are to be passed to the web interface over the websocket
-// from the backend application
-// to be run as a go routine as the channel is coded to be non blocking
-func (webserver *WebServer) ListenToWebSocketChannelLoop() {
-	for {
-		m := <-webserver.ToWebSocketChannel
-		webserver.sendMessageToWebInterface(m)
-		log.Infof("sent message '%s : %s' on ToWebSocketChannel", m.Action, m.Data)
 	}
 }
 
