@@ -1,7 +1,11 @@
 EXECUTABLE=memsfcr
 APPNAME=MemsFCR
+#DEVID="Developer ID Application: Andrew Jackson (MD9E767XF5)"
+#DISTID="Apple Distribution: Andrew Jackson (MD9E767XF5)"
+#INSTID="Developer ID Installer: Andrew Jackson (MD9E767XF5)"
 DEVID="Developer ID Application: Andrew Jackson (MD9E767XF5)"
-
+DISTID="3rd Party Mac Developer Application: Andrew Jackson (MD9E767XF5)"
+INSTID="3rd Party Mac Developer Installer: Andrew Jackson (MD9E767XF5)"
 DISTPATH=dist
 RESOURCESPATH=resources
 
@@ -48,13 +52,18 @@ $(ARM):
 
 buildapp:
 	# create the MacOS app
-	cp -f "$(DARWINDISTPATH)/$(EXECUTABLE)" "$(RESOURCESPATH)/$(EXECUTABLE)"	
+	cp -f "$(DARWINDISTPATH)/$(EXECUTABLE)" "$(RESOURCESPATH)/$(EXECUTABLE)"
 	./macapp -assets "$(RESOURCESPATH)" -bin $(EXECUTABLE) -icon "$(RESOURCESPATH)/icons/icon.png" -identifier "com.github.andrewdjackson.memsfcr" -name "$(APPNAME)" -o "$(DARWINDISTPATH)"
+	cp -f "$(DISTPATH)/entitlements.plist" "$(DARWINDISTPATH)/$(APPNAME).app/Contents/entitlements.plist"
+	cp -f "$(DISTPATH)/Info.plist" "$(DARWINDISTPATH)/$(APPNAME).app//Contents/Info.plist"
 
-signapp:	
+signapp:
+	#codesign --verify --verbos -s $(DISTID) $(DARWINDISTPATH)/$(APPNAME).app	
 	# sign with the Developer ID
-	codesign --force  --deep --verify --verbose -s $(DEVID) -v --timestamp --options runtime "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/$(EXECUTABLE)" "$(DARWINDISTPATH)/$(APPNAME).app"
-
+	codesign --force  --deep --verify --verbose=4 -s $(DISTID) --timestamp --entitlements "$(DARWINDISTPATH)/$(APPNAME).app/Contents/entitlements.plist" --options runtime "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/$(EXECUTABLE)" "$(DARWINDISTPATH)/$(APPNAME).app"
+	#codesign --force  --deep --verify --verbose -s $(DEVID) -v --timestamp --entitlements "$(DARWINDISTPATH)/$(APPNAME).app/Contents/entitlements.plist" "$(DARWINDISTPATH)/$(APPNAME).app"
+	productbuild --component $(DARWINDISTPATH)/$(APPNAME).app /Applications --sign $(INSTID) --product $(DARWINDISTPATH)/$(APPNAME).app/Contents/Info.plist $(DARWINDISTPATH)/$(APPNAME).pkg
+	codesign --force  --deep --verify --verbose=4 -s $(DISTID) --timestamp --entitlements "$(DARWINDISTPATH)/$(APPNAME).app/Contents/entitlements.plist" --options runtime "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/$(EXECUTABLE)" "$(DARWINDISTPATH)/$(APPNAME).pkg"
 
 packageapp:
 	appdmg $(DISTPATH)/dmgspec.json $(DARWINDISTPATH)/$(APPNAME).dmg 
@@ -63,9 +72,12 @@ packageapp:
 	#   codesign -display --deep -vvv $(APPNAME).app
 	#
 	# the app will need notarizing with the following command:
-	cd $(DARWINDISTPATH) && \
-		xcrun altool --notarize-app -f $(APPNAME).dmg --primary-bundle-id "com.github.andrewdjackson.memsfcr" -u $(APPLEDEVUSR) -p $(APPLEDEVPWD)
-	#
+	#cd $(DARWINDISTPATH) && \
+	#	xcrun altool --notarize-app -f $(APPNAME).dmg --primary-bundle-id "com.github.andrewdjackson.memsfcr" -u $(APPLEDEVUSR) -p $(APPLEDEVPWD)
+
+	xcrun altool --upload-app -f $(DARWINDISTPATH)/$(APPNAME).pkg --primary-bundle-id "com.github.andrewdjackson.memsfcr" -u $(APPLEDEVUSR) -p $(APPLEDEVPWD)
+
+#
 	# if successful 'staple' the app for offline installation
 	#   xcrun stapler staple $(DARWINDISTPATH)/$(APPNAME).app
 	#   xcrun stapler staple $(DARWINDISTPATH)/$(APPNAME).dmg
