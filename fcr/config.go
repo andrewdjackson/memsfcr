@@ -47,6 +47,11 @@ func NewConfig() *Config {
 	return &config
 }
 
+func getHomeFolder() string {
+	homeFolder, _ = homedir.Dir()
+	return homeFolder
+}
+
 func createFolder(path string) {
 	_, err := os.Stat(path)
 
@@ -58,18 +63,20 @@ func createFolder(path string) {
 	}
 }
 
-func createDataFolders(home string) {
-	homeFolder, _ = homedir.Dir()
+func createDataFolders(folder string) {
+	// sandbox folder
+	//homeFolder = "./Documents"
 
-	appFolder = fmt.Sprintf("%s/memsfcr", homeFolder)
+	appFolder = fmt.Sprintf("%s/memsfcr", folder)
 	createFolder(appFolder)
 
-	logFolder = fmt.Sprintf("%s/logs", appFolder)
+	logFolder = fmt.Sprintf("%s/logs", folder)
 	createFolder(logFolder)
 }
 
 // WriteConfig write the config file
 func WriteConfig(c *Config) {
+	homeFolder = getHomeFolder()
 	// create the folders if they don't exist
 	createDataFolders(homeFolder)
 
@@ -104,6 +111,7 @@ func WriteConfig(c *Config) {
 
 // ReadConfig reads the config file
 func ReadConfig() *Config {
+	homeFolder = getHomeFolder()
 	// create the folders if they don't exist
 	createDataFolders(homeFolder)
 

@@ -5,9 +5,9 @@
         <key>CFBundleName</key>
         <string>memsfcr</string>
         <key>CFBundleVersion</key>
-        <string>2.3.5</string>
+        <string>2.3.6</string>
         <key>CFBundleShortVersionString</key>
-        <string>2.3.5</string>
+        <string>2.3.6</string>
         <key>CFBundlePackageType</key>
         <string>APPL</string>
         <key>CFBundleExecutable</key>
