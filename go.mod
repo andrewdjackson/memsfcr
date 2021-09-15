@@ -16,6 +16,7 @@ require (
 require (
 	github.com/creack/goselect v0.1.2 // indirect
 	github.com/gocarina/gocsv v0.0.0-20210516172204-ca9e8a8ddea8 // indirect
+	github.com/smartystreets/goconvey v1.6.4 // indirect
 	golang.org/x/sys v0.0.0-20210616045830-e2b7044e8c71 // indirect
 	gonum.org/v1/gonum v0.9.3 // indirect
 )

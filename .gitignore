@@ -114,5 +114,5 @@ logs
 /dist/windows
 memsfcr
 go_build_
-resources/memsfcr
+/resources/memsfcr
 /_Makefile
