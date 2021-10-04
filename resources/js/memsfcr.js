@@ -49,10 +49,7 @@ const IndicatorFuelFault = "fuelfault"
 const IndicatorClosedLoop = "closedloop"
 const IndicatorIdleSwitch = "idleswitch"
 const IndicatorParkSwitch = "parkswitch"
-const IndicatorLambdaLowFault = "lambdalowfault"
-const IndicatorLambdaHighFault = "lambdahighfault"
-const IndicatorLambdaLow = "lambdalow"
-const IndicatorLambdaHigh = "lambdahigh"
+const IndicatorLambdaRangeFault = "lambdarangefault"
 const IndicatorRPMSensor = "rpmsensor"
 const IndicatorIACLow = "iaclow"
 const IndicatorO2SystemFault = "systemfault"
@@ -320,49 +317,10 @@ function updateLEDs(data) {
     setStatusLED(data.IdleSwitch, IndicatorIdleSwitch, LEDStatus);
     setStatusLED(data.ParkNeutralSwitch, IndicatorParkSwitch, LEDStatus);
 
-    // derived warnings
-    if (data.IACPosition == 0 && data.IdleError >= 50 && data.IdleSwitch == false) {
-        minIAC = true;
-        derived++;
-    }
-
-    // only evaluate lambda faults if we're in closed loop where
-    // the lambda voltage has an effect
-    if (data.ClosedLoop) {
-        // evaluate if a low lambda voltage has occurred
-        // if this has happened before trigger a fault indicator
-        // this must be evaluated before we set the minLambda warning to ensure
-        // we have at least one occurrence first
-        if (minLambda && data.LambdaVoltage <= 10) {
-            setStatusLED(true, IndicatorLambdaLowFault, LEDWarning);
-            derived++;
-        }
-
-        if (data.LambdaVoltage <= 10) {
-            minLambda = true;
-            derived++;
-        }
-
-        // evaluate if a high lambda voltage has occurred
-        // if this has happened before trigger a fault indicator
-        // this must be evaluated before we set the maxLambda warning to ensure
-        // we have at least one occurrence first
-        if (maxLambda && data.LambdaVoltage >= 900) {
-            setStatusLED(true, IndicatorLambdaHighFault, LEDWarning);
-            derived++;
-        }
-
-        if (data.LambdaVoltage >= 900) {
-            maxLambda = true;
-            derived++;
-        }
-    }
-
-    setStatusLED(data.LambdaStatus == 0, IndicatorO2SystemFault, LEDFault);
-    setStatusLED(data.Uk7d03 == 1, IndicatorRPMSensor, LEDWarning);
-    setStatusLED(minLambda, IndicatorLambdaLow, LEDWarning);
-    setStatusLED(maxLambda, IndicatorLambdaHigh, LEDWarning);
-    setStatusLED(minIAC, IndicatorIACLow, LEDWarning);
+    setStatusLED(memsreader.memsdata.Analytics.O2SystemFault, IndicatorO2SystemFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.CrankshaftSensorFault, IndicatorRPMSensor, LEDWarning);
+    setStatusLED(memsreader.memsdata.Analytics.LambdaRangeFault, IndicatorLambdaRangeFault, LEDWarning);
+    setStatusLED(memsreader.memsdata.Analytics.IdleAirControlFault, IndicatorIACLow, LEDWarning);
 
     setFaultStatusOnMenu(data, derived);
 }
@@ -374,7 +332,7 @@ function setFaultStatusOnMenu(data, derived = 0) {
     if (data.AirIntakeTempSensorFault == true) count++;
     if (data.ThrottlePotCircuitFault == true) count++;
     if (data.FuelPumpCircuitFault == true) count++;
-    if (data.LambdaStatus == 0) count++;
+    if (memsreader.memsdata.Analytics.O2SystemFault == true) count++;
 
     count = count + derived;
 

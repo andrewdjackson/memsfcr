@@ -514,14 +514,8 @@
     {
       "Description": "",
       "LedColour": "yellow",
-      "Id": "lambdalow",
-      "Name":"Lamba < 10mV"
-    },
-    {
-      "Description": "",
-      "LedColour": "yellow",
-      "Id": "lambdahigh",
-      "Name":"Lambda > 900mV"
+      "Id": "lambdarangefault",
+      "Name":"Lambda Out of Range"
     },
     {
       "Description": "",
@@ -536,18 +530,6 @@
       "LedColour": "red",
       "Id": "systemfault",
       "Name":"O2 System Fault"
-    },
-    {
-      "Description": "",
-      "LedColour": "yellow",
-      "Id": "lambdalowfault",
-      "Name":"Lambda Reading Lean"
-    },
-    {
-      "Description": "",
-      "LedColour": "yellow",
-      "Id": "lambdahighfault",
-      "Name":"Lambda Reading Rich"
     },
     {
       "Description": "",

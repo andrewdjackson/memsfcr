@@ -111,10 +111,10 @@ var gaugeMap = new RadialGauge({
     strokeTicks: true,
     highlights: [{
         from: 0,
-        to: 20,
+        to: 10,
         color: 'rgba(225, 7, 23, 0.75)'
     }, {
-        from: 30,
+        from: 10,
         to: 60,
         color: 'rgba(10, 225, 6, 0.5)'
     }, {

@@ -2,7 +2,8 @@
     "title": "MemsFCR",
     "icon": "darwin/MemsFCR.app/Contents/Resources/icon.icns",
     "background": "background.png",
-    "code-sign": { "signing-identity": "Developer ID Application: Andrew Jackson (MD9E767XF5)" },
+    "format": "ULFO",
+    "code-sign": { "signing-identity": "Developer ID Application: Andrew Jackson (MD9E767XF5)", "identifier": "com.github.andrewdjackson.memsfcr" },
     "window": {
         "size": { "width": 640, "height": 480 }
     },
