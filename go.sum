@@ -11,6 +11,10 @@ github.com/andrewdjackson/rosco v1.5.1-0.20211004112549-e246a1532c61 h1:+H2B03p9
 github.com/andrewdjackson/rosco v1.5.1-0.20211004112549-e246a1532c61/go.mod h1:ZO27bPME3FBbVU4mf9RHSe/RVfQ0MQ6p0ehOYs45DPs=
 github.com/andrewdjackson/rosco v1.5.1-0.20211004123137-47c69390acd4 h1:JsaPl3r81ICzLcGYRayRPzoscJGKX03Qrk1S2J1Zf/w=
 github.com/andrewdjackson/rosco v1.5.1-0.20211004123137-47c69390acd4/go.mod h1:ZO27bPME3FBbVU4mf9RHSe/RVfQ0MQ6p0ehOYs45DPs=
+github.com/andrewdjackson/rosco v1.5.1-0.20211004152545-e14d33591211 h1:1bvdxUpl1ovraeMSwMtT7M8KB53NPeZpCDDQfrXOJWk=
+github.com/andrewdjackson/rosco v1.5.1-0.20211004152545-e14d33591211/go.mod h1:ZO27bPME3FBbVU4mf9RHSe/RVfQ0MQ6p0ehOYs45DPs=
+github.com/andrewdjackson/rosco v1.5.10 h1:/D7dvQHt/n1Bt6sGsNOqBuFDiVwmPdMLvZJzau6Cc/4=
+github.com/andrewdjackson/rosco v1.5.10/go.mod h1:ZO27bPME3FBbVU4mf9RHSe/RVfQ0MQ6p0ehOYs45DPs=
 github.com/boombuler/barcode v1.0.0/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
 github.com/corbym/gocrest v1.0.5/go.mod h1:lF3xBPnOU5DYDpa/vUq63SMxUhd5UAwGgmA8Z2pJ/Tk=
 github.com/creack/goselect v0.1.1 h1:tiSSgKE1eJtxs1h/VgGQWuXUP0YS4CDIFMp6vaI1ls0=
@@ -80,6 +84,7 @@ golang.org/x/exp v0.0.0-20190312203227-4b39c73a6495/go.mod h1:ZjyILWgesfNpC6sMxT
 golang.org/x/exp v0.0.0-20190731235908-ec7cb31e5a56/go.mod h1:JhuoJpWY28nO4Vef9tZUw9qufEGTyX1+7lmHxV5q5G4=
 golang.org/x/exp v0.0.0-20191002040644-a1355ae1e2c3 h1:n9HxLrNxWWtEb1cA950nuEEj3QnKbtsCJ6KjcgisNUs=
 golang.org/x/exp v0.0.0-20191002040644-a1355ae1e2c3/go.mod h1:NOZ3BPKG0ec/BKJQgnvsSFpcKLM5xXVWnvZS97DWHgE=
+golang.org/x/exp v0.0.0-20210212053707-62dc52270d37 h1:8LMx3JFCswBZrnLWtxzpogDG5g1Hb7KWy/16Msz0hQk=
 golang.org/x/exp v0.0.0-20210212053707-62dc52270d37/go.mod h1:I6l2HNBLBZEcrOoCpyKLdY2lHoRZ8lI4x60KMCQDft4=
 golang.org/x/image v0.0.0-20180708004352-c73c2afc3b81/go.mod h1:ux5Hcp/YLpHSI86hEcLt0YII63i6oz57MZXIpbrjZUs=
 golang.org/x/image v0.0.0-20190227222117-0694c2d4d067/go.mod h1:kZ7UVZpmo3dzQBMxlp+ypCbDeSB+sBbTgSJuh5dn5js=
@@ -133,6 +138,7 @@ gonum.org/v1/gonum v0.9.3 h1:DnoIG+QAMaF5NvxnGe/oKsgKcAc6PcUyl8q0VetfQ8s=
 gonum.org/v1/gonum v0.9.3/go.mod h1:TZumC3NeyVQskjXqmyWt4S3bINhy7B4eYwW69EbyX+0=
 gonum.org/v1/netlib v0.0.0-20190313105609-8cb42192e0e0 h1:OE9mWmgKkjJyEmDAAtGMPjXu+YNeGvK9VTSHY6+Qihc=
 gonum.org/v1/netlib v0.0.0-20190313105609-8cb42192e0e0/go.mod h1:wa6Ws7BG/ESfp6dHfk7C6KdzKA7wR7u/rKwOGE66zvw=
+gonum.org/v1/netlib v0.0.0-20201012070519-2390d26c3658 h1:/DNJ3wcvPHjTLVNG6rmSHK7uEwdBihyiJRJXB16wXoU=
 gonum.org/v1/netlib v0.0.0-20201012070519-2390d26c3658/go.mod h1:zQa7n16lh3Z6FbSTYgjG+KNhz1bA/b9t3plFEaGMp+A=
 gonum.org/v1/plot v0.0.0-20190515093506-e2840ee46a6b/go.mod h1:Wt8AAjI+ypCyYX3nZBvf6cAIx93T+c/OS2HFAYskSZc=
 gonum.org/v1/plot v0.9.0/go.mod h1:3Pcqqmp6RHvJI72kgb8fThyUnav364FOsdDo2aGW5lY=

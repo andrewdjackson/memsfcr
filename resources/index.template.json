@@ -459,26 +459,6 @@
       "Id":"JackCount"
     }
   ],
-  "ECUStatusLeds": [
-    {
-      "Description": "",
-      "LedColour": "green",
-      "Id": "idleswitch",
-      "Name":"Idle Switch"
-    },
-    {
-      "Description": "",
-      "LedColour": "green",
-      "Id": "parkswitch",
-      "Name":"Park / Neutral Switch"
-    },
-    {
-      "Description": "",
-      "LedColour": "green",
-      "Id": "aclosedloop",
-      "Name":"Lambda Active (Closed Loop)"
-    }
-  ],
   "ECUFaultLeds": [
     {
       "Description": "",
@@ -508,39 +488,115 @@
     {
       "Description": "",
       "LedColour": "yellow",
-      "Id": "rpmsensor",
+      "Id": "analytics-crankshaftfault",
       "Name":"Signal RPM and TDC Sensor"
     },
     {
       "Description": "",
       "LedColour": "yellow",
-      "Id": "lambdarangefault",
-      "Name":"Lambda Out of Range"
-    },
-    {
-      "Description": "",
-      "LedColour": "yellow",
-      "Id": "iaclow",
-      "Name":"IAC Low Reading"
+      "Id": "analytics-iacrangefault",
+      "Name":"IAC Out of Range"
     }
   ],
-  "ECUDiagnosticLeds": [
+  "ECUAnalyticsLambdaLeds": [
     {
       "Description":"ECU has detected an O2 System Fault, check lambda heater circuit. If lambda voltage is stable between 400mV - 500mV if there is a fault on the lambda circuit",
       "LedColour": "red",
-      "Id": "systemfault",
+      "Id": "analytics-o2systemfault",
       "Name":"O2 System Fault"
     },
     {
       "Description": "",
       "LedColour": "yellow",
-      "Id": "iaclowfault",
-      "Name":"IAC Low Readings"
+      "Id": "analytics-lambdarangefault",
+      "Name":"Lambda Out of Range"
+    },
+    {
+      "Description": "",
+      "LedColour": "green",
+      "Id": "analytics-closedloop",
+      "Name":"Closed Loop (Lambda Active)"
     },
     {
       "Description": "",
       "LedColour": "yellow",
-      "Id": "jackfault",
+      "Id": "analytics-closedloopexpected",
+      "Name":"Closed Loop Expected"
+    },
+    {
+      "Description": "",
+      "LedColour": "red",
+      "Id": "analytics-closedloopfault",
+      "Name":"Closed Loop Fault"
+    },
+    {
+      "Description": "",
+      "LedColour": "red",
+      "Id": "analytics-mapfault",
+      "Name":"MAP Fault"
+    },
+    {
+      "Description": "",
+      "LedColour": "red",
+      "Id": "analytics-vacuumfault",
+      "Name":"Suspect Vacuum Pipe Fault"
+    }
+  ],
+  "ECUAnalyticsEngineLeds": [
+    {
+      "Description": "",
+      "LedColour": "green",
+      "Id": "analytics-enginerunning",
+      "Name":"Engine Running"
+    },
+    {
+      "Description": "",
+      "LedColour": "green",
+      "Id": "analytics-engineidle",
+      "Name":"Engine Idle"
+    },
+    {
+      "Description": "",
+      "LedColour": "green",
+      "Id": "analytics-throttleactive",
+      "Name":"Throttle Active"
+    },
+    {
+      "Description": "",
+      "LedColour": "green",
+      "Id": "parkswitch",
+      "Name":"Park / Neutral Switch"
+    },
+    {
+      "Description": "",
+      "LedColour": "green",
+      "Id": "analytics-cruising",
+      "Name":"Engine Cruising"
+    },
+    {
+      "Description": "",
+      "LedColour": "green",
+      "Id": "analytics-enginewarming",
+      "Name":"Engine Warming Up"
+    },
+    {
+      "Description": "",
+      "LedColour": "green",
+      "Id": "analytics-operatingtemp",
+      "Name":"Engine at Operating Temperature"
+    }
+  ],
+  "ECUDiagnosticLeds": [
+    {
+      "Description": "",
+      "LedColour": "yellow",
+      "Id": "analytics-iacfault",
+      "Name":"IAC Fault"
+    },
+    {
+      "Description": "",
+      "LedColour": "yellow",
+      "Id": "analytics-iacjackfault",
       "Name":"Jack Count Max Threshold"
     }
   ],

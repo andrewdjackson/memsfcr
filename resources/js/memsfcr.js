@@ -47,7 +47,7 @@ const IndicatorAirFault = "airfault"
 const IndicatorThrottleFault = "throttlefault"
 const IndicatorFuelFault = "fuelfault"
 const IndicatorClosedLoop = "closedloop"
-const IndicatorIdleSwitch = "idleswitch"
+//const IndicatorIdleSwitch = "idleswitch"
 const IndicatorParkSwitch = "parkswitch"
 const IndicatorLambdaRangeFault = "lambdarangefault"
 const IndicatorRPMSensor = "rpmsensor"
@@ -55,9 +55,40 @@ const IndicatorIACLow = "iaclow"
 const IndicatorO2SystemFault = "systemfault"
 
 // Analytics LEDs
-const AnalyticsEngineRunning = "enginerunning"
-const AnalyticsCrankshaftSensorFault = "crankshaftsensor"
-const AnalyticsMapFault = "mapfault"
+const DashboardEngineRunning = "dashboard-enginerunning"
+const DashboardCrankshaftSensorFault = "dashboard-crankshaftsensor"
+const DashboardMapFault = "dashboard-mapfault"
+
+const AnalyticsReadingFault = "analytics-readingfault"
+const AnalyticsIsEngineRunning = "analytics-enginerunning"
+const AnalyticsIsEngineWarming = "analytics-enginewarming"
+const AnalyticsIsAtOperatingTemp = "analytics-operatingtemp"
+const AnalyticsIsEngineIdle = "analytics-engineidle"
+const AnalyticsIsEngineIdleFault = "analytics-engineidlefault"
+const AnalyticsIdleSpeedFault = "analytics-idlespeedfault"
+const AnalyticsIdleErrorFault = "analytics-idleerrorfault"
+const AnalyticsIdleHotFault = "analytics-idlehotfault"
+const AnalyticsIdleBaseFault = "analytics-idlebasefault"
+const AnalyticsIsCruising = "analytics-cruising"
+const AnalyticsIsClosedLoop = "analytics-closedloop"
+const AnalyticsIsClosedLoopExpected = "analytics-closedloopexpected"
+const AnalyticsClosedLoopFault = "analytics-closedloopfault"
+const AnalyticsIsThrottleActive = "analytics-throttleactive"
+const AnalyticsMapFault = "analytics-mapfault"
+const AnalyticsVacuumFault = "analytics-vacuumfault"
+const AnalyticsIdleAirControlFault = "analytics-iacfault"
+const AnalyticsIdleAirControlRangeFault = "analytics-iacrangefault"
+const AnalyticsIdleAirControlJackFault = "analytics-iacjackfault"
+const AnalyticsO2SystemFault = "analytics-o2systemfault"
+const AnalyticsLambdaRangeFault = "analytics-lambdarangefault"
+const AnalyticsLambdaOscillationFault = "analytics-lambdaoscfault"
+const AnalyticsThermostatFault = "analytics-thermostatfault"
+const AnalyticsCoolantTempSensorFault = "analytics-coolanttempfault"
+const AnalyticsIntakeAirTempSensorFault = "analytics-airtempfault"
+const AnalyticsFuelPumpCircuitFault = "analytics-fuelpumpfault"
+const AnalyticsThrottlePotCircuitFault = "analytics-throttlepotfault"
+const AnalyticsCrankshaftSensorFault = "analytics-crankshaftfault"
+const AnalyticsCoilFault = "analytics-coilfault"
 
 // LED statuses
 const LEDFault = "fault"
@@ -314,13 +345,43 @@ function updateLEDs(data) {
     }
 
     setStatusLED(data.ClosedLoop, IndicatorClosedLoop, LEDStatus);
-    setStatusLED(data.IdleSwitch, IndicatorIdleSwitch, LEDStatus);
+    //setStatusLED(data.IdleSwitch, IndicatorIdleSwitch, LEDStatus);
     setStatusLED(data.ParkNeutralSwitch, IndicatorParkSwitch, LEDStatus);
 
     setStatusLED(memsreader.memsdata.Analytics.O2SystemFault, IndicatorO2SystemFault, LEDFault);
     setStatusLED(memsreader.memsdata.Analytics.CrankshaftSensorFault, IndicatorRPMSensor, LEDWarning);
     setStatusLED(memsreader.memsdata.Analytics.LambdaRangeFault, IndicatorLambdaRangeFault, LEDWarning);
     setStatusLED(memsreader.memsdata.Analytics.IdleAirControlFault, IndicatorIACLow, LEDWarning);
+    setStatusLED(memsreader.memsdata.Analytics.ReadingFault, AnalyticsReadingFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.IsEngineRunning, AnalyticsIsEngineRunning, LEDStatus);
+    setStatusLED(memsreader.memsdata.Analytics.IsEngineWarming, AnalyticsIsEngineWarming, LEDStatus);
+    setStatusLED(memsreader.memsdata.Analytics.IsAtOperatingTemp, AnalyticsIsAtOperatingTemp, LEDStatus);
+    setStatusLED(memsreader.memsdata.Analytics.IsEngineIdle, AnalyticsIsEngineIdle , LEDStatus);
+    setStatusLED(memsreader.memsdata.Analytics.IsEngineIdleFault, AnalyticsIsEngineIdleFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.IdleSpeedFault, AnalyticsIdleSpeedFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.IdleErrorFault, AnalyticsIdleErrorFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.IdleHotFault, AnalyticsIdleHotFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.IdleBaseFault, AnalyticsIdleBaseFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.IsCruising, AnalyticsIsCruising, LEDStatus);
+    setStatusLED(memsreader.memsdata.Analytics.IsClosedLoop, AnalyticsIsClosedLoop, LEDStatus);
+    setStatusLED(memsreader.memsdata.Analytics.IsClosedLoopExpected, AnalyticsIsClosedLoopExpected, LEDWarning);
+    setStatusLED(memsreader.memsdata.Analytics.ClosedLoopFault, AnalyticsClosedLoopFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.IsThrottleActive, AnalyticsIsThrottleActive, LEDStatus);
+    setStatusLED(memsreader.memsdata.Analytics.MapFault, AnalyticsMapFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.VacuumFault, AnalyticsVacuumFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.IdleAirControlFault, AnalyticsIdleAirControlFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.IdleAirControlRangeFault, AnalyticsIdleAirControlRangeFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.IdleAirControlJackFaul, AnalyticsIdleAirControlJackFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.O2SystemFault, AnalyticsO2SystemFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.LambdaRangeFault, AnalyticsLambdaRangeFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.LambdaOscillationFault, AnalyticsLambdaOscillationFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.ThermostatFault, AnalyticsThermostatFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.CoolantTempSensorFault, AnalyticsCoolantTempSensorFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.IntakeAirTempSensorFault, AnalyticsIntakeAirTempSensorFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.FuelPumpCircuitFault, AnalyticsFuelPumpCircuitFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.ThrottlePotCircuitFault, AnalyticsThrottlePotCircuitFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.CrankshaftSensorFault, AnalyticsCrankshaftSensorFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.CoilFault, AnalyticsCoilFault, LEDFault);
 
     setFaultStatusOnMenu(data, derived);
 }
@@ -377,17 +438,17 @@ function setTooltip(id, message) {
     $(id).tooltip({title: message});
 }
 
-function updateAnalytics() {
+function updateDashboardAnalytics() {
     if (memsreader.memsdata.Analytics.IsEngineRunning) {
-        setStatusLED(true, AnalyticsEngineRunning, LEDStatus);
+        setStatusLED(true, DashboardEngineRunning, LEDStatus);
         setTooltip(AnalyticsCrankshaftSensorFault, "Engine is running")
     }
     if (memsreader.memsdata.Analytics.CrankshaftSensorFault) {
-        setStatusLED(true, AnalyticsCrankshaftSensorFault, LEDFault);
+        setStatusLED(true, DashboardCrankshaftSensorFault, LEDFault);
         setTooltip(AnalyticsCrankshaftSensorFault, "Crankshaft Sensor Fault, unable to start engine")
     }
     if (memsreader.memsdata.Analytics.MapFault) {
-        setStatusLED(true, AnalyticsMapFault, LEDFault);
+        setStatusLED(true, DashboardMapFault, LEDFault);
         setTooltip(AnalyticsCrankshaftSensorFault, "MAP Sensor Fault detected, check the vacuum pipes")
     }
 }
@@ -871,7 +932,7 @@ function updateECUDataframe(data) {
     updateGraphs(data);
     updateDataFrameValues(data);
     updateAdjustmentValues(data);
-    updateAnalytics()
+    updateDashboardAnalytics()
 
     if (memsreader.status.emulated) {
         // increment the replay progress

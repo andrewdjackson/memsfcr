@@ -193,13 +193,19 @@ func (webserver *WebServer) renderIndex(w http.ResponseWriter, r *http.Request) 
 		log.Errorf("template error: ", err)
 	}
 
-	data["Version"] = webserver.reader.Config.Version
-	latestVersion := webserver.newVersionAvailable()
-	if latestVersion != webserver.reader.Config.Version {
-		data["Version"] = "New Version! Click to Download"
-		data["NewVersion"] = true
-		log.Infof("%s", data["Version"])
-	}
+	/*
+		// blocks until version has been found and causes an exception if the network is
+		// offline.
+		// currently commented out until I get a chance to fix this
+		//
+		data["Version"] = webserver.reader.Config.Version
+		latestVersion := webserver.newVersionAvailable()
+		if latestVersion != webserver.reader.Config.Version {
+			data["Version"] = "New Version! Click to Download"
+			data["NewVersion"] = true
+			log.Infof("%s", data["Version"])
+		}
+	*/
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Etag", webserver.reader.Config.Build)
