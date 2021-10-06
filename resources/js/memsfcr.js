@@ -386,7 +386,7 @@ function updateGauges(data) {
 function updateGraphs(data) {
     addData(rpmSpark, data.Time, data.EngineRPM);
     addData(mapSpark, data.Time, data.ManifoldAbsolutePressure);
-    addData(throttleSpark, data.Time, (data.ThrottlePotSensor - 0.6) * 22.72);
+    addData(throttleSpark, data.Time, data.ThrottlePotSensor);
     addData(iacSpark, data.Time, data.IACPosition);
     addData(batterySpark, data.Time, data.BatteryVoltage);
     addData(coolantSpark, data.Time, data.CoolantTemp);
