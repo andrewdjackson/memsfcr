@@ -16,6 +16,106 @@ var ECUQueryInterval = 1000
 var ECUHeartbeatInterval = 2000
 var dataframeLoop
 
+var resetDataframe = {
+    "Time": "00:00:00.000",
+    "EngineRPM": 0,
+    "CoolantTemp": 0,
+    "AmbientTemp": 200,
+    "IntakeAirTemp": 0,
+    "FuelTemp": 200,
+    "ManifoldAbsolutePressure": 99,
+    "BatteryVoltage": 0,
+    "ThrottlePotSensor": 0.0,
+    "ThrottlePosition": 0,
+    "IdleSwitch": false,
+    "AirconSwitch": false,
+    "ParkNeutralSwitch": false,
+    "DTC0": 0,
+    "DTC1": 0,
+    "IdleSetPoint": 0,
+    "IdleHot": 0,
+    "Uk8011": 0,
+    "IACPosition": 0,
+    "IdleSpeedDeviation": 0,
+    "IgnitionAdvanceOffset80": 0,
+    "IgnitionAdvance": 0,
+    "CoilTime": 0,
+    "CrankshaftPositionSensor": 0,
+    "Uk801a": 0,
+    "Uk801b": 0,
+    "IgnitionSwitch": true,
+    "ThrottleAngle": 0,
+    "Uk7d03": 0,
+    "AirFuelRatio": 14.6,
+    "DTC2": 0,
+    "LambdaVoltage": 435,
+    "LambdaFrequency": 255,
+    "LambdaDutycycle": 255,
+    "LambdaStatus": 0,
+    "ClosedLoop": false,
+    "LongTermFuelTrim": 0,
+    "ShortTermFuelTrim": 0,
+    "FuelTrimCorrection": 0,
+    "CarbonCanisterPurgeValve": 0,
+    "DTC3": 255,
+    "IdleBasePosition": 0,
+    "Uk7d10": 0,
+    "DTC4": 255,
+    "IgnitionAdvanceOffset7d": 0,
+    "IdleSpeedOffset": 128,
+    "Uk7d14": 0,
+    "Uk7d15": 0,
+    "DTC5": 255,
+    "Uk7d17": 0,
+    "Uk7d18": 0,
+    "Uk7d19": 0,
+    "Uk7d1a": 0,
+    "Uk7d1b": 0,
+    "Uk7d1c": 0,
+    "Uk7d1d": 0,
+    "Uk7d1e": 0,
+    "JackCount": 0,
+    "CoolantTempSensorFault": false,
+    "IntakeAirTempSensorFault": false,
+    "FuelPumpCircuitFault": false,
+    "ThrottlePotCircuitFault": false,
+    "Analytics": {
+    "ReadingFault": false,
+        "IsEngineRunning": false,
+        "IsEngineWarming": false,
+        "IsAtOperatingTemp": false,
+        "IsEngineIdle": false,
+        "IsEngineIdleFault": false,
+        "IdleSpeedFault": false,
+        "IdleErrorFault": false,
+        "IdleHotFault": false,
+        "IdleBaseFault": false,
+        "IsCruising": false,
+        "IsClosedLoop": false,
+        "IsClosedLoopExpected": false,
+        "ClosedLoopFault": false,
+        "IsThrottleActive": false,
+        "MapFault": false,
+        "VacuumFault": false,
+        "IdleAirControlFault": false,
+        "IdleAirControlRangeFault": false,
+        "IdleAirControlJackFault": false,
+        "O2SystemFault": false,
+        "LambdaRangeFault": false,
+        "LambdaOscillationFault": false,
+        "ThermostatFault": false,
+        "CoolantTempSensorFault": false,
+        "IntakeAirTempSensorFault": false,
+        "FuelPumpCircuitFault": false,
+        "ThrottlePotCircuitFault": false,
+        "CrankshaftSensorFault": false,
+        "CoilFault": false,
+        "IACPosition": 0
+    },
+    "Dataframe80": "801c000085ff4fff638e23001001000000208b60039d003808c1000000",
+    "Dataframe7d": "7d201012ff92006effff0100996400ff3affff30807c63ff19401ec0264034c008"
+}
+
 const AirSensorFaultCode = 0b00000001
 const CoolantSensorFaultCode = 0b00000010
 const FuelPumpFaultCode = 0b00000001
@@ -262,42 +362,46 @@ function initialiseGraphs() {
     coolantChart = createChart(ChartCoolant, "Coolant (°C)");
 }
 
-function updateGauges(Responsedata) {
-    gaugeRPM.value = Responsedata.EngineRPM;
-    gaugeMap.value = Responsedata.ManifoldAbsolutePressure;
-    // no throttle = 0.6V - full throttle = ~5V
-    //gaugeThrottlePos.value = (Responsedata.ThrottlePotSensor - 0.6) * 22.72;
-    gaugeThrottlePos.value = (Responsedata.ThrottlePotSensor) * 20;
-    gaugeIACPos.value = Responsedata.IACPosition;
-    gaugeBattery.value = Responsedata.BatteryVoltage;
-    gaugeCoolant.value = Responsedata.CoolantTemp;
-    gaugeAir.value = Responsedata.IntakeAirTemp;
-    gaugeLambda.value = Responsedata.LambdaVoltage;
-    gaugeFuelTrim.value = Responsedata.FuelTrimCorrection;
-    gaugeLTFuelTrim.value = Responsedata.LongTermFuelTrim;
-    gaugeAirFuel.value = Responsedata.AirFuelRatio;
-    gaugeIgnition.value = Responsedata.IgnitionAdvance;
+async function resetInterface() {
+    console.info('resetting user interface')
+    await new Promise(r => setTimeout(r, 500));
+    updateECUDataframe(resetDataframe)
 }
 
-function updateGraphs(Responsedata) {
-    addData(rpmSpark, Responsedata.Time, Responsedata.EngineRPM);
-    addData(mapSpark, Responsedata.Time, Responsedata.ManifoldAbsolutePressure);
-    addData(throttleSpark, Responsedata.Time, (Responsedata.ThrottlePotSensor - 0.6) * 22.72);
-    addData(iacSpark, Responsedata.Time, Responsedata.IACPosition);
-    addData(batterySpark, Responsedata.Time, Responsedata.BatteryVoltage);
-    addData(coolantSpark, Responsedata.Time, Responsedata.CoolantTemp);
-    addData(airSpark, Responsedata.Time, Responsedata.IntakeAirTemp);
-    addData(lambdaSpark, Responsedata.Time, Responsedata.LambdaVoltage);
-    addData(fuelSpark, Responsedata.Time, Responsedata.FuelTrimCorrection);
-    addData(ltfuelSpark, Responsedata.Time, Responsedata.LongTermFuelTrim);
-    addData(airfuelSpark, Responsedata.Time, Responsedata.AirFuelRatio);
-    addData(ignitionSpark, Responsedata.Time, Responsedata.IgnitionAdvance);
+function updateGauges(data) {
+    gaugeRPM.value = data.EngineRPM;
+    gaugeMap.value = data.ManifoldAbsolutePressure;
+    gaugeThrottlePos.value = (data.ThrottlePotSensor) * 20;
+    gaugeIACPos.value = data.IACPosition;
+    gaugeBattery.value = data.BatteryVoltage;
+    gaugeCoolant.value = data.CoolantTemp;
+    gaugeAir.value = data.IntakeAirTemp;
+    gaugeLambda.value = data.LambdaVoltage;
+    gaugeFuelTrim.value = data.FuelTrimCorrection;
+    gaugeLTFuelTrim.value = data.LongTermFuelTrim;
+    gaugeAirFuel.value = data.AirFuelRatio;
+    gaugeIgnition.value = data.IgnitionAdvance;
+}
 
-    addData(rpmChart, Responsedata.Time, Responsedata.EngineRPM);
-    addData(lambdaChart, Responsedata.Time, Responsedata.LambdaVoltage);
-    addData(loopChart, Responsedata.Time, Responsedata.ClosedLoop);
-    addData(afrChart, Responsedata.Time, Responsedata.AirFuelRatio);
-    addData(coolantChart, Responsedata.Time, Responsedata.CoolantTemp);
+function updateGraphs(data) {
+    addData(rpmSpark, data.Time, data.EngineRPM);
+    addData(mapSpark, data.Time, data.ManifoldAbsolutePressure);
+    addData(throttleSpark, data.Time, (data.ThrottlePotSensor - 0.6) * 22.72);
+    addData(iacSpark, data.Time, data.IACPosition);
+    addData(batterySpark, data.Time, data.BatteryVoltage);
+    addData(coolantSpark, data.Time, data.CoolantTemp);
+    addData(airSpark, data.Time, data.IntakeAirTemp);
+    addData(lambdaSpark, data.Time, data.LambdaVoltage);
+    addData(fuelSpark, data.Time, data.FuelTrimCorrection);
+    addData(ltfuelSpark, data.Time, data.LongTermFuelTrim);
+    addData(airfuelSpark, data.Time, data.AirFuelRatio);
+    addData(ignitionSpark, data.Time, data.IgnitionAdvance);
+
+    addData(rpmChart, data.Time, data.EngineRPM);
+    addData(lambdaChart, data.Time, data.LambdaVoltage);
+    addData(loopChart, data.Time, data.ClosedLoop);
+    addData(afrChart, data.Time, data.AirFuelRatio);
+    addData(coolantChart, data.Time, data.CoolantTemp);
 }
 
 function setConnectionStatusMessage(connected) {
@@ -864,6 +968,8 @@ function disconnected(event) {
     memsreader.status.emulated = false
     removeConnectEventListeners()
     memsreader.connectButton.addEventListener('click', connectECU, {once: true})
+
+    resetInterface()
 }
 
 // startDataframeLoop configures a timer interval to make
@@ -920,7 +1026,12 @@ function getDataframe() {
 function dataframeReceived(event) {
     var data = JSON.parse(event.target.response)
     console.debug("dataframe request response " + JSON.stringify(data))
-    updateECUDataframe(data)
+
+    if (data.LambdaStatus > 1 || data.EngineRPM > 7000) {
+        console.error("exception dataframe is invalid!")
+    } else {
+        updateECUDataframe(data)
+    }
 }
 
 function updateECUDataframe(data) {

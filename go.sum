@@ -15,6 +15,14 @@ github.com/andrewdjackson/rosco v1.5.1-0.20211004152545-e14d33591211 h1:1bvdxUpl
 github.com/andrewdjackson/rosco v1.5.1-0.20211004152545-e14d33591211/go.mod h1:ZO27bPME3FBbVU4mf9RHSe/RVfQ0MQ6p0ehOYs45DPs=
 github.com/andrewdjackson/rosco v1.5.10 h1:/D7dvQHt/n1Bt6sGsNOqBuFDiVwmPdMLvZJzau6Cc/4=
 github.com/andrewdjackson/rosco v1.5.10/go.mod h1:ZO27bPME3FBbVU4mf9RHSe/RVfQ0MQ6p0ehOYs45DPs=
+github.com/andrewdjackson/rosco v1.5.11 h1:ySLpzvfKUyzGcnrTLtNuBUVt3Rhmn4deOD8pnKITtiA=
+github.com/andrewdjackson/rosco v1.5.11/go.mod h1:ZO27bPME3FBbVU4mf9RHSe/RVfQ0MQ6p0ehOYs45DPs=
+github.com/andrewdjackson/rosco v1.5.12 h1:6NV5M4oStaZ0hB2arRpaagQuiqP8B0J9x/pCll5nNao=
+github.com/andrewdjackson/rosco v1.5.12/go.mod h1:ZO27bPME3FBbVU4mf9RHSe/RVfQ0MQ6p0ehOYs45DPs=
+github.com/andrewdjackson/rosco v1.5.13 h1:2hGKYexkgZ1MxxDSzSCgshkf+yXV8MEIaw8TLeHwNIQ=
+github.com/andrewdjackson/rosco v1.5.13/go.mod h1:ZO27bPME3FBbVU4mf9RHSe/RVfQ0MQ6p0ehOYs45DPs=
+github.com/andrewdjackson/rosco v1.5.14 h1:7Fjh1jD82rqQcpjrxovjPGWWvHUjxSBXwn5Mr+UCnxU=
+github.com/andrewdjackson/rosco v1.5.14/go.mod h1:ZO27bPME3FBbVU4mf9RHSe/RVfQ0MQ6p0ehOYs45DPs=
 github.com/boombuler/barcode v1.0.0/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
 github.com/corbym/gocrest v1.0.5/go.mod h1:lF3xBPnOU5DYDpa/vUq63SMxUhd5UAwGgmA8Z2pJ/Tk=
 github.com/creack/goselect v0.1.1 h1:tiSSgKE1eJtxs1h/VgGQWuXUP0YS4CDIFMp6vaI1ls0=
