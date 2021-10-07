@@ -1,6 +1,6 @@
 var displayWidth = 200
 var displayHeight = 200
-var animationSpeed = 300
+var animationSpeed = 400
 var gaugeFontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'
 
 var gaugeRPM = new RadialGauge({
