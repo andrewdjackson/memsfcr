@@ -53,7 +53,7 @@ func (reader *MemsReader) StartWebServer() {
 
 // OpenBrowser opens the browser
 func (reader *MemsReader) OpenBrowser() {
-	url := fmt.Sprintf("http://0.0.0.0:%d/index.html", reader.WebServer.HTTPPort)
+	url := fmt.Sprintf("http://127.0.0.1:%d/index.html", reader.WebServer.HTTPPort)
 
 	var err error
 
