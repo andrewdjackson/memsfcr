@@ -582,10 +582,12 @@
                                                     <div class="range-slider-settings" data-toggle="tooltip"
                                                          data-placement="top"
                                                          title="The ECU will be called twice per ECU Sample as data requests require 2 calls. A value <500ms can introduce instability.">
+
                                                         <input id="ecuqueryfrequency" class="range-slider__range" type="range"
-                                                               value="{{.ECUQueryInterval.Value}}" min="{{.ECUQueryInterval.Min}}" max="{{.ECUQueryInterval.Max}}" step="{{.ECUQueryInterval.Steps}}" enabled>
-                                                        <span id="ecuqueryfrequency" class="range-slider__value">0</span>
-                                                    </div>
+                                                               value="{{.ECUQueryInterval.Value}}" min="{{.ECUQueryInterval.Min}}" max="{{.ECUQueryInterval.Max}}" step="{{.ECUQueryInterval.Steps}}" enabled oninput="updateECUQueryIntervalLabel(this.value)">
+                                                        <span id="ecuqueryfrequencyvalue" class="range-slider__value">0</span>
+
+                                                      </div>
                                                 </td>
                                             </tr>
                                             <tr class="debug">
@@ -626,7 +628,6 @@
 <script type="text/javascript" src="js/chart.min.js"></script>
 
 <!-- MemsFCR javascript functions -->
-<script type="text/javascript" src="js/mems-rangeslider.js"></script>
 <script type="text/javascript" src="js/memsfcr.js"></script>
 <script type="text/javascript" src="js/mems-historical.js"></script>
 <script async type="text/javascript" src="js/mems-dashboard.js"></script>

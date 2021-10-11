@@ -137,6 +137,7 @@ const LogToFileDisabled = "false"
 const SettingPort = "port"
 const SettingPortList = "ports"
 const SettingECUQueryFrequency = "ecuqueryfrequency"
+const LabelECUQueryFrequency = "ecuqueryfrequencylabel"
 
 // Indicators and Labels
 const IndicatorConnectionMessage = "connectionMessage"
@@ -261,6 +262,11 @@ if (typeof console != "undefined") {
         document.getElementById('debugLog').innerHTML += (level + "[" + time + "] " + message + debugLogLineTerminator);
     }
 }
+
+// enable tooltips
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
 
 class MemsReader {
     constructor(uri) {
@@ -735,6 +741,10 @@ function readConfig() {
     request.send()
 }
 
+function updateECUQueryIntervalLabel(value) {
+    $("#ecuqueryfrequencyvalue").html(value);
+}
+
 function updateConfigSettings(data) {
     console.info("Version " + data.Version + " Build " + data.Build)
     $("#version").text("Version " + data.Version + " Build " + data.Build)
@@ -743,6 +753,7 @@ function updateConfigSettings(data) {
     setSerialPortSelection(data.Ports);
     setLogToFile(data.LogToFile, data.LogFolder);
     setECUQueryFrequency(data.Frequency);
+    updateECUQueryIntervalLabel(data.Frequency);
 
     if (data.Debug == "true") {
         debug = data.Debug

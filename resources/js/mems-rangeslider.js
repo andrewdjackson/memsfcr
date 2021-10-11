@@ -16,7 +16,7 @@ var rangeSlider = function () {
   });
 };
 
-rangeSlider();
+//rangeSlider();
 
 $(function () {
   $('[data-toggle="tooltip"]').tooltip()
