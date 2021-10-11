@@ -227,7 +227,7 @@ func (webserver *WebServer) RunHTTPServer() {
 
 	// We can then pass our router (after declaring all our routes) to this method
 	// (where previously, we were leaving the second argument as nil)
-	listener, err := net.Listen("tcp", ":8081")
+	listener, err := net.Listen("tcp", ":0")
 
 	if err != nil {
 		log.Errorf("error starting web interface (%s)", err)
