@@ -426,8 +426,7 @@
                                         data-toggle="tooltip" data-placement="left"
                                         title="Clear all adjustments made to the Adaptive values."><i
                                         class="fa fa-undo">&nbsp</i>Reset Adjustments
-                                </button>
-                                &nbsp;
+                                </button>&nbsp;
                             </div>
                             <table class="table">
                                 <tbody>
@@ -437,19 +436,27 @@
                                     <td>
                                         <button type="button" style="width:150px"
                                                 class="btn btn-outline-info text-right" onclick="decrease('{{.Id}}');">
-                                            {{.DecreaseLabel}}&nbsp<i class="fas fa-angle-left"></i></button>
+                                            {{.DecreaseLabel}}&nbsp;&lt;</button>
                                     </td>
-                                    <td class="adjustment"><i class="far {{.Icon}}" style="width:50px"></i>{{.Name}}
+                                    <td class="adjustment">
+                                        <div class="gauge-label-container">{{.Name}}</div>
+                                        <div class="gauge-container" data-toggle="tooltip" data-placement="top"
+                                             title="{{.Description}}">
+                                            <canvas id="{{.Id}}"></canvas>
+                                        </div>
+                                        <!--
+                                        <i class="far {{.Icon}}" style="width:50px"></i>{{.Name}}
                                         <div class="range-slider">
                                             <input id="{{.Id}}" class="range-slider__range" type="range" value="{{.Value}}"
                                                    min="{{.Min}}" max="{{.Max}}" step="{{.Steps}}" disabled aria-disabled="true">
                                             <span id="{{.Id}}" class="range-slider__value">{{.Value}}</span>
                                         </div>
+                                        -->
                                     </td>
                                     <td>
                                         <button type="button" style="width:150px"
                                                 class="btn btn-outline-info text-left float-right"
-                                                onclick="increase('{{.Id}}');"><i class="far fa-angle-right">&nbsp</i>{{.IncreaseLabel}}
+                                                onclick="increase('{{.Id}}');">&gt;&nbsp;{{.IncreaseLabel}}
                                         </button>
                                     </td>
                                 </tr>
@@ -595,6 +602,8 @@
 											</span>
                                 </div>
                             </form>
+
+                            <div class="debugLog" id="debugLog" readonly></div>
                         </div>
                     </div>
                 </div>
@@ -621,6 +630,6 @@
 <script type="text/javascript" src="js/memsfcr.js"></script>
 <script type="text/javascript" src="js/mems-rangeslider.js"></script>
 <script type="text/javascript" src="js/mems-historical.js"></script>
-<script type="text/javascript" src="js/mems-dashboard.js"></script>
+<script async type="text/javascript" src="js/mems-dashboard.js"></script>
 </body>
 </html>

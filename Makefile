@@ -64,6 +64,8 @@ notarize_local_package:
 
 	#
 	# if successful staple the app for offline installation
+	#   xcrun stapler staple $(DARWINDISTPATH)/$(APPNAME).app
+	#   xcrun stapler staple $(DARWINDISTPATH)/$(APPNAME).pkg
 	#   xcrun stapler staple $(DARWINDISTPATH)/$(APPNAME).dmg
 
 upload_app_to_store:

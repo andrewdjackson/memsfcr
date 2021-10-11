@@ -218,6 +218,50 @@ const SparkLTFuel = "ltfuelspark"
 const SparkAirFuel = "airfuelspark"
 const SparkIgnition = "ignitionspark"
 
+const maxDebugLogLength = 75 // lines of debug log in the interface
+const debugLogLineTerminator = "<br>"
+var   debugLogLineCount = 0 // number of lines in the log
+
+if (typeof console != "undefined") {
+    var oldLogInfo = console.info
+    var oldLogWarn = console.warn
+    var oldLogError = console.error
+
+    console.info = function(message) {
+        oldLogInfo.apply(console, arguments);
+        display("<span class='debugInfo'>INFO</span>", message);
+    }
+
+    console.warn = function(message) {
+        oldLogWarn.apply(console, arguments);
+        display("<span class='debugWarning'>WARN</span>", message);
+    }
+
+    console.error = function(message) {
+        oldLogError.apply(console, arguments);
+        display("<span class='debugError'>ERRO</span>", message);
+    }
+
+    function display(level, message) {
+        date = new Date()
+        time = String(date.getHours()).padStart(2,'0') + ":" + String(date.getMinutes()).padStart(2,'0') + ":" + String(date.getSeconds()).padStart(2,'0') + "." + String(date.getMilliseconds()).padStart(3, '0')
+        debugLogLineCount++
+
+        debugLogContent = document.getElementById('debugLog').innerHTML
+        if (debugLogLineCount > maxDebugLogLength) {
+            // set the line count to the max
+            debugLogLineCount = maxDebugLogLength
+            // find end of the line
+            start = debugLogContent.indexOf(debugLogLineTerminator, 0) + debugLogLineTerminator.length
+            // truncate the content
+            debugLogContent = debugLogContent.substring(start, debugLogContent.length)
+
+            document.getElementById('debugLog').innerHTML = debugLogContent
+        }
+        document.getElementById('debugLog').innerHTML += (level + "[" + time + "] " + message + debugLogLineTerminator);
+    }
+}
+
 class MemsReader {
     constructor(uri) {
         this.uri = {
@@ -230,6 +274,8 @@ class MemsReader {
             adjust: uri + "/rosco/adjust/",
             actuator: uri + "/rosco/test/",
             scenario: uri + "/scenario",
+            play_scenario: uri + "/scenario/play",
+            seek_scenario: uri + "/scenario/seek",
         }
         this.ecuid = ""
         this.iacposition = 0
@@ -337,6 +383,14 @@ function initialiseGauges() {
     gaugeLTFuelTrim.draw();
     gaugeAirFuel.draw();
     gaugeIgnition.draw();
+
+    // draw adaptive value gauges
+    gaugeAdaptiveIdleSpeed.draw()
+    gaugeAdaptiveIACPos.draw()
+    gaugeAdaptiveIdleDecay.draw()
+    gaugeAdaptiveSTFT.draw()
+    gaugeAdaptiveLTFT.draw()
+    gaugeAdaptiveIgnition.draw()
 }
 
 function initialiseSparklines() {
@@ -431,7 +485,7 @@ function setConnectionStatusMessage(connected) {
 }
 
 function setECUQueryFrequency(frequency) {
-    console.log("freq " + frequency)
+    console.info("freq " + frequency)
     f = parseInt(frequency)
     if (f > 200) {
         ECUQueryInterval = f
@@ -577,12 +631,12 @@ function setConnectButtonStyle(name, style, f) {
 }
 
 function hideDebugValues() {
-    console.log("hiding debug elements")
+    console.debug("hiding debug elements")
     for (let el of document.querySelectorAll('.debug')) el.style.display = 'none';
 }
 
 function showProgressValues(show) {
-    console.log("hiding/showing progress elements")
+    console.debug("hiding/showing progress elements")
     if (show) {
         d = 'visible'
     } else {
@@ -623,7 +677,7 @@ function updateAvailableSerialPorts(event) {
 
     $("#ports").empty()
     $.each(availablePorts, function(key, value) {
-        console.log("serial port added " + key + " : " + value);
+        console.info("serial port added " + key + " : " + value);
         $("#ports").append('<a class="dropdown-item" href="#" onclick="selectPort(this)">' + value + '</a>');
     });
 }
@@ -631,13 +685,13 @@ function updateAvailableSerialPorts(event) {
 function setSerialPortSelection(ports) {
 
     $.each(ports, function(key, value) {
-        console.log("serial port added " + key + " : " + value);
+        console.info("serial port added " + key + " : " + value);
         $("#ports").append('<a class="dropdown-item" href="#" onclick="selectPort(this)">' + value + '</a>');
     });
 }
 
 function selectPort(item) {
-    console.log('selected ' + item.text)
+    console.info('selected ' + item.text)
     setPort(item.text)
 }
 
@@ -716,7 +770,7 @@ function Save() {
     var url = uri + "/config"
 
     // Open a new connection, using the GET request on the URL endpoint
-    request.open('POST', url, true)
+    request.open('PUT', url, true)
     request.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
 
     request.onload = function () {
@@ -788,7 +842,7 @@ function loadScenario() {
     var request = new XMLHttpRequest()
 
     // Open a new connection, using the GET request on the URL endpoint
-    var url = memsreader.uri.scenario + "/" + selectedScenario
+    var url = memsreader.uri.play_scenario + "/" + selectedScenario
 
     request.open('GET', url, true)
     request.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
@@ -1028,8 +1082,11 @@ function dataframeReceived(event) {
     var data = JSON.parse(event.target.response)
     console.debug("dataframe request response " + JSON.stringify(data))
 
+    // if the engine rpm or lambda status are unfeasibly wrong then
+    // the data is corrupt
     if (data.LambdaStatus > 1 || data.EngineRPM > 7000) {
         console.error("exception dataframe is invalid!")
+        console.error("memsdata " + JSON.stringify(data))
     } else {
         updateECUDataframe(data)
     }
@@ -1144,8 +1201,24 @@ function adjustmentComplete(event) {
 }
 
 function updateAdjustmentValue(id, value) {
-    console.log("updating " + id + " to new value " + value.toString())
+    console.info("updating " + id + " to new value " + value.toString())
 
+    switch (id) {
+        case AdjustmentSTFT: gaugeAdaptiveSTFT.value = value;
+            break;
+        case AdjustmentLTFT: gaugeAdaptiveLTFT.value = value;
+            break;
+        case AdjustmentIAC: gaugeAdaptiveIACPos.value = value;
+            break;
+        case AdjustmentIgnitionAdvance: gaugeAdaptiveIgnition.value = value;
+            break;
+        case AdjustmentIdleDecay: gaugeAdaptiveIdleDecay.value = value;
+            break;
+        case AdjustmentIdleSpeed: gaugeAdaptiveIdleSpeed.value = value;
+            break;
+    }
+
+    // update slider
     $("input#" + id + ".range-slider__range").val(value);
     $("span#" + id + ".range-slider__value").html(value.toString());
 }

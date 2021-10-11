@@ -28,10 +28,10 @@ func (webserver *WebServer) getConfigHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-// REST API : POST Config
+// REST API : PUT Config
 // updates the config
 func (webserver *WebServer) updateConfigHandler(w http.ResponseWriter, r *http.Request) {
-	// get the body of our POST request
+	// get the body of our request
 	// unmarshal this into a new Config struct
 	reqBody, _ := ioutil.ReadAll(r.Body)
 
@@ -39,7 +39,7 @@ func (webserver *WebServer) updateConfigHandler(w http.ResponseWriter, r *http.R
 	config := ReadConfig()
 	_ = json.Unmarshal(reqBody, &config)
 
-	log.Infof("rest-post update config (%v)", config)
+	log.Infof("rest-put update config (%v)", config)
 	// save the configuration
 	WriteConfig(config)
 

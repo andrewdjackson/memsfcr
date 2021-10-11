@@ -23,6 +23,16 @@ github.com/andrewdjackson/rosco v1.5.13 h1:2hGKYexkgZ1MxxDSzSCgshkf+yXV8MEIaw8TL
 github.com/andrewdjackson/rosco v1.5.13/go.mod h1:ZO27bPME3FBbVU4mf9RHSe/RVfQ0MQ6p0ehOYs45DPs=
 github.com/andrewdjackson/rosco v1.5.14 h1:7Fjh1jD82rqQcpjrxovjPGWWvHUjxSBXwn5Mr+UCnxU=
 github.com/andrewdjackson/rosco v1.5.14/go.mod h1:ZO27bPME3FBbVU4mf9RHSe/RVfQ0MQ6p0ehOYs45DPs=
+github.com/andrewdjackson/rosco v1.5.15 h1:rqGAoQBJDPqtoLkag0Xc00g2dS0Jmzx7XMw4QgblWRs=
+github.com/andrewdjackson/rosco v1.5.15/go.mod h1:FNb5sB/w+GmcNBSuFbJcr1VGW83ehkX6/OvSVdei2r4=
+github.com/andrewdjackson/rosco v1.5.16 h1:8uGvzwhSWThJ5Byd82ZgNLFHymPId4ZHOgY4leOoi34=
+github.com/andrewdjackson/rosco v1.5.16/go.mod h1:FNb5sB/w+GmcNBSuFbJcr1VGW83ehkX6/OvSVdei2r4=
+github.com/andrewdjackson/rosco v1.5.17 h1:GU0NiPuNjqsa0z8f5cdXH5ghSyZtVoZThyY+c0IZCQE=
+github.com/andrewdjackson/rosco v1.5.17/go.mod h1:FNb5sB/w+GmcNBSuFbJcr1VGW83ehkX6/OvSVdei2r4=
+github.com/andrewdjackson/rosco v1.5.18 h1:bkSXGduoIv/yClXI2dVV9LdDbBf5SXw5M4prPtfxZDs=
+github.com/andrewdjackson/rosco v1.5.18/go.mod h1:FNb5sB/w+GmcNBSuFbJcr1VGW83ehkX6/OvSVdei2r4=
+github.com/andrewdjackson/rosco v1.5.19 h1:klj8X5+zdoDaf1UPqQWNDak0o9G5OuaYFIzb9nOpkZ0=
+github.com/andrewdjackson/rosco v1.5.19/go.mod h1:FNb5sB/w+GmcNBSuFbJcr1VGW83ehkX6/OvSVdei2r4=
 github.com/boombuler/barcode v1.0.0/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
 github.com/corbym/gocrest v1.0.5/go.mod h1:lF3xBPnOU5DYDpa/vUq63SMxUhd5UAwGgmA8Z2pJ/Tk=
 github.com/creack/goselect v0.1.1 h1:tiSSgKE1eJtxs1h/VgGQWuXUP0YS4CDIFMp6vaI1ls0=
@@ -125,6 +135,8 @@ golang.org/x/sys v0.0.0-20210616045830-e2b7044e8c71 h1:X/2sJAybVknnUnV7AD2HdT6rm
 golang.org/x/sys v0.0.0-20210616045830-e2b7044e8c71/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20211004093028-2c5d950f24ef h1:fPxZ3Umkct3LZ8gK9nbk+DWDJ9fstZa2grBn+lWVKPs=
 golang.org/x/sys v0.0.0-20211004093028-2c5d950f24ef/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac h1:oN6lz7iLW/YC7un8pq+9bOLyXrprv2+DKfkJY+2LJJw=
+golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.5/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 golang.org/x/tools v0.0.0-20180525024113-a5b4c53f6e8b/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
