@@ -225,9 +225,11 @@ func (webserver *WebServer) RunHTTPServer() {
 	// Declare a new router
 	webserver.router = webserver.newRouter()
 
+	serverport := fmt.Sprintf(":%s", webserver.reader.Config.ServerPort)
+
 	// We can then pass our router (after declaring all our routes) to this method
 	// (where previously, we were leaving the second argument as nil)
-	listener, err := net.Listen("tcp", ":0")
+	listener, err := net.Listen("tcp", serverport)
 
 	if err != nil {
 		log.Errorf("error starting web interface (%s)", err)

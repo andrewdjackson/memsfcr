@@ -13,16 +13,17 @@ import (
 // Config readmems configuration
 type Config struct {
 	// Config
-	Port      string
-	LogToFile string
-	LogFolder string
-	Loop      string
-	Ports     []string
-	Debug     string
-	Frequency string
-	Headless  string
-	Version   string
-	Build     string
+	Port       string
+	LogToFile  string
+	LogFolder  string
+	Loop       string
+	Ports      []string
+	Debug      string
+	Frequency  string
+	Headless   string
+	Version    string
+	Build      string
+	ServerPort string
 }
 
 var config Config
@@ -40,6 +41,7 @@ func NewConfig() *Config {
 	config.Headless = "false"
 	config.Frequency = "500"
 	config.Version = "0.0.0"
+	config.ServerPort = "0"
 
 	currentTime := time.Now()
 	config.Build = currentTime.Format("2006-01-02")
@@ -99,6 +101,7 @@ func WriteConfig(c *Config) {
 	cfg.Section("").Key("debug").SetValue(c.Debug)
 	cfg.Section("").Key("frequency").SetValue(c.Frequency)
 	cfg.Section("").Key("headless").SetValue(c.Headless)
+	cfg.Section("").Key("serverport").SetValue(c.ServerPort)
 
 	err = cfg.SaveTo(filename)
 
@@ -136,6 +139,7 @@ func ReadConfig() *Config {
 	c.Debug = cfg.Section("").Key("debug").String()
 	c.Frequency = cfg.Section("").Key("frequency").String()
 	c.Headless = cfg.Section("").Key("headless").String()
+	c.ServerPort = cfg.Section("").Key("serverport").String()
 
 	log.Infof("MemsFCR Config %+v", c)
 	return c
