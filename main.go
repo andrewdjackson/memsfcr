@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/andrewdjackson/rosco"
 	"io"
 	"io/ioutil"
 	"os"
@@ -11,7 +12,6 @@ import (
 	"time"
 
 	"github.com/andrewdjackson/memsfcr/fcr"
-	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -27,10 +27,6 @@ var (
 	Version string
 	// Build date
 	Build string
-	// User Home Folder
-	HomeFolder string
-	// Application Binary Folder
-	AppFolder string
 )
 
 func init() {
@@ -49,14 +45,6 @@ func init() {
 
 	currentTime := time.Now()
 	Build = currentTime.Format("2006-01-02")
-
-	// get the users home directory
-	dir, _ := homedir.Dir()
-	HomeFolder = filepath.FromSlash(dir)
-
-	// get the application binary current directory
-	dir, _ = os.Getwd()
-	AppFolder = filepath.FromSlash(dir)
 }
 
 func setupLogging(debug bool) {
@@ -67,7 +55,7 @@ func setupLogging(debug bool) {
 		dateTime := currentTime.Format("2006-01-02 15:04:05")
 		dateTime = strings.ReplaceAll(dateTime, ":", "")
 		dateTime = strings.ReplaceAll(dateTime, " ", "-")
-		filename := fmt.Sprintf("%s/memsfcr/logs/debug-%s.log", HomeFolder, dateTime)
+		filename := fmt.Sprintf("%s/debug-%s.log", rosco.GetDebugFolder(), dateTime)
 		filename = filepath.FromSlash(filename)
 
 		// write logs to file and console
@@ -103,15 +91,19 @@ func setupLogging(debug bool) {
 func main() {
 	var debug bool
 
-	flag.BoolVar(&debug, "debug", false, "output to a debug file")
+	fcr.CreateFolders()
+
+	flag.BoolVar(&debug, "debug", true, "output to a debug file")
 	flag.Parse()
 
 	// initialise the logging
 	setupLogging(debug)
 
 	log.Infof("MemsFCR Version %s, Build %s", Version, Build)
-	log.Infof("MemsFCR Home Folder %s", HomeFolder)
-	log.Infof("MemsFCR App Folder %s", AppFolder)
+	log.Infof("MemsFCR Home Folder %s", rosco.GetHomeFolder())
+	log.Infof("MemsFCR App Folder %s", rosco.GetAppFolder())
+	log.Infof("MemsFCR Log Folder %s", rosco.GetLogFolder())
+	log.Infof("MemsFCR Debug Folder %s", rosco.GetDebugFolder())
 
 	// create a channel to notify app to exit
 	exit := make(chan int)

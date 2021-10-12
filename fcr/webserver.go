@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/andrewdjackson/rosco"
 	"html/template"
 	"io/ioutil"
 	"net"
@@ -70,8 +71,7 @@ func (webserver *WebServer) getRelativePaths() RelativePaths {
 
 	// determine the path to find the local html files
 	// based on the current executable path
-	dir, _ := os.Getwd()
-	exepath := filepath.FromSlash(dir)
+	exepath := rosco.GetAppFolder()
 	paths.ExePath, _ = filepath.Abs(exepath)
 
 	// use default browser on Windows until I can get the Webview to work
@@ -114,7 +114,7 @@ func (webserver *WebServer) newRouter() *mux.Router {
 	// set a router and a handler to accept messages over the websocket
 
 	r := mux.NewRouter()
-	//r.HandleFunc("/ws", webserver.websocketHandler)
+
 	r.HandleFunc("/heartbeat", webserver.browserHeartbeatHandler)
 
 	r.HandleFunc("/config", webserver.getConfigHandler).Methods(http.MethodGet)

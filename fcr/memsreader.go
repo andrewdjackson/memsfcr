@@ -30,7 +30,7 @@ func NewMemsReader(version string, build string) *MemsReader {
 	// set up the connection to the ECU
 	// this is also used to 'emulate' the ECU if
 	// a pre-recorded scenario is played back
-	reader.ECU = rosco.NewMemsConnection(reader.Config.LogFolder)
+	reader.ECU = rosco.NewMemsConnection()
 
 	// set up the webserver for websocket
 	// and REST endpoints

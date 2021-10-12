@@ -2,43 +2,31 @@ package fcr
 
 import (
 	"fmt"
+	"github.com/andrewdjackson/rosco"
 	"os"
 	"time"
 
-	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/ini.v1"
 )
 
 // Config readmems configuration
 type Config struct {
-	// Config
 	Port       string
-	LogToFile  string
-	LogFolder  string
-	Loop       string
 	Ports      []string
 	Debug      string
 	Frequency  string
-	Headless   string
 	Version    string
 	Build      string
 	ServerPort string
 }
 
 var config Config
-var homeFolder string
-var appFolder string
-var logFolder string
 
 // NewConfig creates a new instance of readmems config
 func NewConfig() *Config {
 	config.Port = "/dev/tty.serial"
-	config.LogFolder = ""
-	config.LogToFile = "true"
-	config.Loop = "100000000"
 	config.Debug = "false"
-	config.Headless = "false"
 	config.Frequency = "500"
 	config.Version = "0.0.0"
 	config.ServerPort = "0"
@@ -49,40 +37,9 @@ func NewConfig() *Config {
 	return &config
 }
 
-func getHomeFolder() string {
-	homeFolder, _ = homedir.Dir()
-	return homeFolder
-}
-
-func createFolder(path string) {
-	_, err := os.Stat(path)
-
-	if os.IsNotExist(err) {
-		errDir := os.MkdirAll(path, 0755)
-		if errDir != nil {
-			log.Errorf("unable to create folder %s (%s)", path, err)
-		}
-	}
-}
-
-func createDataFolders(folder string) {
-	// sandbox folder
-	//homeFolder = "./Documents"
-
-	appFolder = fmt.Sprintf("%s/memsfcr", folder)
-	createFolder(appFolder)
-
-	logFolder = fmt.Sprintf("%s/logs", folder)
-	createFolder(logFolder)
-}
-
 // WriteConfig write the config file
 func WriteConfig(c *Config) {
-	homeFolder = getHomeFolder()
-	// create the folders if they don't exist
-	createDataFolders(homeFolder)
-
-	filename := fmt.Sprintf("%s/memsfcr.cfg", appFolder)
+	filename := fmt.Sprintf("%s/memsfcr.cfg", rosco.GetHomeFolder())
 
 	// create the file if it doesn't exist
 	_, _ = os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
@@ -95,12 +52,8 @@ func WriteConfig(c *Config) {
 	cfg.Section("").Key("version").SetValue(c.Version)
 	cfg.Section("").Key("build").SetValue(c.Build)
 	cfg.Section("").Key("port").SetValue(c.Port)
-	cfg.Section("").Key("loop").SetValue(c.Loop)
-	cfg.Section("").Key("logtofile").SetValue(c.LogToFile)
-	cfg.Section("").Key("logfolder").SetValue(c.LogFolder)
 	cfg.Section("").Key("debug").SetValue(c.Debug)
 	cfg.Section("").Key("frequency").SetValue(c.Frequency)
-	cfg.Section("").Key("headless").SetValue(c.Headless)
 	cfg.Section("").Key("serverport").SetValue(c.ServerPort)
 
 	err = cfg.SaveTo(filename)
@@ -114,14 +67,9 @@ func WriteConfig(c *Config) {
 
 // ReadConfig reads the config file
 func ReadConfig() *Config {
-	homeFolder = getHomeFolder()
-	// create the folders if they don't exist
-	createDataFolders(homeFolder)
-
-	filename := fmt.Sprintf("%s/memsfcr.cfg", appFolder)
+	filename := fmt.Sprintf("%s/memsfcr.cfg", rosco.GetHomeFolder())
 
 	c := NewConfig()
-	c.LogFolder = logFolder
 
 	cfg, err := ini.Load(filename)
 	if err != nil {
@@ -133,14 +81,34 @@ func ReadConfig() *Config {
 	}
 
 	c.Port = cfg.Section("").Key("port").String()
-	c.Loop = cfg.Section("").Key("loop").String()
-	c.LogToFile = cfg.Section("").Key("logtofile").String()
-	c.LogFolder = cfg.Section("").Key("logfolder").String()
 	c.Debug = cfg.Section("").Key("debug").String()
 	c.Frequency = cfg.Section("").Key("frequency").String()
-	c.Headless = cfg.Section("").Key("headless").String()
 	c.ServerPort = cfg.Section("").Key("serverport").String()
 
 	log.Infof("MemsFCR Config %+v", c)
 	return c
+}
+
+func CreateFolders() {
+	err := createFolder(rosco.GetHomeFolder())
+	if err != nil {
+		_ = createFolder(rosco.GetDebugFolder())
+		_ = createFolder(rosco.GetLogFolder())
+		_ = createFolder(rosco.GetAppFolder())
+	}
+}
+
+func createFolder(path string) error {
+	var err error
+
+	_, err = os.Stat(path)
+
+	if os.IsNotExist(err) {
+		err := os.MkdirAll(path, 0755)
+		if err != nil {
+			log.Errorf("unable to create folder %s (%s)", path, err)
+		}
+	}
+
+	return err
 }
