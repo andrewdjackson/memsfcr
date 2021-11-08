@@ -278,7 +278,16 @@
 	margin: 0 auto;
 	width: 24px;
 	height: 24px;
-	background-color: #24e0ff;
+	background-color: rgb(78, 193, 255);
 	border-radius: 50%;
 	box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #006 0 -1px 9px, #3f8cff 0 2px 14px;
+}
+
+.led-blue-off {
+	margin: 0 auto;
+	width: 24px;
+	height: 24px;
+	background-color: rgba(0, 164, 170, 0.2);
+	border-radius: 50%;
+	box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset rgba(0, 82, 97, 0.6) 0 -1px 9px;
 }

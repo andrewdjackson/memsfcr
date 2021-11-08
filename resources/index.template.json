@@ -519,7 +519,7 @@
     },
     {
       "Description": "",
-      "LedColour": "yellow",
+      "LedColour": "blue",
       "Id": "analytics-closedloopexpected",
       "Name":"Closed Loop Expected"
     },

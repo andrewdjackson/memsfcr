@@ -195,6 +195,7 @@ const AnalyticsCoilFault = "analytics-coilfault"
 const LEDFault = "fault"
 const LEDStatus = "status"
 const LEDWarning = "warning"
+const LEDInfo = "info"
 
 // chart labels - must match id's used in the html
 const ChartRPM = "rpmchart"
@@ -529,7 +530,7 @@ function updateLEDs(data) {
     setStatusLED(memsreader.memsdata.Analytics.IdleBaseFault, AnalyticsIdleBaseFault, LEDFault);
     setStatusLED(memsreader.memsdata.Analytics.IsCruising, AnalyticsIsCruising, LEDStatus);
     setStatusLED(memsreader.memsdata.Analytics.IsClosedLoop, AnalyticsIsClosedLoop, LEDStatus);
-    setStatusLED(memsreader.memsdata.Analytics.IsClosedLoopExpected, AnalyticsIsClosedLoopExpected, LEDWarning);
+    setStatusLED(memsreader.memsdata.Analytics.IsClosedLoopExpected, AnalyticsIsClosedLoopExpected, LEDInfo);
     setStatusLED(memsreader.memsdata.Analytics.ClosedLoopFault, AnalyticsClosedLoopFault, LEDFault);
     setStatusLED(memsreader.memsdata.Analytics.IsThrottleActive, AnalyticsIsThrottleActive, LEDStatus);
     setStatusLED(memsreader.memsdata.Analytics.MapFault, AnalyticsMapFault, LEDFault);
@@ -575,7 +576,7 @@ function setStatusLED(status, id, statustype = LEDStatus) {
     led = "green";
 
     if (statustype == LEDWarning) led = "yellow";
-
+    if (statustype == LEDInfo) led = "blue";
     if (statustype == LEDFault) led = "red";
 
     console.debug("setting status led " + id + " : " + status);
@@ -590,9 +591,11 @@ function setStatusLED(status, id, statustype = LEDStatus) {
     $(id).removeClass("led-green");
     $(id).removeClass("led-red");
     $(id).removeClass("led-yellow");
+    $(id).removeClass("led-blue");
     $(id).removeClass("led-green-off");
     $(id).removeClass("led-red-off");
     $(id).removeClass("led-yellow-off");
+    $(id).removeClass("led-blue-off");
     $(id).removeClass("led-" + led);
     $(id).removeClass("led-" + led + "-off");
     $(id).addClass(c);
