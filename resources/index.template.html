@@ -80,16 +80,16 @@
                     </button>
                 </div>
                 <div class="overflow-hidden">
-                    <div class="alert alert-light alert-connect invisible font-weight-light text-wrap" role="alert"
-                         id="connectionMessage">
+                    <div class="alert alert-light alert-connect invisible font-weight-light text-wrap connection" role="alert"
+                         id="connectionMessage" style="display: none">
                     </div>
-                    <div class="progress progressdisplay" style="visibility:hidden;">
-                        <div id="replayprogress"
-                             class="progress-bar progress-bar-striped bg-success progress-bar-animated"
-                             role="progressbar" style="width: 80%">80%
+                    <div class="progress progressdisplay" style="display:none;">
+                        <div class="playback-slider-settings" data-toggle="tooltip"
+                             data-placement="top">
+                            <input id="playbackposition" class="playback-slider__range" type="range"
+                                   value="0" min="0" max="100" step="1" enabled oninput="setPlaybackPosition(this.value)">
+                            <span id="playbackpositionvalue" class="playback-slider__value">0</span>
                         </div>
-                        <div id="replayprogressremaining" class="progress-bar bg-secondary" role="progressbar"
-                             style="width: 20%"></div>
                     </div>
                 </div>
 

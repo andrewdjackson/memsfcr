@@ -6,12 +6,14 @@ import (
 	"github.com/andrewdjackson/rosco"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
 
 type ScenarioDetail struct {
 	Timestamp   time.Time
+	Position    int
 	Dataframe7d string
 	Dataframe80 string
 }
@@ -20,6 +22,11 @@ type ScenarioDetails struct {
 	First   ScenarioDetail
 	Current ScenarioDetail
 	Last    ScenarioDetail
+}
+
+type ScenarioSeekPosition struct {
+	CurrentPosition int
+	NewPosition     int
 }
 
 // REST API : GET Scenario
@@ -74,6 +81,7 @@ func (webserver *WebServer) getPlaybackDetails(w http.ResponseWriter, r *http.Re
 	details.First = ScenarioDetail{}
 	if err == nil {
 		details.First.Timestamp = d.Timestamp
+		details.First.Position = d.Position
 		details.First.Dataframe80 = hex.EncodeToString(d.Dataframe80)
 		details.First.Dataframe7d = hex.EncodeToString(d.Dataframe7d)
 	}
@@ -82,6 +90,7 @@ func (webserver *WebServer) getPlaybackDetails(w http.ResponseWriter, r *http.Re
 	details.Current = ScenarioDetail{}
 	if err == nil {
 		details.Current.Timestamp = d.Timestamp
+		details.Current.Position = d.Position
 		details.Current.Dataframe80 = hex.EncodeToString(d.Dataframe80)
 		details.Current.Dataframe7d = hex.EncodeToString(d.Dataframe7d)
 	}
@@ -90,12 +99,45 @@ func (webserver *WebServer) getPlaybackDetails(w http.ResponseWriter, r *http.Re
 	details.Last = ScenarioDetail{}
 	if err == nil {
 		details.Last.Timestamp = d.Timestamp
+		details.Last.Position = d.Position
 		details.Last.Dataframe80 = hex.EncodeToString(d.Dataframe80)
 		details.Last.Dataframe7d = hex.EncodeToString(d.Dataframe7d)
 	}
 
 	log.Infof("%+v", details)
 	webserver.sendResponse(w, r, details)
+}
+
+func (webserver *WebServer) postPlaybackSeek(w http.ResponseWriter, r *http.Request) {
+	// get the body of our request
+	// unmarshal this into a new Config struct
+	reqBody, _ := ioutil.ReadAll(r.Body)
+
+	// get the current configuration
+	position := ScenarioSeekPosition{}
+	_ = json.Unmarshal(reqBody, &position)
+
+	log.Infof("rest-post scenario playback seek (%+v)", position)
+
+	if webserver.reader.ECU.Status.Connected && webserver.reader.ECU.Status.Emulated {
+		last := webserver.reader.ECU.Responder.Playbook.Count
+
+		if position.NewPosition < last {
+			webserver.reader.ECU.Responder.MoveToPosition(position.NewPosition)
+			detail, _ := webserver.reader.ECU.Responder.GetCurrent()
+			log.Infof("rest-post scenario position moved from %v to %v", position.CurrentPosition, detail.Position)
+
+			webserver.sendResponse(w, r, detail)
+			w.WriteHeader(http.StatusOK)
+		} else {
+			log.Infof("rest-post scenario position too far (%v > %v)", position.NewPosition, last)
+			// position not found
+			w.WriteHeader(http.StatusNotFound)
+		}
+	} else {
+		// service unavailable if we're not replaying
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}
 }
 
 func (webserver *WebServer) sendResponse(w http.ResponseWriter, r *http.Request, data interface{}) {

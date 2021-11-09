@@ -647,12 +647,14 @@ function hideDebugValues() {
 function showProgressValues(show) {
     console.debug("hiding/showing progress elements")
     if (show) {
-        d = 'visible'
+        v = 'block'
     } else {
-        d = 'hidden'
+        v = 'none'
     }
 
-    for (let el of document.querySelectorAll('.progressdisplay')) el.style.visibility = d;
+    for (let el of document.querySelectorAll('.progressdisplay')) {
+        el.style.display = v
+    }
 }
 
 function getAvailableSerialPorts() {
@@ -901,7 +903,9 @@ function runScenario(event) {
 // update the progress of the scenario replay
 function updateReplayProgress() {
     console.info("replay " + replayPosition + " of " + replayCount)
+    $("#playbackposition").prop('max', replayCount)
 
+    /*
     var percentProgress = Math.round((replayPosition / replayCount) * 100)
     var percentRemaining = 100 - percentProgress
 
@@ -916,6 +920,50 @@ function updateReplayProgress() {
     }
 
     $("#" + ReplayProgressRemaining).width(percentRemaining + "%")
+    */
+
+    updatePlaybackPosition(replayPosition)
+}
+
+function setPlaybackPosition(value) {
+    console.info("setting replay position to " + value + " of " + replayCount)
+
+    var data = { "CurrentPosition": replayPosition, "NewPosition": parseInt(value) }
+
+    var request = new XMLHttpRequest()
+    var url = memsreader.uri.seek_scenario
+
+    // Open a new connection, using the GET request on the URL endpoint
+    request.open('POST', url, true)
+    request.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
+    request.addEventListener('load', seekScenarioComplete)
+    request.addEventListener('error', restError)
+
+    // Send request
+    request.send(JSON.stringify(data))
+}
+
+function seekScenarioComplete(event) {
+    console.info('seek scenario (' + event.target.response + ')')
+
+    var scenarioInfo = JSON.parse(event.target.response)
+    console.info("seek scenario " + JSON.stringify(scenarioInfo))
+
+    replayPosition = scenarioInfo.Position
+    updatePlaybackPosition(replayPosition)
+}
+
+function updatePlaybackPosition(value) {
+    if (memsreader.memsdata.Time != undefined) {
+        var v = memsreader.memsdata.Time.toString()
+        v = v.substring(11, 19)
+
+        $("#playbackpositionvalue").html(v);
+    } else {
+        $("#playbackpositionvalue").html(value);
+    }
+
+    $("#playbackposition").val(value);
 }
 
 //-------------------------------------
@@ -1331,10 +1379,16 @@ function updateConnectMessage() {
         document.getElementById(id).textContent = "unable to connect to ECU, check connection and settings"
         $('#' + id).addClass("alert-danger");
     }
+
+    // show the connection block
+    for (let el of document.querySelectorAll('.connection')) el.style.display = 'block';
 }
 
 function clearConnectMessage() {
     var id = IndicatorConnectionMessage
     $('#' + id).removeClass("visible");
     $('#' + id).addClass("invisible");
+
+    // hide the connection block
+    for (let el of document.querySelectorAll('.connection')) el.style.display = 'none';
 }

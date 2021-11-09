@@ -124,14 +124,14 @@ func (webserver *WebServer) newRouter() *mux.Router {
 	r.HandleFunc("/scenario", webserver.getListofScenarios).Methods(http.MethodGet)
 	r.HandleFunc("/scenario/play/{scenarioId}", webserver.getScenarioDetails).Methods(http.MethodGet)
 	r.HandleFunc("/scenario/details/{scenarioId}", webserver.getPlaybackDetails).Methods(http.MethodGet)
-	//r.HandleFunc("/scenario/seek", webserver.getPlaybackDetails).Methods(http.MethodPatch)
+	r.HandleFunc("/scenario/seek", webserver.postPlaybackSeek).Methods(http.MethodPost)
 
 	r.HandleFunc("/rosco", webserver.getECUConnectionStatus).Methods(http.MethodGet)
 	r.HandleFunc("/rosco/connect", webserver.postECUConnect).Methods(http.MethodPost)
 	r.HandleFunc("/rosco/disconnect", webserver.postECUDisconnect).Methods(http.MethodPost)
 	r.HandleFunc("/rosco/dataframe", webserver.getECUDataframes).Methods(http.MethodGet)
 	r.HandleFunc("/rosco/heartbeat", webserver.postECUHeartbeat).Methods(http.MethodPost)
-	r.HandleFunc("/rosco/iac", webserver.getECUIAC).Methods("GET")
+	r.HandleFunc("/rosco/iac", webserver.getECUIAC).Methods(http.MethodGet)
 	r.HandleFunc("/rosco/diagnostics", webserver.getDiagnostics).Methods(http.MethodGet)
 
 	r.HandleFunc("/rosco/reset", webserver.postECUReset).Methods(http.MethodPost)
