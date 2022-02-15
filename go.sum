@@ -63,6 +63,8 @@ github.com/andrewdjackson/rosco v1.5.33 h1:x+ckYEKsnG4jTJpQYzTtFgvGXtTW73MPKrnca
 github.com/andrewdjackson/rosco v1.5.33/go.mod h1:FNb5sB/w+GmcNBSuFbJcr1VGW83ehkX6/OvSVdei2r4=
 github.com/andrewdjackson/rosco v1.5.35 h1:MbTqjn/r+X9fq096JPkSWL2i4f9OUX9GTa2SHzaO9TM=
 github.com/andrewdjackson/rosco v1.5.35/go.mod h1:FNb5sB/w+GmcNBSuFbJcr1VGW83ehkX6/OvSVdei2r4=
+github.com/andrewdjackson/rosco v1.5.36 h1:7P9GsKlKWmbvIXAK0p+csju8XMEVM48ljO4WsSDJhqw=
+github.com/andrewdjackson/rosco v1.5.36/go.mod h1:FNb5sB/w+GmcNBSuFbJcr1VGW83ehkX6/OvSVdei2r4=
 github.com/boombuler/barcode v1.0.0/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
 github.com/corbym/gocrest v1.0.5/go.mod h1:lF3xBPnOU5DYDpa/vUq63SMxUhd5UAwGgmA8Z2pJ/Tk=
 github.com/creack/goselect v0.1.1 h1:tiSSgKE1eJtxs1h/VgGQWuXUP0YS4CDIFMp6vaI1ls0=

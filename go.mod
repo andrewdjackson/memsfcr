@@ -3,7 +3,7 @@ module github.com/andrewdjackson/memsfcr
 go 1.17
 
 require (
-	github.com/andrewdjackson/rosco v1.5.35
+	github.com/andrewdjackson/rosco v1.5.36
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/mitchellh/go-homedir v1.1.0
