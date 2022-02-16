@@ -1,0 +1,60 @@
+<div id="data" class="tab-pane container">
+    <h2>ECU Data</h2>
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-3 col-mb-1">
+                <button type="button" class="btn btn-danger mb-3" onclick="resetECU();"
+                        data-toggle="tooltip" data-placement="left"
+                        title="Clears all faults, learnt parameters and adjustments."><i
+                        class="fa fa-exclamation-triangle">&nbsp</i>Reset ECU
+                </button>
+                &nbsp;
+            </div>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table">
+                            <thead class="thead-light">
+                            <tr>
+                                <th scope="col" width="75">DataFrame 0x7d</th>
+                                <th scope="col" width="300">Description</th>
+                                <th scope="col">Data Received</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{range .Dataframe7d}}
+                            <tr data-toggle="tooltip" data-placement="left" title="{{.Description}}">
+                                <th scope="row">{{.BytePosition}}</th>
+                                <td>{{.Name}}</td>
+                                <td class="raw" id="{{.Id}}">-</td>
+                            </tr>
+                            {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="col-md-6">
+                        <table class="table">
+                            <thead class="thead-light">
+                            <tr>
+                                <th scope="col" width="75">DataFrame 0x80</th>
+                                <th scope="col" width="300">Description</th>
+                                <th scope="col">Data Received</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{range .Dataframe80}}
+                            <tr data-toggle="tooltip" data-placement="left" title="{{.Description}}">
+                                <th scope="row">{{.BytePosition}}</th>
+                                <td>{{.Name}}</td>
+                                <td class="raw" id="{{.Id}}">-</td>
+                            </tr>
+                            {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

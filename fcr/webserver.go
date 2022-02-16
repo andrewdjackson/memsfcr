@@ -172,13 +172,15 @@ func (webserver *WebServer) newRouter() *mux.Router {
 func (webserver *WebServer) renderIndex(w http.ResponseWriter, r *http.Request) {
 	log.Infof("rendering html template")
 
-	templateFile := fmt.Sprintf("%s/%s", webserver.paths.Webroot, indexTemplate)
-	templateFile = filepath.ToSlash(templateFile)
-
 	dataFile := fmt.Sprintf("%s/%s", webserver.paths.Webroot, indexData)
 	dataFile = filepath.ToSlash(dataFile)
 
-	page, err := template.ParseFiles(templateFile)
+	templatePath := fmt.Sprintf("%s/%s", webserver.paths.Webroot, "*.template.html")
+	templatePath = filepath.ToSlash(templatePath)
+
+	log.Infof("rendering html templates in %s", templatePath)
+
+	page, err := template.ParseGlob(templatePath)
 
 	if err != nil {
 		log.Errorf("template error: ", err)
@@ -212,7 +214,7 @@ func (webserver *WebServer) renderIndex(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Etag", webserver.reader.Config.Build)
 
-	err = page.Execute(w, data)
+	err = page.ExecuteTemplate(w, "index.template.html", data)
 
 	if err != nil {
 		log.Errorf("\nRender Error: %v\n", err)

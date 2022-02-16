@@ -1,0 +1,17 @@
+<div id="actuators" class="tab-pane container">
+    <h2>Test Actuators</h2>
+    <div class="card">
+        <div class="card-body">
+            <table class="table">
+                <tbody>
+                {{range .Actuators}}
+                <tr data-toggle="tooltip" data-placement="left" title="{{.Description}}">
+                    <td>{{.Name}}</td>
+                    <td><input id="{{.Id}}" onchange="activateActuator(this)" type="checkbox" data-toggle="toggle" data-on="On" data-off="Off" data-onstyle="success"></td>
+                </tr>
+                {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

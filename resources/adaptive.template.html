@@ -1,0 +1,41 @@
+<div id="adjustments" class="tab-pane container">
+    <h2>Adaptive Values</h2>
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-3 col-mb-1">
+                <button type="button" class="btn btn-warning mb-3" onclick="resetAdj();"
+                        data-toggle="tooltip" data-placement="left"
+                        title="Clear all adjustments made to the Adaptive values."><i
+                        class="fa fa-undo">&nbsp</i>Reset Adjustments
+                </button>&nbsp;
+            </div>
+            <table class="table">
+                <tbody>
+                {{range .Adjustments}}
+                <tr data-toggle="tooltip" data-placement="left"
+                    title="{{.Description}}">
+                    <td>
+                        <button type="button" style="width:150px"
+                                class="btn btn-outline-info text-right" onclick="decrease('{{.Id}}');">
+                            {{.DecreaseLabel}}&nbsp;&lt;</button>
+                    </td>
+                    <td class="adjustment">
+                        <div class="gauge-label-container">{{.Name}}</div>
+                        <div class="gauge-container" data-toggle="tooltip" data-placement="top"
+                             title="{{.Description}}">
+                            <canvas id="{{.Id}}"></canvas>
+                        </div>
+                    </td>
+                    <td>
+                        <button type="button" style="width:150px"
+                                class="btn btn-outline-info text-left float-right"
+                                onclick="increase('{{.Id}}');">&gt;&nbsp;{{.IncreaseLabel}}
+                        </button>
+                    </td>
+                </tr>
+                {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

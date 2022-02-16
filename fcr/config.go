@@ -91,7 +91,7 @@ func ReadConfig() *Config {
 
 func CreateFolders() {
 	err := createFolder(rosco.GetHomeFolder())
-	if err != nil {
+	if err == nil {
 		_ = createFolder(rosco.GetDebugFolder())
 		_ = createFolder(rosco.GetLogFolder())
 		_ = createFolder(rosco.GetAppFolder())
@@ -99,11 +99,19 @@ func CreateFolders() {
 }
 
 func createFolder(path string) error {
-	var err error
+	info, err := os.Stat(path)
 
-	_, err = os.Stat(path)
+	if err != nil {
+		log.Warnf("unable to find folder %s (%s)", path, err)
+	} else {
+		if info.IsDir() {
+			log.Infof("found folder %s", path)
+		}
+	}
 
 	if os.IsNotExist(err) {
+		log.Errorf("folder %s does not exist, creating folder", path)
+
 		err := os.MkdirAll(path, 0755)
 		if err != nil {
 			log.Errorf("unable to create folder %s (%s)", path, err)

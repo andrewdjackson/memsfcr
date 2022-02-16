@@ -751,8 +751,8 @@ function updateECUQueryIntervalLabel(value) {
 }
 
 function updateConfigSettings(data) {
-    console.info("Version " + data.Version + " Build " + data.Build)
-    $("#version").text("Version " + data.Version + " Build " + data.Build)
+    console.info("Version " + data.Version)
+    $("#version").text("Version " + data.Version)
 
     setPort(data.Port);
     setSerialPortSelection(data.Ports);

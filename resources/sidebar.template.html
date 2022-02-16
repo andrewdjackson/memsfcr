@@ -1,0 +1,101 @@
+<nav id="sidebar" class="sidebar-wrapper">
+    <div class="sidebar-content">
+        <div class="sidebar-brand">
+            <a href="#"><i class="fa fa-stethoscope">&nbsp</i>MemsFCR</a>
+            <div id="close-sidebar">
+                <i class="fas fa-caret-square-left"></i>
+            </div>
+        </div>
+
+        <div class="sidebar-header">
+            {{if .NewVersion}}
+            <div class="font-weight-light small"><a target="_blank" class="link-danger" href='https://memsfcr.co.uk/download/'>{{.Version}}</a></div>
+            {{ end }}
+            <div class="d-flex justify-content-center mb-3">
+                <button class="btn btn-outline-success btn-sm" id="connectECUbtn" type="button">
+                    <i class="fa fa-plug">&nbsp</i>Connect
+                </button> &nbsp;
+                <button class="btn btn-outline-success btn-sm" id="playPauseECUbtn" type="button">
+                    <i class="fa fa-play-circle">&nbsp</i>Run
+                </button> &nbsp;
+                <button class="btn btn-outline-info btn-sm" id="replayECUbtn" type="button" data-toggle="modal"
+                        data-target="#scenarioModalCenter">
+                    <i class="fa fa-folder-open">&nbsp</i>Replay
+                </button>
+            </div>
+            <div class="overflow-hidden">
+                <div class="alert alert-light alert-connect invisible font-weight-light text-wrap connection" role="alert"
+                     id="connectionMessage" style="display: none">
+                </div>
+                <div class="progress progressdisplay" style="display:none;">
+                    <div class="playback-slider-settings" data-toggle="tooltip"
+                         data-placement="top">
+                        <input id="playbackposition" class="playback-slider__range" type="range"
+                               value="0" min="0" max="100" step="1" enabled oninput="setPlaybackPosition(this.value)">
+                        <span id="playbackpositionvalue" class="playback-slider__value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center mb-3">
+                <div class="led-box">
+                    <div class="led-green-off" id="ecudata"></div>
+                    <p>ECU Connection</p>
+                </div>
+
+                <div class="led-box">
+                    <div class="led-red-off" id="ecufault"></div>
+                    <p>Fault Detected</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-menu">
+            <ul class="flex-column nav">
+                <li class="header-menu">
+                    <span>MEMS Fault Code Reader</span>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#dashboard" data-toggle="tab" class="active nav-link"><i class="fa fa-tachometer-alt">&nbsp;</i>Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#profiling" data-toggle="tab" class="nav-link"
+                    ><i class="fa fa-wave-square">&nbsp;</i>Profiling</a
+                    >
+                </li>
+                <li class="nav-item">
+                    <a href="#alerts" data-toggle="tab" class="nav-link"
+                    ><i class="fa fa-bell">&nbsp;</i>Fault Codes & Alerts<span id="ecu-fault-status"
+                                                                               class="badge badge-pill badge-danger notification"></span></a>
+                </li>
+                <li class="nav-item">
+                    <a href="#adjustments" data-toggle="tab" class="nav-link"
+                    ><i class="fa fa-terminal">&nbsp;</i>Adaptive Values</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#actuators" data-toggle="tab" class="nav-link"
+                    ><i class="fa fa-cogs">&nbsp;</i>Test Actuators</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#data" data-toggle="tab" class="nav-link"
+                    ><i class="fa fa-list-ol">&nbsp;</i>ECU Data</a
+                    >
+                </li>
+                <li class="nav-item">
+                    <a href="#settings" data-toggle="tab" class="nav-link"
+                    ><i class="fa fa-cog">&nbsp;</i>Settings</a
+                    >
+                </li>
+            </ul>
+        </div>
+        <!-- sidebar-menu  -->
+    </div>
+    <div class="sidebar-footer p-2">
+        <ul>
+            <li class="font-weight-bold">MEMS Fault Code Reader</li>
+            <li class="font-weight-light">by Andrew Jackson</li>
+            <li class="font-weight-light small" id="version">Version 0.0.0 Build 1970-01-01</li>
+        </ul>
+    </div>
+</nav>

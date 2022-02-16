@@ -1,0 +1,74 @@
+<div id="settings" class="tab-pane container">
+    <h2>Settings</h2>
+    <div class="card">
+        <div class="card-body">
+            <form>
+                <div class="form-group">
+
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <button type="button" class="btn btn-outline-secondary"
+                                    onclick="getAvailableSerialPorts()">Serial Port
+                            </button>
+                            <button type="button" onfocus="getAvailableSerialPorts()"
+                                    class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="sr-only">Toggle Dropdown</span>
+                            </button>
+                            <div class="dropdown-menu" id="ports">
+                            </div>
+                        </div>
+                        <input type="text" class="form-control" id="port" placeholder="/dev/usb.serial"
+                               aria-label="Serial Port">
+                    </div>
+
+                    <div class="input-group mb-3 d-none">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <input type="checkbox" id="logtofile"
+                                       aria-label="Checkbox for following text input">
+                                <label class="form-check-label" for="logtofile">&nbsp;Log Data to
+                                    File</label>
+                            </div>
+                        </div>
+                        <input type="text" class="form-control" id="logfolder" aria-label="Log folder.."
+                               aria-readonly readonly>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <table class="table">
+                            <tbody>
+                            <tr>
+                                <td>ECU Sample Rate (ms)</td>
+                                <td>
+                                    <div class="range-slider-settings" data-toggle="tooltip"
+                                         data-placement="top"
+                                         title="The ECU will be called twice per ECU Sample as data requests require 2 calls. A value <500ms can introduce instability.">
+
+                                        <input id="ecuqueryfrequency" class="range-slider__range" type="range"
+                                               value="{{.ECUQueryInterval.Value}}" min="{{.ECUQueryInterval.Min}}"
+                                               max="{{.ECUQueryInterval.Max}}" step="{{.ECUQueryInterval.Steps}}"
+                                               enabled oninput="updateECUQueryIntervalLabel(this.value)">
+                                        <span id="ecuqueryfrequencyvalue" class="range-slider__value">0</span>
+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="debug">
+                                <td>Enable Diagnostic Logging</td>
+                                <td><input id="diagnosticslogging" onchange="activateDiagnostics(this)" type="checkbox" data-toggle="toggle" data-on="On" data-off="Off" data-onstyle="success"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <span class="input-group-btn">
+							  <button class="btn btn-default btn-outline-success my-2 my-sm-0" id="applySettings" onclick="Save();" type="button">Apply</button>
+						  </span>
+                </div>
+            </form>
+
+            <div class="debugLog" id="debugLog" readonly></div>
+        </div>
+    </div>
+</div>
