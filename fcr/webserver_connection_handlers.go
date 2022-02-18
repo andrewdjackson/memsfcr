@@ -60,7 +60,7 @@ func (webserver *WebServer) SaveScenario() {
 	ecu := webserver.reader.ECU
 
 	// save the log file as a scenario file
-	if ecu.Datalogger.Filename != "" {
+	if ecu.Datalogger != nil {
 		if ecu.Datalogger.Filename[len(ecu.Datalogger.Filename)-3:] == "csv" {
 			// use the same filepath as the logfile but replace the .csv with .fcr
 			f := strings.Replace(ecu.Datalogger.Filepath, ".csv", ".fcr", 1)
