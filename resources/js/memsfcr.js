@@ -904,24 +904,6 @@ function runScenario(event) {
 function updateReplayProgress() {
     console.info("replay " + replayPosition + " of " + replayCount)
     $("#playbackposition").prop('max', replayCount)
-
-    /*
-    var percentProgress = Math.round((replayPosition / replayCount) * 100)
-    var percentRemaining = 100 - percentProgress
-
-    $("#" + ReplayProgress).width(percentProgress + "%")
-
-    if (percentProgress < 87) {
-        $("#" + ReplayProgress).html("")
-        $("#" + ReplayProgressRemaining).html(percentProgress + "%")
-    } else {
-        $("#" + ReplayProgress).html(percentProgress + "%")
-        $("#" + ReplayProgressRemaining).html("")
-    }
-
-    $("#" + ReplayProgressRemaining).width(percentRemaining + "%")
-    */
-
     updatePlaybackPosition(replayPosition)
 }
 

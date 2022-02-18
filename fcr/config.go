@@ -68,6 +68,7 @@ func WriteConfig(c *Config) {
 // ReadConfig reads the config file
 func ReadConfig() *Config {
 	filename := fmt.Sprintf("%s/memsfcr.cfg", rosco.GetHomeFolder())
+	log.Infof("loading config from %s", filename)
 
 	c := NewConfig()
 

@@ -41,25 +41,25 @@
         <div class="container-fluid">
             <div class="tab-content">
                 <!-- dashboard -->
-                {{template "dashboard.template.html"}}
+                {{ template "dashboard.template.html" . }}
 
                 <!-- profiling graphs -->
-                {{template "charts.template.html"}}
+                {{ template "charts.template.html" . }}
 
                 <!-- ECU Data -->
-                {{template "ecudata.template.html"}}
+                {{ template "ecudata.template.html" . }}
 
                 <!-- adaptive values -->
-                {{template "adaptive.template.html"}}
+                {{ template "adaptive.template.html" . }}
 
                 <!-- test actuators -->
-                {{template "actuators.template.html"}}
+                {{ template "actuators.template.html" . }}
 
                 <!-- faults and alerts-->
-                {{template "faults.template.html"}}
+                {{ template "faults.template.html" . }}
 
                 <!-- settings -->
-                {{template "settings.template.html"}}
+                {{ template "settings.template.html" . }}
 
             </div>
         </div>

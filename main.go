@@ -91,12 +91,11 @@ func setupLogging(debug bool) {
 func main() {
 	var debug bool
 
-	fcr.CreateFolders()
-
 	flag.BoolVar(&debug, "debug", true, "output to a debug file")
 	flag.Parse()
 
 	// initialise the logging
+	fcr.CreateFolders()
 	setupLogging(debug)
 
 	log.Infof("MemsFCR Version %s, Build %s", Version, Build)
