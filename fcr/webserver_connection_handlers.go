@@ -32,7 +32,8 @@ func (webserver *WebServer) browserHeartbeatHandler(w http.ResponseWriter, r *ht
 			// error occurred because the heartbeat failed to send
 			// we'll assume the browser session has been terminated, clean up and close the server
 			log.Warnf("unable to sent heartbeat to browser")
-			webserver.DisconnectAndSaveScenario()
+			webserver.SaveScenario()
+			webserver.Disconnect()
 			webserver.TerminateApplication()
 			return
 		}
@@ -41,35 +42,36 @@ func (webserver *WebServer) browserHeartbeatHandler(w http.ResponseWriter, r *ht
 	}
 }
 
-func (webserver *WebServer) DisconnectAndSaveScenario() {
-	ecu := webserver.reader.ECU
-
-	// preform any clean up before the application terminates
-
-	if !ecu.Status.Emulated {
-		if ecu.Status.Connected {
-			// disconnect the ECU
-			ecu.Disconnect()
-		}
-	}
-
-	webserver.SaveScenario()
-}
-
 func (webserver *WebServer) SaveScenario() {
 	ecu := webserver.reader.ECU
 
 	// save the log file as a scenario file
 	if ecu.Datalogger != nil {
-		if ecu.Datalogger.Filename[len(ecu.Datalogger.Filename)-3:] == "csv" {
-			// use the same filepath as the logfile but replace the .csv with .fcr
-			f := strings.Replace(ecu.Datalogger.Filepath, ".csv", ".fcr", 1)
-			s := rosco.NewScenarioFile(f)
-			err := s.ConvertLogToScenario(ecu.Datalogger.Filename)
-			if err == nil {
-				err = s.Write()
-				log.Infof("saved scenario as %s", f)
+		// only save the scenario if the ecu wasn't disconnected before termination
+		if ecu.Status.Connected {
+			if ecu.Datalogger.Filename[len(ecu.Datalogger.Filename)-3:] == "csv" {
+				// use the same filepath as the logfile but replace the .csv with .fcr
+				f := strings.Replace(ecu.Datalogger.Filepath, ".csv", ".fcr", 1)
+				s := rosco.NewScenarioFile(f)
+				s.ECUID = ecu.Status.ECUID
+				s.ECUSerial = ecu.Status.ECUSerial
+				err := s.ConvertLogToScenario(ecu.Datalogger.Filename)
+				if err == nil {
+					err = s.Write()
+					log.Infof("saved scenario as %s", f)
+				}
 			}
+		}
+	}
+}
+
+func (webserver *WebServer) Disconnect() {
+	ecu := webserver.reader.ECU
+
+	if !ecu.Status.Emulated {
+		if ecu.Status.Connected {
+			// disconnect the ECU
+			ecu.Disconnect()
 		}
 	}
 }

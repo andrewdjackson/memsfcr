@@ -114,11 +114,12 @@ func (webserver *WebServer) postECUDisconnect(w http.ResponseWriter, r *http.Req
 		// return status if already disconnected
 		w.WriteHeader(http.StatusAlreadyReported)
 	} else {
+		// save the logfile as a scenario
+		webserver.SaveScenario()
+		// disconnect the ECU
 		webserver.reader.ECU.Disconnect()
 
 		if !webserver.reader.ECU.Status.Connected {
-			// save the logfile as a scenario
-			webserver.SaveScenario()
 			// return a 200 status code
 			w.WriteHeader(http.StatusOK)
 		} else {
