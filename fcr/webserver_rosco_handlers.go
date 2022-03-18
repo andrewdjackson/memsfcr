@@ -179,7 +179,7 @@ func (webserver *WebServer) getDiagnostics(w http.ResponseWriter, r *http.Reques
 	defer r.Body.Close()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	webserver.reader.ECU.Diagnostics.Analyse()
+	// webserver.reader.ECU.Diagnostics.Analyse()
 	diagnostics := webserver.reader.ECU.Diagnostics
 
 	if err := json.NewEncoder(w).Encode(diagnostics); err != nil {
