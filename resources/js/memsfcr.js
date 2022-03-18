@@ -203,6 +203,12 @@ const ChartLambda = "lambdachart"
 const ChartLoopIndicator = "loopchart"
 const ChartCoolant = "coolantchart"
 const ChartAFR = "afrchart"
+const ChartIdleBase = "idlebasechart"
+const ChartIdleError = "idleerrorchart"
+const ChartMAP = "mapchart"
+const ChartCoilTime = "coiltimechart"
+const ChartCAS = "caschart"
+const ChartBattery = "batterychart"
 const ReplayProgress = "replayprogress"
 const ReplayProgressRemaining = "replayprogressremaining"
 
@@ -421,6 +427,13 @@ function initialiseGraphs() {
     loopChart = createChart(ChartLoopIndicator, "O2 Loop (0 = Active)");
     afrChart = createChart(ChartAFR, "Air : Fuel Ratio");
     coolantChart = createChart(ChartCoolant, "Coolant (°C)");
+
+    idleBaseChart = createChart(ChartIdleBase, "Idle Base (Steps)");
+    idleErrorChart = createChart(ChartIdleError, "Idle Error (Steps)");
+    mapChart = createChart(ChartMAP, "MAP (kPa)");
+    coilTimeChart = createChart(ChartCoilTime, "Coil Time (ms)");
+    casChart = createChart(ChartCAS, "Crankshaft Position");
+    batteryChart = createChart(ChartBattery, "Battery (V)");
 }
 
 async function resetInterface() {
@@ -460,10 +473,16 @@ function updateGraphs(data) {
     addData(ignitionSpark, data.Time, data.IgnitionAdvance);
 
     addData(rpmChart, data.Time, data.EngineRPM);
+    addData(idleBaseChart, data.Time, data.IdleBasePosition);
+    addData(idleErrorChart, data.Time, data.IdleSpeedOffset);
+    addData(mapChart, data.Time, data.ManifoldAbsolutePressure);
     addData(lambdaChart, data.Time, data.LambdaVoltage);
     addData(loopChart, data.Time, data.ClosedLoop);
     addData(afrChart, data.Time, data.AirFuelRatio);
     addData(coolantChart, data.Time, data.CoolantTemp);
+    addData(coilTimeChart, data.Time, data.CoilTime);
+    addData(batteryChart, data.Time, data.BatteryVoltage);
+    addData(casChart, data.Time, data.CrankshaftPositionSensor, 1);
 }
 
 function setConnectionStatusMessage(connected) {
