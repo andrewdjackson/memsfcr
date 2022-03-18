@@ -34,5 +34,11 @@
     </string>
     <key>LSMinimumSystemVersion</key>
     <string>10.9.0</string>
+    <key>LSHandlerContentTag</key>
+    <string>fcr</string>
+    <key>LSHandlerContentTagClass</key>
+    <string>public.filename-extension</string>
+    <key>LSHandlerRoleAll</key>
+    <string>org.category.program</string>
 </dict>
 </plist>
