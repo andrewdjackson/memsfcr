@@ -473,16 +473,16 @@ function updateGraphs(data) {
     addData(ignitionSpark, data.Time, data.IgnitionAdvance);
 
     addData(rpmChart, data.Time, data.EngineRPM);
-    addData(idleBaseChart, data.Time, data.IdleBasePosition);
-    addData(idleErrorChart, data.Time, data.IdleSpeedOffset);
-    addData(mapChart, data.Time, data.ManifoldAbsolutePressure);
-    addData(lambdaChart, data.Time, data.LambdaVoltage);
-    addData(loopChart, data.Time, data.ClosedLoop);
+    addData(idleBaseChart, data.Time, data.IdleBasePosition, memsreader.memsdata.Analytics.IdleBaseFault);
+    addData(idleErrorChart, data.Time, data.IdleSpeedOffset, memsreader.memsdata.Analytics.IdleSpeedFault || memsreader.memsdata.Analytics.IdleErrorFault || memsreader.memsdata.Analytics.IdleHotFault);
+    addData(mapChart, data.Time, data.ManifoldAbsolutePressure, memsreader.memsdata.Analytics.MapFault);
+    addData(lambdaChart, data.Time, data.LambdaVoltage, memsreader.memsdata.Analytics.LambdaRangeFault || memsreader.memsdata.Analytics.LambdaOscillationFault || memsreader.memsdata.Analytics.O2SystemFault);
+    addData(loopChart, data.Time, data.ClosedLoop, memsreader.memsdata.Analytics.ClosedLoopFault);
     addData(afrChart, data.Time, data.AirFuelRatio);
-    addData(coolantChart, data.Time, data.CoolantTemp);
-    addData(coilTimeChart, data.Time, data.CoilTime);
+    addData(coolantChart, data.Time, data.CoolantTemp, memsreader.memsdata.Analytics.CoolantTempSensorFault || memsreader.memsdata.Analytics.ThermostatFault);
+    addData(coilTimeChart, data.Time, data.CoilTime, memsreader.memsdata.Analytics.CoilFault);
     addData(batteryChart, data.Time, data.BatteryVoltage);
-    addData(casChart, data.Time, data.CrankshaftPositionSensor, 1);
+    addData(casChart, data.Time, data.CrankshaftPositionSensor, memsreader.memsdata.Analytics.CrankshaftSensorFault);
 }
 
 function setConnectionStatusMessage(connected) {
@@ -556,7 +556,7 @@ function updateLEDs(data) {
     setStatusLED(memsreader.memsdata.Analytics.VacuumFault, AnalyticsVacuumFault, LEDFault);
     setStatusLED(memsreader.memsdata.Analytics.IdleAirControlFault, AnalyticsIdleAirControlFault, LEDFault);
     setStatusLED(memsreader.memsdata.Analytics.IdleAirControlRangeFault, AnalyticsIdleAirControlRangeFault, LEDFault);
-    setStatusLED(memsreader.memsdata.Analytics.IdleAirControlJackFaul, AnalyticsIdleAirControlJackFault, LEDFault);
+    setStatusLED(memsreader.memsdata.Analytics.IdleAirControlJackFault, AnalyticsIdleAirControlJackFault, LEDFault);
     setStatusLED(memsreader.memsdata.Analytics.O2SystemFault, AnalyticsO2SystemFault, LEDFault);
     setStatusLED(memsreader.memsdata.Analytics.LambdaRangeFault, AnalyticsLambdaRangeFault, LEDFault);
     setStatusLED(memsreader.memsdata.Analytics.LambdaOscillationFault, AnalyticsLambdaOscillationFault, LEDFault);

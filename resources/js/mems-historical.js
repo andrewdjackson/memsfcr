@@ -4,11 +4,24 @@ addData = function(chart, label, data, fault) {
     chart.data.datasets[0].data.push(data)
     chart.data.datasets[0].data.shift()
 
-    if (fault > 0) {
-        chart.data.datasets[1].data.push(data)
-        chart.data.datasets[1].borderColor = 'rgba(202,12,55,0.7)'
-        chart.data.datasets[1].data.shift()
+    if (chart.data.datasets.length === 1) {
+        chart.data.datasets.push(
+            {data: Array.apply(null, Array(120)).map(function() { return 0 })}
+        )
     }
+
+    if (fault === true) {
+        // draw faulty line at same datapoint
+        chart.data.datasets[1].data.push(data)
+    } else {
+        // if the previous data value in the fault line has a value then push a NaN to give a clean cutoff in the fill
+        if (chart.data.datasets[1].data[chart.data.datasets[1].data.length - 1] > 0){
+            chart.data.datasets[1].data.push(NaN)
+        } else {
+            chart.data.datasets[1].data.push(0)
+        }
+    }
+    chart.data.datasets[1].data.shift()
 
     chart.update('none');
 }
@@ -16,6 +29,9 @@ addData = function(chart, label, data, fault) {
 addScenarioData = function(chart, data) {
     chart.data = data
 }
+
+const skipped = (ctx, value) => ctx.p0.skip || ctx.p0.parsed.y === 0 ? value : undefined;
+const faulty = (ctx, value) => ctx.p0.parsed.y > 0 ? value : undefined;
 
 createChart = function(id, title) {
     var ctx = $('#' + id);
@@ -36,11 +52,15 @@ createChart = function(id, title) {
                 fill: true,
             },
             {
-                // faults data line
                 data: Array.apply(null, Array(120)).map(function() { return 0 }),
                 cubicInterpolationMode: 'monotone',
                 tension: 0.4,
-                borderColor: 'rgba(102,102,255,0)',
+                borderWidth: 2,
+                segment: {
+                    borderColor: ctx => skipped(ctx, 'rgba(102,102,255,0)') || faulty(ctx, 'rgba(202,12,55,1.0)'),
+                    backgroundColor: ctx => skipped(ctx, 'rgba(102,102,255,0)') || faulty(ctx, 'rgba(255,0,0,0.3)'),
+                },
+                fill: true,
             }],
         },
         options: {
