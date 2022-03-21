@@ -460,17 +460,17 @@ function updateGauges(data) {
 
 function updateGraphs(data) {
     addData(rpmSpark, data.Time, data.EngineRPM);
-    addData(mapSpark, data.Time, data.ManifoldAbsolutePressure);
+    addData(mapSpark, data.Time, data.ManifoldAbsolutePressure, memsreader.memsdata.Analytics.MapFault);
     addData(throttleSpark, data.Time, data.ThrottlePotSensor);
-    addData(iacSpark, data.Time, data.IACPosition);
+    addData(iacSpark, data.Time, data.IACPosition, memsreader.memsdata.Analytics.IdleSpeedFault || memsreader.memsdata.Analytics.IdleErrorFault || memsreader.memsdata.Analytics.IdleHotFault);
     addData(batterySpark, data.Time, data.BatteryVoltage);
     addData(coolantSpark, data.Time, data.CoolantTemp);
     addData(airSpark, data.Time, data.IntakeAirTemp);
-    addData(lambdaSpark, data.Time, data.LambdaVoltage);
+    addData(lambdaSpark, data.Time, data.LambdaVoltage, memsreader.memsdata.Analytics.LambdaRangeFault || memsreader.memsdata.Analytics.LambdaOscillationFault || memsreader.memsdata.Analytics.O2SystemFault);
     addData(fuelSpark, data.Time, data.FuelTrimCorrection);
     addData(ltfuelSpark, data.Time, data.LongTermFuelTrim);
     addData(airfuelSpark, data.Time, data.AirFuelRatio);
-    addData(ignitionSpark, data.Time, data.IgnitionAdvance);
+    addData(ignitionSpark, data.Time, data.IgnitionAdvance, memsreader.memsdata.Analytics.CrankshaftSensorFault);
 
     addData(rpmChart, data.Time, data.EngineRPM);
     addData(idleBaseChart, data.Time, data.IdleBasePosition, memsreader.memsdata.Analytics.IdleBaseFault);
