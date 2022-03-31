@@ -37,7 +37,8 @@ func (webserver *WebServer) browserHeartbeatHandler(w http.ResponseWriter, r *ht
 		}
 
 		flusher.Flush()
-		time.Sleep(time.Second * 2)
+		// wait time between heartbeats
+		time.Sleep(time.Second * 5)
 	}
 }
 
