@@ -124,6 +124,7 @@ func (webserver *WebServer) newRouter() *mux.Router {
 	r.HandleFunc("/scenario", webserver.getListofScenarios).Methods(http.MethodGet)
 	r.HandleFunc("/scenario/play/{scenarioId}", webserver.getScenarioDetails).Methods(http.MethodGet)
 	r.HandleFunc("/scenario/details/{scenarioId}", webserver.getPlaybackDetails).Methods(http.MethodGet)
+	r.HandleFunc("/scenario/convert/{scenarioId}", webserver.putConvertToScenario).Methods(http.MethodPut)
 	r.HandleFunc("/scenario/seek", webserver.postPlaybackSeek).Methods(http.MethodPost)
 
 	r.HandleFunc("/rosco", webserver.getECUConnectionStatus).Methods(http.MethodGet)

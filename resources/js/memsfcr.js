@@ -849,8 +849,12 @@ function loadedScenarios(event) {
     var replay = $('#replayList');
 
     data.forEach(function (s) {
-        var scenario = '<a href="#" onclick=selectScenario("' + s.name + '") id="' + s.name + '" class="scenario list-group-item list-group-item-action">' + s.name + '</a>'
-        console.debug("added scenario " + scenario)
+        var scenario = '<a href="#" onclick=selectScenario("' + s.name + '") id="' + s.name + '" class="scenario list-group-item list-group-item-action" >' + s.name
+        scenario += '<p>' + s.Date.slice(0,10) + ' ' + s.Date.slice(11,16) + ', ' + s.Count + ' readings</p>'
+        scenario += '<small>' + s.Summary + '</small>'
+        scenario += '</a>'
+
+        console.debug("added scenario " + s.name)
         replay.append(scenario);
     });
 
@@ -1012,7 +1016,7 @@ function connected(event) {
     var responseData = JSON.parse(event.target.response)
     console.info("connected to ecu (" + JSON.stringify(responseData) + ")")
 
-    memsreader.status.connected = responseData.Initialised
+    memsreader.status.connected = responseData.Connected
 
     updateConnectMessage()
     setStatusLED(memsreader.status.connected, IndicatorECUConnected, LEDStatus)

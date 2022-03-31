@@ -3,6 +3,7 @@ package fcr
 import (
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"io/ioutil"
 	"net/http"
 )
@@ -49,7 +50,14 @@ const ActuatorCoil = "coil"
 //
 func (webserver *WebServer) getECUConnectionStatus(w http.ResponseWriter, r *http.Request) {
 	log.Infof("rest-get read ecu status")
-	defer r.Body.Close()
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Warnf("rest error closing response body")
+		}
+	}(r.Body)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	status := webserver.reader.ECU.Status
@@ -64,8 +72,18 @@ func (webserver *WebServer) getECUConnectionStatus(w http.ResponseWriter, r *htt
 // Connect and Initialise the ECU
 //
 func (webserver *WebServer) postECUConnect(w http.ResponseWriter, r *http.Request) {
+	var connected bool
+	var err error
+
 	log.Infof("rest-post connect ecu")
-	defer r.Body.Close()
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Warnf("rest error closing response body")
+		}
+	}(r.Body)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	if webserver.reader.ECU.Status.Connected {
@@ -83,9 +101,8 @@ func (webserver *WebServer) postECUConnect(w http.ResponseWriter, r *http.Reques
 
 		log.Infof("rest-post connecting ecu (%v)", port)
 
-		webserver.reader.ECU.ConnectAndInitialiseECU(port.Port)
-
-		if webserver.reader.ECU.Status.Connected {
+		if connected, err = webserver.reader.ECU.ConnectAndInitialiseECU(port.Port); err == nil {
+			log.Infof("rest-post connected (%t) to the ecu", connected)
 			// return a 200 status code
 			w.WriteHeader(http.StatusOK)
 		} else {
@@ -95,8 +112,8 @@ func (webserver *WebServer) postECUConnect(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	if err := json.NewEncoder(w).Encode(webserver.reader.ECU.Status); err != nil {
-		log.Warnf("rest-post response failed")
+	if err = json.NewEncoder(w).Encode(webserver.reader.ECU.Status); err != nil {
+		log.Warnf("rest-post ecu connect response failed")
 		// return a error code
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -106,20 +123,26 @@ func (webserver *WebServer) postECUConnect(w http.ResponseWriter, r *http.Reques
 // Disconnect the ECU
 //
 func (webserver *WebServer) postECUDisconnect(w http.ResponseWriter, r *http.Request) {
+	var err error
+
 	log.Infof("rest-post disconnect ecu")
-	defer r.Body.Close()
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Warnf("rest error closing response body")
+		}
+	}(r.Body)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	if !webserver.reader.ECU.Status.Connected {
 		// return status if already disconnected
 		w.WriteHeader(http.StatusAlreadyReported)
 	} else {
-		// save the logfile as a scenario
-		webserver.SaveScenario()
 		// disconnect the ECU
-		webserver.reader.ECU.Disconnect()
-
-		if !webserver.reader.ECU.Status.Connected {
+		if err = webserver.reader.ECU.Disconnect(); err == nil {
+			log.Infof("rest-post disconnected from the ecu")
 			// return a 200 status code
 			w.WriteHeader(http.StatusOK)
 		} else {
@@ -130,7 +153,7 @@ func (webserver *WebServer) postECUDisconnect(w http.ResponseWriter, r *http.Req
 	}
 
 	if err := json.NewEncoder(w).Encode(webserver.reader.ECU.Status); err != nil {
-		log.Warnf("rest-post response failed")
+		log.Warnf("rest-post disconnect ecu response failed")
 		// return a error code
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -142,24 +165,34 @@ func (webserver *WebServer) postECUDisconnect(w http.ResponseWriter, r *http.Req
 //
 func (webserver *WebServer) getECUDataframes(w http.ResponseWriter, r *http.Request) {
 	log.Infof("rest-get read ecu dataframes")
-	defer r.Body.Close()
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Warnf("rest error closing response body")
+		}
+	}(r.Body)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	if webserver.isECUConnected(w) {
 		if !webserver.waitingForECUResponse {
-			// set the flag to prevent calls mid protocol
+			// set the flag to prevent calls mid-protocol
 			webserver.waitingForECUResponse = true
 			// get the ECU data
-			memsdata := webserver.reader.ECU.GetDataframes()
+			if memsdata, err := webserver.reader.ECU.GetDataframes(); err == nil {
+				log.Infof("rest-get ecu dataframes (%v)", memsdata)
 
-			log.Infof("rest-get ecu dataframes (%v)", memsdata)
-
-			if err := json.NewEncoder(w).Encode(memsdata); err != nil {
-				log.Warnf("rest-get response failed")
+				if err := json.NewEncoder(w).Encode(memsdata); err != nil {
+					log.Warnf("rest-get read ecu dataframes response failed")
+					// return a error code
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+			} else {
+				log.Warnf("rest-get read ecu dataframes serial comms fault")
 				// return a error code
-				w.WriteHeader(http.StatusInternalServerError)
+				w.WriteHeader(http.StatusNotFound)
 			}
-
 			// clear the flag
 			webserver.waitingForECUResponse = false
 		} else {
@@ -176,7 +209,14 @@ func (webserver *WebServer) getECUDataframes(w http.ResponseWriter, r *http.Requ
 //
 func (webserver *WebServer) getDiagnostics(w http.ResponseWriter, r *http.Request) {
 	log.Infof("rest-get read diagnostics")
-	defer r.Body.Close()
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Warnf("rest error closing response body")
+		}
+	}(r.Body)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	// webserver.reader.ECU.Diagnostics.Analyse()
@@ -197,18 +237,29 @@ func (webserver *WebServer) getDiagnostics(w http.ResponseWriter, r *http.Reques
 //
 func (webserver *WebServer) getECUIAC(w http.ResponseWriter, r *http.Request) {
 	log.Infof("rest-get read ecu iac position")
-	defer r.Body.Close()
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Warnf("rest error closing response body")
+		}
+	}(r.Body)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	if webserver.isECUConnected(w) {
-		value := webserver.reader.ECU.GetIACPosition()
-		response := AdjustmentResponse{Adjustment: "iac", Value: value}
+		if value, err := webserver.reader.ECU.GetIACPosition(); err == nil {
+			response := AdjustmentResponse{Adjustment: "iac", Value: value}
 
-		log.Infof("rest-get ecu iac position (%v)", value)
+			log.Infof("rest-get ecu iac position (%v)", value)
 
-		if err := json.NewEncoder(w).Encode(response); err != nil {
-			log.Warnf("rest-get response failed")
-			// return a error code
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				log.Warnf("rest-get iac position response failed")
+				// return a error code
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+		} else {
+			log.Warnf("rest-get iac position response failed")
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
@@ -218,8 +269,13 @@ func (webserver *WebServer) getECUIAC(w http.ResponseWriter, r *http.Request) {
 //  send heartbeat the ecu
 //
 func (webserver *WebServer) postECUHeartbeat(w http.ResponseWriter, r *http.Request) {
+	value := false
+
 	log.Infof("rest-post send heartbeat")
-	value := webserver.reader.ECU.SendHeartbeat()
+	if err := webserver.reader.ECU.SendHeartbeat(); err == nil {
+		value = true
+	}
+
 	webserver.updateECUState(w, r, value)
 }
 
@@ -227,8 +283,12 @@ func (webserver *WebServer) postECUHeartbeat(w http.ResponseWriter, r *http.Requ
 //  reset the ecu
 //
 func (webserver *WebServer) postECUReset(w http.ResponseWriter, r *http.Request) {
+	value := false
+
 	log.Infof("rest-post reset ecu")
-	value := webserver.reader.ECU.ResetECU()
+	if err := webserver.reader.ECU.ResetECU(); err == nil {
+		value = true
+	}
 	webserver.updateECUState(w, r, value)
 }
 
@@ -236,8 +296,11 @@ func (webserver *WebServer) postECUReset(w http.ResponseWriter, r *http.Request)
 // clear the fault codes
 //
 func (webserver *WebServer) postECUClearFaults(w http.ResponseWriter, r *http.Request) {
+	value := false
 	log.Infof("rest-post clear ecu faults")
-	value := webserver.reader.ECU.ClearFaults()
+	if err := webserver.reader.ECU.ClearFaults(); err == nil {
+		value = true
+	}
 	webserver.updateECUState(w, r, value)
 }
 
@@ -245,8 +308,11 @@ func (webserver *WebServer) postECUClearFaults(w http.ResponseWriter, r *http.Re
 // clear the adjustable values
 //
 func (webserver *WebServer) postECUClearAdjustments(w http.ResponseWriter, r *http.Request) {
+	value := false
 	log.Infof("rest-post clear ecu adjustable values")
-	value := webserver.reader.ECU.ResetAdjustments()
+	if err := webserver.reader.ECU.ResetAdjustments(); err == nil {
+		value = true
+	}
 	webserver.updateECUState(w, r, value)
 }
 
@@ -255,7 +321,14 @@ func (webserver *WebServer) postECUClearAdjustments(w http.ResponseWriter, r *ht
 //
 func (webserver *WebServer) updateECUState(w http.ResponseWriter, r *http.Request, value bool) {
 	if webserver.isECUConnected(w) {
-		defer r.Body.Close()
+
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				log.Warnf("rest error closing response body")
+			}
+		}(r.Body)
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 		response := ActionResponse{Success: value}
@@ -279,11 +352,16 @@ func (webserver *WebServer) postECUAdjustSTFT(w http.ResponseWriter, r *http.Req
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.AdjustShortTermFuelTrim(data.Steps)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	value, _ := webserver.reader.ECU.AdjustShortTermFuelTrim(data.Steps)
 	adjustment := AdjustmentResponse{Adjustment: "stft", Value: value}
-
 	webserver.updateAdjustableValue(w, r, adjustment)
 }
 
@@ -298,11 +376,16 @@ func (webserver *WebServer) postECUAdjustLTFT(w http.ResponseWriter, r *http.Req
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.AdjustLongTermFuelTrim(data.Steps)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	value, _ := webserver.reader.ECU.AdjustLongTermFuelTrim(data.Steps)
 	adjustment := AdjustmentResponse{Adjustment: "ltft", Value: value}
-
 	webserver.updateAdjustableValue(w, r, adjustment)
 }
 
@@ -317,9 +400,14 @@ func (webserver *WebServer) postECUAdjustIdleDecay(w http.ResponseWriter, r *htt
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.AdjustIdleDecay(data.Steps)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	value, _ := webserver.reader.ECU.AdjustIdleDecay(data.Steps)
 	adjustment := AdjustmentResponse{Adjustment: "idledecay", Value: value}
 
 	webserver.updateAdjustableValue(w, r, adjustment)
@@ -336,9 +424,14 @@ func (webserver *WebServer) postECUAdjustIdleSpeed(w http.ResponseWriter, r *htt
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.AdjustIdleSpeed(data.Steps)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	value, _ := webserver.reader.ECU.AdjustIdleSpeed(data.Steps)
 	adjustment := AdjustmentResponse{Adjustment: "idlespeed", Value: value}
 
 	webserver.updateAdjustableValue(w, r, adjustment)
@@ -355,9 +448,14 @@ func (webserver *WebServer) postECUAdjustIgnitionAdvance(w http.ResponseWriter, 
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.AdjustIgnitionAdvanceOffset(data.Steps)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	value, _ := webserver.reader.ECU.AdjustIgnitionAdvanceOffset(data.Steps)
 	adjustment := AdjustmentResponse{Adjustment: "ignitionadvance", Value: value}
 
 	webserver.updateAdjustableValue(w, r, adjustment)
@@ -374,9 +472,14 @@ func (webserver *WebServer) postECUAdjustIAC(w http.ResponseWriter, r *http.Requ
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.AdjustIACPosition(data.Steps)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	value, _ := webserver.reader.ECU.AdjustIACPosition(data.Steps)
 	adjustment := AdjustmentResponse{Adjustment: "iac", Value: value}
 
 	webserver.updateAdjustableValue(w, r, adjustment)
@@ -387,7 +490,13 @@ func (webserver *WebServer) postECUAdjustIAC(w http.ResponseWriter, r *http.Requ
 //
 func (webserver *WebServer) updateAdjustableValue(w http.ResponseWriter, r *http.Request, adjustment AdjustmentResponse) {
 	if webserver.isECUConnected(w) {
-		defer r.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				log.Warnf("rest error closing response body")
+			}
+		}(r.Body)
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 		log.Infof("rest-post adjustable value response")
@@ -412,11 +521,15 @@ func (webserver *WebServer) postECUTestFuelPump(w http.ResponseWriter, r *http.R
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.TestFuelPump(data.Activate)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	if !value {
+	if err := webserver.reader.ECU.TestFuelPump(data.Activate); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -436,11 +549,14 @@ func (webserver *WebServer) postECUTestPTC(w http.ResponseWriter, r *http.Reques
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.TestPTCRelay(data.Activate)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
-	if !value {
+	if err := webserver.reader.ECU.TestPTCRelay(data.Activate); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -460,11 +576,14 @@ func (webserver *WebServer) postECUTestAircon(w http.ResponseWriter, r *http.Req
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.TestACRelay(data.Activate)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
-	if !value {
+	if err := webserver.reader.ECU.TestACRelay(data.Activate); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -484,11 +603,14 @@ func (webserver *WebServer) postECUTestPurgeValve(w http.ResponseWriter, r *http
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.TestPurgeValve(data.Activate)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
-	if !value {
+	if err := webserver.reader.ECU.TestPurgeValve(data.Activate); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -508,11 +630,14 @@ func (webserver *WebServer) postECUTestBoostValve(w http.ResponseWriter, r *http
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.TestBoostValve(data.Activate)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
-	if !value {
+	if err := webserver.reader.ECU.TestBoostValve(data.Activate); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -532,11 +657,14 @@ func (webserver *WebServer) postECUTestFan1(w http.ResponseWriter, r *http.Reque
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.TestFan1(data.Activate)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
-	if !value {
+	if err := webserver.reader.ECU.TestFan1(data.Activate); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -556,11 +684,14 @@ func (webserver *WebServer) postECUTestFan2(w http.ResponseWriter, r *http.Reque
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.TestFan2(data.Activate)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
-	if !value {
+	if err := webserver.reader.ECU.TestFan2(data.Activate); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -580,11 +711,14 @@ func (webserver *WebServer) postECUTestInjectors(w http.ResponseWriter, r *http.
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.TestInjectors(data.Activate)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
-	if !value {
+	if err := webserver.reader.ECU.TestInjectors(data.Activate); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -604,11 +738,14 @@ func (webserver *WebServer) postECUTestCoil(w http.ResponseWriter, r *http.Reque
 	// get the body of our POST request
 	// unmarshal this into a new Config struct
 	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &data)
 
-	value := webserver.reader.ECU.TestCoil(data.Activate)
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		// return a error code
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
-	if !value {
+	if err := webserver.reader.ECU.TestCoil(data.Activate); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -622,7 +759,13 @@ func (webserver *WebServer) postECUTestCoil(w http.ResponseWriter, r *http.Reque
 //
 func (webserver *WebServer) updateTestActuator(w http.ResponseWriter, r *http.Request, actuatorResponse ECUActivateResponse) {
 	if webserver.isECUConnected(w) {
-		defer r.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				log.Warnf("rest error closing response body")
+			}
+		}(r.Body)
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 		if err := json.NewEncoder(w).Encode(actuatorResponse); err != nil {

@@ -6,8 +6,11 @@ import (
 	"github.com/andrewdjackson/rosco"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"reflect"
+	"strings"
 	"time"
 )
 
@@ -37,7 +40,12 @@ func (webserver *WebServer) getScenarioDetails(w http.ResponseWriter, r *http.Re
 	vars := mux.Vars(r)
 	scenarioID := vars["scenarioId"]
 
-	defer r.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Warnf("rest error closing response body")
+		}
+	}(r.Body)
 
 	data := rosco.GetScenario(scenarioID)
 
@@ -69,10 +77,15 @@ func (webserver *WebServer) getListofScenarios(w http.ResponseWriter, r *http.Re
 func (webserver *WebServer) getPlaybackDetails(w http.ResponseWriter, r *http.Request) {
 	log.Info("rest-get scenario playback details")
 
+	if !webserver.isECUScenarioReader() {
+		log.Info("rest-get ecu reader is not a scenario playback reader")
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}
+
 	vars := mux.Vars(r)
 	if len(vars) > 0 {
 		scenarioID := vars["scenarioId"]
-		log.Info("rest-get scenario playback id %v" + scenarioID)
+		log.Info("rest-get scenario playback id %s", scenarioID)
 	}
 
 	details := ScenarioDetails{}
@@ -108,6 +121,33 @@ func (webserver *WebServer) getPlaybackDetails(w http.ResponseWriter, r *http.Re
 	webserver.sendResponse(w, r, details)
 }
 
+func (webserver *WebServer) putConvertToScenario(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	if len(vars) > 0 {
+		scenarioId := vars["scenarioId"]
+		if strings.HasSuffix(strings.ToLower(scenarioId), ".csv") {
+			log.Infof("rest-put converting logfile %s to scenario", scenarioId)
+			scenarioFile := strings.Replace(scenarioId, ".csv", ".fcr", 1)
+			s := rosco.NewScenarioFile(scenarioFile)
+			if err := s.ConvertLogToScenario(scenarioId); err == nil {
+				if err := s.Write(); err != nil {
+					log.Errorf("rest-put error writing scenario file %s (%s)", scenarioFile, err)
+					w.WriteHeader(http.StatusBadRequest)
+				}
+			} else {
+				log.Errorf("rest-put error converting scenario file %s (%s)", scenarioFile, err)
+				w.WriteHeader(http.StatusBadRequest)
+			}
+		} else {
+			log.Warnf("rest-put cannot convert file %s is already a scenario", scenarioId)
+			w.WriteHeader(http.StatusBadRequest)
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (webserver *WebServer) postPlaybackSeek(w http.ResponseWriter, r *http.Request) {
 	// get the body of our request
 	// unmarshal this into a new Config struct
@@ -119,7 +159,7 @@ func (webserver *WebServer) postPlaybackSeek(w http.ResponseWriter, r *http.Requ
 
 	log.Infof("rest-post scenario playback seek (%+v)", position)
 
-	if webserver.reader.ECU.Status.Connected && webserver.reader.ECU.Status.Emulated {
+	if webserver.reader.ECU.Status.Connected && webserver.isECUScenarioReader() {
 		last := webserver.reader.ECU.Responder.Playbook.Count
 
 		if position.NewPosition < last {
@@ -141,7 +181,12 @@ func (webserver *WebServer) postPlaybackSeek(w http.ResponseWriter, r *http.Requ
 }
 
 func (webserver *WebServer) sendResponse(w http.ResponseWriter, r *http.Request, data interface{}) {
-	defer r.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Warnf("rest error closing response body")
+		}
+	}(r.Body)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -149,4 +194,7 @@ func (webserver *WebServer) sendResponse(w http.ResponseWriter, r *http.Request,
 		// return a error code
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+func (webserver *WebServer) isECUScenarioReader() bool {
+	return reflect.TypeOf(webserver.reader.ECU) == reflect.TypeOf(&rosco.ScenarioReader{})
 }

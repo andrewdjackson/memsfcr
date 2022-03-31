@@ -14,7 +14,7 @@ type MemsReader struct {
 	// Config FCR configuration
 	Config *Config
 	// ECU represents the serial connection to the ECU
-	ECU *rosco.MemsConnection
+	ECU *rosco.ECUReaderInstance
 	// Webserver
 	WebServer *WebServer
 }
@@ -30,7 +30,7 @@ func NewMemsReader(version string, build string) *MemsReader {
 	// set up the connection to the ECU
 	// this is also used to 'emulate' the ECU if
 	// a pre-recorded scenario is played back
-	reader.ECU = rosco.NewMemsConnection()
+	reader.ECU = rosco.NewECUReaderInstance()
 
 	// set up the webserver for websocket
 	// and REST endpoints
