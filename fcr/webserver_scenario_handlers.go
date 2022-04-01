@@ -68,7 +68,7 @@ func (webserver *WebServer) getScenarioDetails(w http.ResponseWriter, r *http.Re
 // returns a list of available scenarios
 func (webserver *WebServer) getListofScenarios(w http.ResponseWriter, r *http.Request) {
 	log.Info("rest-get list of scenarios")
-	scenarios, _ := rosco.GetScenarios()
+	scenarios, _ := rosco.GetScenarios("")
 
 	log.Infof("%+v", scenarios)
 	webserver.sendResponse(w, r, scenarios)
