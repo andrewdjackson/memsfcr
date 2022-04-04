@@ -1,13 +1,11 @@
 
-var minLambda = false
-var maxLambda = false
 var minIAC = false
 var debug = false
 
 // replay data
-var replay = ""
-var replayCount = 0
-var replayPosition = 0
+let replay = ""
+let replayCount = 0
+let replayPosition = 0
 
 // duration in milliseconds between calls to the ECU for
 // dataframes. the ECU will struggle to respond with a
@@ -115,11 +113,6 @@ var resetDataframe = {
     "Dataframe80": "801c000085ff4fff638e23001001000000208b60039d003808c1000000",
     "Dataframe7d": "7d201012ff92006effff0100996400ff3affff30807c63ff19401ec0264034c008"
 }
-
-const AirSensorFaultCode = 0b00000001
-const CoolantSensorFaultCode = 0b00000010
-const FuelPumpFaultCode = 0b00000001
-const ThrottlePotFaultCode = 0b01000000
 
 // adjustments
 const AdjustmentIdleSpeed = "idlespeed"
@@ -495,8 +488,8 @@ function setConnectionStatusMessage(connected) {
     $('#' + id).removeClass("invisible");
     $('#' + id).addClass("visible");
 
-    if (connected == true) {
-        if (replay == "") {
+    if (connected === true) {
+        if (replay === "") {
             msg = document.getElementById("port").value
         } else {
             msg = replay
@@ -574,11 +567,11 @@ function updateLEDs(data) {
 function setFaultStatusOnMenu(data, derived = 0) {
     var count = 0
 
-    if (data.CoolantTempSensorFault == true) count++;
-    if (data.AirIntakeTempSensorFault == true) count++;
-    if (data.ThrottlePotCircuitFault == true) count++;
-    if (data.FuelPumpCircuitFault == true) count++;
-    if (memsreader.memsdata.Analytics.O2SystemFault == true) count++;
+    if (data.CoolantTempSensorFault === true) count++;
+    if (data.AirIntakeTempSensorFault === true) count++;
+    if (data.ThrottlePotCircuitFault === true) count++;
+    if (data.FuelPumpCircuitFault === true) count++;
+    if (memsreader.memsdata.Analytics.O2SystemFault === true) count++;
 
     count = count + derived;
 
@@ -846,6 +839,20 @@ function loadedScenarios(event) {
     console.info("loaded scenarios " + JSON.stringify(data))
 
     // add scenarios to dropdown
+    addScenariosToDialogList(data);
+
+    // handle highlighting selected items in the list
+    $('.list-group a').click(function(e) {
+        e.preventDefault()
+
+        $that = $(this);
+
+        $that.parent().find('a').removeClass('active');
+        $that.addClass('active');
+    })
+}
+
+function addScenariosToDialogList(data) {
     var replay = $('#replayList');
 
     data.forEach(function (s) {
@@ -857,23 +864,13 @@ function loadedScenarios(event) {
             scenario += '<i class="fa fa-stethoscope" style="font-size: 1.5em; color: sienna"></i>'
         }
         scenario += '&nbsp;' + s.name
-        scenario += '<span><br><small>' + s.Date.slice(0,10) + ' ' + s.Date.slice(11,16) + ', ' + s.Duration + ''
+        scenario += '<span><br><small>' + s.Date.slice(0, 10) + ' ' + s.Date.slice(11, 16) + ', ' + s.Duration + ''
         scenario += '<br>' + s.Summary + '</small></span>'
         scenario += '</a>'
 
         console.debug("added scenario " + s.name)
         replay.append(scenario);
     });
-
-    // handle highlighting selected items in the list
-    $('.list-group a').click(function(e) {
-        e.preventDefault()
-
-        $that = $(this);
-
-        $that.parent().find('a').removeClass('active');
-        $that.addClass('active');
-    })
 }
 
 function selectScenario(scenario) {

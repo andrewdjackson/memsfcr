@@ -3,6 +3,92 @@ const chartLength = 120
 const skipped = (ctx, value) => ctx.p0.skip || ctx.p0.parsed.y === 0 ? value : undefined;
 const faulty = (ctx, value) => ctx.p0.parsed.y > 0 ? value : undefined;
 
+var faultsArray = {}
+
+function addAnnotation(chart, x,y) {
+    var ch = chart.getContext()
+    var id = ch.chart.ctx.canvas.id
+    var xLabel = -50
+    var yLabel = 9
+
+    if (typeof faultsArray[id] === 'undefined') {
+        return
+    }
+
+    if (y < 8) {
+        yLabel = -15
+    }
+
+    faultsArray[id].push ({
+        type: 'label',
+            xValue: x,
+            yValue: y,
+            xAdjust: xLabel,
+            yAdjust: yLabel,
+            backgroundColor: 'rgba(173, 23, 33, 1)',
+            content: ['fault'],
+            textAlign: 'start',
+            color: 'rgba(255,255,255,1)',
+            borderRadius: 3,
+            backgroundShadowColor: 'rgba(197, 197, 197, 1)',
+        shadowOffsetX:4,
+        shadowOffsetY:4,
+        shadowBlur: 2,
+            height: 12,
+            font: {
+                size: 11,
+            },
+            callout: {
+                enabled: true,
+                side: 5,
+            }
+        });
+}
+
+function shiftAnnotations(chart) {
+    var ch = chart.getContext()
+    var id = ch.chart.ctx.canvas.id
+
+    if (typeof faultsArray[id] === 'undefined') {
+        return
+    }
+
+    if (faultsArray[id].length > 0) {
+        // move all x values by 1
+        faultsArray[id].forEach((fault) => {
+            fault.xValue = fault.xValue - 1
+        });
+
+        if (faultsArray[0] < 0) {
+            // remove first element
+            faultsArray[id].shift()
+        }
+    }
+}
+
+function isNewFault(chart) {
+    var ch = chart.getContext()
+    var id = ch.chart.ctx.canvas.id
+
+    if (typeof faultsArray[id] === 'undefined') {
+        return false
+    }
+
+    var len = faultsArray[id].length
+
+    if (len > 0) {
+        // if the last fault was triggered on the last data value then not a new fault in this continuous series
+        // return false
+        var lastFaultAnnotation = faultsArray[id][len - 1].xValue
+        var lastFaultPosition = chart.data.datasets[0].data[chartLength - 1]
+
+        var newFault = (lastFaultAnnotation !== chartLength - 2) && (lastFaultPosition === 0)
+        return newFault
+    } else {
+        return true
+    }
+}
+
 addData = function(chart, label, data, fault) {
     chart.data.labels.shift()
     chart.data.labels.push(label);
@@ -15,8 +101,13 @@ addData = function(chart, label, data, fault) {
         )
     }
 
+    shiftAnnotations(chart)
+
     if (fault === true) {
         // draw faulty line at same datapoint
+        if (isNewFault(chart)) {
+            addAnnotation(chart, chart.data.datasets[0].data.length - 1, data)
+        }
         chart.data.datasets[1].data.push(data)
     } else {
         // if the previous data value in the fault line has a value then push a NaN to give a clean cutoff in the fill
@@ -38,7 +129,10 @@ addScenarioData = function(chart, data) {
 createChart = function(id, title) {
     var ctx = $('#' + id);
 
+    faultsArray[id] = new Array()
+
     return new Chart(ctx, {
+        id: id,
         type: 'line',
         data: {
             labels: Array.apply(null, Array(chartLength)).map(function() { return '' }),
@@ -59,7 +153,7 @@ createChart = function(id, title) {
                 tension: 0.4,
                 borderWidth: 2,
                 segment: {
-                    borderColor: ctx => skipped(ctx, 'rgba(102,102,255,0)') || faulty(ctx, 'rgba(202,12,55,1.0)'),
+                    borderColor: ctx => skipped(ctx, 'rgba(102,102,255,0)') || faulty(ctx, 'rgba(178, 16, 28, 1.0)'),
                     backgroundColor: ctx => skipped(ctx, 'rgba(102,102,255,0)') || faulty(ctx, 'rgba(255,0,0,0.3)'),
                 },
                 fill: true,
@@ -73,6 +167,9 @@ createChart = function(id, title) {
             plugins: {
                 legend: {
                     display: false,
+                },
+                annotation: {
+                    annotations: faultsArray[id],
                 }
             },
             scales: {

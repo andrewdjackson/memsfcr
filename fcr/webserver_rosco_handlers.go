@@ -181,7 +181,7 @@ func (webserver *WebServer) getECUDataframes(w http.ResponseWriter, r *http.Requ
 			webserver.waitingForECUResponse = true
 			// get the ECU data
 			if memsdata, err := webserver.reader.ECU.GetDataframes(); err == nil {
-				log.Infof("rest-get ecu dataframes (%v)", memsdata)
+				log.Infof("rest-get ecu dataframes (%+v)", memsdata)
 
 				if err := json.NewEncoder(w).Encode(memsdata); err != nil {
 					log.Warnf("rest-get read ecu dataframes response failed")
