@@ -32,6 +32,12 @@ type ScenarioSeekPosition struct {
 	NewPosition     int
 }
 
+type ScenarioConversion struct {
+	Result      bool
+	Source      string
+	Destination string
+}
+
 // REST API : GET Scenario
 // returns the details of the specified scenario
 func (webserver *WebServer) getScenarioDetails(w http.ResponseWriter, r *http.Request) {
@@ -74,12 +80,13 @@ func (webserver *WebServer) getListofScenarios(w http.ResponseWriter, r *http.Re
 	webserver.sendResponse(w, r, scenarios)
 }
 
-func (webserver *WebServer) getPlaybackDetails(w http.ResponseWriter, r *http.Request) {
+func (webserver *WebServer) getPlaybackProgress(w http.ResponseWriter, r *http.Request) {
 	log.Info("rest-get scenario playback details")
 
 	if !webserver.isECUScenarioReader() {
 		log.Info("rest-get ecu reader is not a scenario playback reader")
 		w.WriteHeader(http.StatusServiceUnavailable)
+		return
 	}
 
 	vars := mux.Vars(r)
@@ -122,27 +129,35 @@ func (webserver *WebServer) getPlaybackDetails(w http.ResponseWriter, r *http.Re
 }
 
 func (webserver *WebServer) putConvertToScenario(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
+	// get the body of our request
+	// unmarshal this into a new struct
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	conversion := ScenarioConversion{}
+	_ = json.Unmarshal(reqBody, &conversion)
 
-	if len(vars) > 0 {
-		scenarioId := vars["scenarioId"]
-		if strings.HasSuffix(strings.ToLower(scenarioId), ".csv") {
-			log.Infof("rest-put converting logfile %s to scenario", scenarioId)
-			scenarioFile := strings.Replace(scenarioId, ".csv", ".fcr", 1)
-			s := rosco.NewScenarioFile(scenarioFile)
-			if err := s.ConvertLogToScenario(scenarioId); err == nil {
-				if err := s.Write(); err != nil {
-					log.Errorf("rest-put error writing scenario file %s (%s)", scenarioFile, err)
-					w.WriteHeader(http.StatusBadRequest)
-				}
-			} else {
-				log.Errorf("rest-put error converting scenario file %s (%s)", scenarioFile, err)
+	scenarioId := conversion.Source
+
+	if strings.HasSuffix(strings.ToLower(scenarioId), ".csv") {
+		log.Infof("rest-put converting logfile %s to scenario", scenarioId)
+		scenarioFile := strings.Replace(scenarioId, ".csv", ".fcr", 1)
+		s := rosco.NewScenarioFile(scenarioFile)
+		if err := s.ConvertLogToScenario(scenarioId); err == nil {
+			if err := s.Write(); err != nil {
+				log.Errorf("rest-put error writing scenario file %s (%s)", scenarioFile, err)
 				w.WriteHeader(http.StatusBadRequest)
+			} else {
+				conversion.Result = true
+				conversion.Destination = scenarioFile
+
+				webserver.sendResponse(w, r, conversion)
 			}
 		} else {
-			log.Warnf("rest-put cannot convert file %s is already a scenario", scenarioId)
+			log.Errorf("rest-put error converting scenario file %s (%s)", scenarioFile, err)
 			w.WriteHeader(http.StatusBadRequest)
 		}
+	} else {
+		log.Warnf("rest-put cannot convert file %s is already a scenario", scenarioId)
+		w.WriteHeader(http.StatusBadRequest)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -196,5 +211,5 @@ func (webserver *WebServer) sendResponse(w http.ResponseWriter, r *http.Request,
 	}
 }
 func (webserver *WebServer) isECUScenarioReader() bool {
-	return reflect.TypeOf(webserver.reader.ECU) == reflect.TypeOf(&rosco.ScenarioReader{})
+	return reflect.TypeOf(webserver.reader.ECU.EcuReader) == reflect.TypeOf(&rosco.ScenarioReader{})
 }

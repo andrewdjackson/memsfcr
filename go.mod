@@ -3,7 +3,7 @@ module github.com/andrewdjackson/memsfcr
 go 1.17
 
 require (
-	github.com/andrewdjackson/rosco v1.5.77
+	github.com/andrewdjackson/rosco v1.5.80
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/mitchellh/go-homedir v1.1.0
@@ -15,9 +15,10 @@ require (
 
 require (
 	github.com/creack/goselect v0.1.2 // indirect
-	github.com/gocarina/gocsv v0.0.0-20220310154401-d4df709ca055 // indirect
+	github.com/distributed/sers v1.1.0 // indirect
+	github.com/gocarina/gocsv v0.0.0-20220503141554-3986f9cfe36b // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07 // indirect
-	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
+	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 // indirect
 	gonum.org/v1/gonum v0.11.0 // indirect
 )

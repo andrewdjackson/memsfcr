@@ -116,3 +116,5 @@ memsfcr
 go_build_
 /resources/memsfcr
 /_Makefile
+/resources/node_modules/
+/node_modules/

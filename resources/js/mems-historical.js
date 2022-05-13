@@ -1,3 +1,5 @@
+'use strict';
+
 const sparkLength = 60
 const chartLength = 120
 const skipped = (ctx, value) => ctx.p0.skip || ctx.p0.parsed.y === 0 ? value : undefined;
@@ -89,7 +91,7 @@ function isNewFault(chart) {
     }
 }
 
-addData = function(chart, label, data, fault) {
+const addData = function(chart, label, data, fault) {
     chart.data.labels.shift()
     chart.data.labels.push(label);
     chart.data.datasets[0].data.push(data)
@@ -122,11 +124,11 @@ addData = function(chart, label, data, fault) {
     chart.update('none');
 }
 
-addScenarioData = function(chart, data) {
+const addScenarioData = function(chart, data) {
     chart.data = data
 }
 
-createChart = function(id, title) {
+const createChart = function(id, title) {
     var ctx = $('#' + id);
 
     faultsArray[id] = new Array()
@@ -202,7 +204,7 @@ createChart = function(id, title) {
     });
 }
 
-createSpark = function(id) {
+const createSpark = function(id) {
     var ctx = $('#' + id);
 
     return new Chart(ctx, {

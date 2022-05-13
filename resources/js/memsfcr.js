@@ -1,3 +1,4 @@
+'use strict';
 
 var minIAC = false
 var debug = false
@@ -221,7 +222,34 @@ const SparkIgnition = "ignitionspark"
 
 const maxDebugLogLength = 75 // lines of debug log in the interface
 const debugLogLineTerminator = "<br>"
-var   debugLogLineCount = 0 // number of lines in the log
+
+var debugLogLineCount = 0 // number of lines in the log
+var uri = ""
+var memsreader;
+var rpmSpark
+var mapSpark
+var throttleSpark
+var iacSpark
+var batterySpark
+var coolantSpark
+var airSpark
+var lambdaSpark
+var fuelSpark
+var ltfuelSpark
+var airfuelSpark
+var ignitionSpark
+var rpmChart
+var lambdaChart
+var loopChart
+var afrChart
+var coolantChart
+var idleBaseChart
+var idleErrorChart
+var mapChart
+var coilTimeChart
+var casChart
+var batteryChart
+var selectedScenario
 
 if (typeof console != "undefined") {
     var oldLogInfo = console.info
@@ -244,16 +272,16 @@ if (typeof console != "undefined") {
     }
 
     function display(level, message) {
-        date = new Date()
-        time = String(date.getHours()).padStart(2,'0') + ":" + String(date.getMinutes()).padStart(2,'0') + ":" + String(date.getSeconds()).padStart(2,'0') + "." + String(date.getMilliseconds()).padStart(3, '0')
+        let date = new Date()
+        let time = String(date.getHours()).padStart(2,'0') + ":" + String(date.getMinutes()).padStart(2,'0') + ":" + String(date.getSeconds()).padStart(2,'0') + "." + String(date.getMilliseconds()).padStart(3, '0')
         debugLogLineCount++
 
-        debugLogContent = document.getElementById('debugLog').innerHTML
+        let debugLogContent = document.getElementById('debugLog').innerHTML
         if (debugLogLineCount > maxDebugLogLength) {
             // set the line count to the max
             debugLogLineCount = maxDebugLogLength
             // find end of the line
-            start = debugLogContent.indexOf(debugLogLineTerminator, 0) + debugLogLineTerminator.length
+            let start = debugLogContent.indexOf(debugLogLineTerminator, 0) + debugLogLineTerminator.length
             // truncate the content
             debugLogContent = debugLogContent.substring(start, debugLogContent.length)
 
@@ -280,7 +308,7 @@ class MemsReader {
             adjust: uri + "/rosco/adjust/",
             actuator: uri + "/rosco/test/",
             scenario: uri + "/scenario",
-            play_scenario: uri + "/scenario/play",
+            scenario_details: uri + "/scenario/details",
             seek_scenario: uri + "/scenario/seek",
         }
         this.ecuid = ""
@@ -345,7 +373,7 @@ function initialiseServerEvents() {
     // connect to the server to establish a heartbeat link
     // if the user closes the browser, the server will detect no response
     // and terminate the application after a few seconds
-    server_event = new EventSource(uri + "/heartbeat")
+    let server_event = new EventSource(uri + "/heartbeat")
 
     server_event.onopen = function () {
         console.debug("server-event connected");
@@ -479,7 +507,8 @@ function updateGraphs(data) {
 }
 
 function setConnectionStatusMessage(connected) {
-    id = IndicatorConnectionMessage
+    let id = IndicatorConnectionMessage
+    let msg = ""
 
     $('#' + id).removeClass("alert-light");
     $('#' + id).removeClass("alert-danger");
@@ -505,7 +534,7 @@ function setConnectionStatusMessage(connected) {
 
 function setECUQueryFrequency(frequency) {
     console.info("freq " + frequency)
-    f = parseInt(frequency)
+    let f = parseInt(frequency)
     if (f > 200) {
         ECUQueryInterval = f
         updateAdjustmentValue(SettingECUQueryFrequency, ECUQueryInterval)
@@ -585,7 +614,8 @@ function setFaultStatusOnMenu(data, derived = 0) {
 }
 
 function setStatusLED(status, id, statustype = LEDStatus) {
-    led = "green";
+    let c
+    let led = "green";
 
     if (statustype == LEDWarning) led = "yellow";
     if (statustype == LEDInfo) led = "blue";
@@ -634,7 +664,7 @@ function updateDashboardAnalytics() {
 }
 
 function setConnectButtonStyle(name, style, f) {
-    id = "#connectECUbtn";
+    let id = "#connectECUbtn";
 
     // remove all styles and handlers
     $(id).removeClass("btn-success");
@@ -657,6 +687,8 @@ function hideDebugValues() {
 }
 
 function showProgressValues(show) {
+    let v
+
     console.debug("hiding/showing progress elements")
     if (show) {
         v = 'block'
@@ -669,23 +701,8 @@ function showProgressValues(show) {
     }
 }
 
-function getAvailableSerialPorts() {
-    console.info("requesting available serial ports")
-    // Create a request variable and assign a new XMLHttpRequest object to it.
-    var request = new XMLHttpRequest()
-
-    request.open('GET', memsreader.uri.ports, true)
-    request.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
-    request.addEventListener('load', updateAvailableSerialPorts)
-    request.addEventListener('error', restError)
-
-    // Send request
-    request.send()
-}
-
-function updateAvailableSerialPorts(event) {
-    var data = JSON.parse(this.response)
-    var availablePorts = []
+const updateAvailableSerialPorts = function(data) {
+    let availablePorts = []
 
     // add current port
     availablePorts.push(memsreader.status.port)
@@ -696,13 +713,21 @@ function updateAvailableSerialPorts(event) {
         }
     });
 
-    console.info("available serial ports " + JSON.stringify(availablePorts))
+    console.info(`available serial ports ${JSON.stringify(availablePorts)}`)
 
     $("#ports").empty()
     $.each(availablePorts, function(key, value) {
-        console.info("serial port added " + key + " : " + value);
-        $("#ports").append('<a class="dropdown-item" href="#" onclick="selectPort(this)">' + value + '</a>');
+        console.info(`serial port added ${key} : ${value}`);
+        $("#ports").append(`<a class="dropdown-item" href="#" onclick="selectPort(this)">${value}</a>`);
     });
+}
+
+const getAvailableSerialPorts = function() {
+    console.info("requesting available serial ports ()")
+    fetch(memsreader.uri.ports)
+        .then(response => response.json())
+        .then(data => updateAvailableSerialPorts(data))
+        .catch(err => restError())
 }
 
 function setSerialPortSelection(ports) {
@@ -781,8 +806,10 @@ function updateConfigSettings(data) {
 
 // save the configuration settings
 function Save() {
-    folder = document.getElementById(SettingLogFolder).value;
-    configPort = document.getElementById(SettingPort).value;
+    let folder = document.getElementById(SettingLogFolder).value;
+    let configPort = document.getElementById(SettingPort).value;
+    let logToFile
+
     setECUQueryFrequency(document.getElementById(SettingECUQueryFrequency).value)
 
     if (document.getElementById(SettingLogToFile).checked == true) {
@@ -794,8 +821,8 @@ function Save() {
     var data = { Port: configPort, logFolder: folder, logtofile: logToFile, frequency: ECUQueryInterval.toString() };
 
     // Create a request variable and assign a new XMLHttpRequest object to it.
-    var request = new XMLHttpRequest()
-    var url = uri + "/config"
+    let request = new XMLHttpRequest()
+    let url = uri + "/config"
 
     // Open a new connection, using the GET request on the URL endpoint
     request.open('PUT', url, true)
@@ -845,7 +872,7 @@ function loadedScenarios(event) {
     $('.list-group a').click(function(e) {
         e.preventDefault()
 
-        $that = $(this);
+        let $that = $(this);
 
         $that.parent().find('a').removeClass('active');
         $that.addClass('active');
@@ -885,7 +912,7 @@ function loadScenario() {
     var request = new XMLHttpRequest()
 
     // Open a new connection, using the GET request on the URL endpoint
-    var url = memsreader.uri.play_scenario + "/" + selectedScenario
+    var url = memsreader.uri.scenario_details + "/" + selectedScenario
 
     request.open('GET', url, true)
     request.setRequestHeader("Content-Type", "application/json;charset=UTF-8")

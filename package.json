@@ -1,0 +1,11 @@
+{
+  "name": "memsfcr",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "vitest --run --reporter verbose",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "vitest": "^0.12.4"
+  }
+}

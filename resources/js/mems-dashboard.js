@@ -1,3 +1,5 @@
+'use strict';
+
 var displayWidth = 200
 var displayHeight = 200
 var animationSpeed = 400

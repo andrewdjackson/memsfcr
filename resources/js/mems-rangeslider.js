@@ -1,3 +1,5 @@
+'use strict';
+
 var rangeSlider = function () {
   var slider = $('.range-slider'),
     range = $('.range-slider__range'),
