@@ -19,7 +19,7 @@ type MemsReader struct {
 	WebServer *WebServer
 }
 
-func NewMemsReader(version string, build string) *MemsReader {
+func NewMemsReader(version string, build string, headless bool) *MemsReader {
 	reader := &MemsReader{}
 
 	// read the config
@@ -34,7 +34,7 @@ func NewMemsReader(version string, build string) *MemsReader {
 
 	// set up the webserver for websocket
 	// and REST endpoints
-	reader.WebServer = NewWebServer(reader)
+	reader.WebServer = NewWebServer(reader, headless)
 
 	return reader
 }

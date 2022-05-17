@@ -41,6 +41,8 @@ type WebServer struct {
 	reader *MemsReader
 	// waiting for a response from the ECU
 	waitingForECUResponse bool
+	// headless mode, supress quit on no browser heartbeat
+	headless bool
 }
 
 const (
@@ -49,8 +51,9 @@ const (
 )
 
 // NewWebInterface creates a new web interface
-func NewWebServer(reader *MemsReader) *WebServer {
+func NewWebServer(reader *MemsReader, headless bool) *WebServer {
 	webserver := &WebServer{}
+	webserver.headless = headless
 	webserver.HTTPPort = 0
 	webserver.httpDir = ""
 	webserver.ServerRunning = false

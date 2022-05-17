@@ -90,8 +90,10 @@ func setupLogging(debug bool) {
 
 func main() {
 	var debug bool
+	var headless bool
 
 	flag.BoolVar(&debug, "debug", true, "output to a debug file")
+	flag.BoolVar(&headless, "headless", false, "headless server mode")
 	flag.Parse()
 
 	// initialise the logging
@@ -108,11 +110,16 @@ func main() {
 	exit := make(chan int)
 
 	// set up and initialise the fault code reader
-	reader := fcr.NewMemsReader(Version, Build)
+	reader := fcr.NewMemsReader(Version, Build, headless)
 	// start the web server
 	reader.StartWebServer()
-	// open the browser view
-	reader.OpenBrowser()
+
+	if !headless {
+		// open the browser view
+		reader.OpenBrowser()
+	} else {
+		log.Infof("MemsFCR started in headless mode")
+	}
 
 	// wait for exit on the channel
 	for {

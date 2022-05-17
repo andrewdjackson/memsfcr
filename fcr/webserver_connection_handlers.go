@@ -14,31 +14,33 @@ func (webserver *WebServer) browserHeartbeatHandler(w http.ResponseWriter, r *ht
 	var flusher http.Flusher
 	var supported bool
 
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if !webserver.headless {
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	if flusher, supported = w.(http.Flusher); !supported {
-		http.Error(w, "your browser doesn't support server-sent events", 503)
-		return
-	} else {
-		log.Info("connected browser heartbeat")
-	}
-
-	// send a heartbeat to prevent connection timeout
-	for {
-		if _, err := fmt.Fprintf(w, "event: heartbeat\ndata: heartbeat\n\n"); err != nil {
-			// error occurred because the heartbeat failed to send
-			// we'll assume the browser session has been terminated, clean up and close the server
-			log.Warnf("unable to sent heartbeat to browser, terminating application")
-			webserver.Disconnect()
-			webserver.TerminateApplication()
+		if flusher, supported = w.(http.Flusher); !supported {
+			http.Error(w, "your browser doesn't support server-sent events", 503)
+			return
+		} else {
+			log.Info("connected browser heartbeat")
 		}
 
-		flusher.Flush()
-		// wait time between heartbeats
-		time.Sleep(time.Second * 2)
+		// send a heartbeat to prevent connection timeout
+		for {
+			if _, err := fmt.Fprintf(w, "event: heartbeat\ndata: heartbeat\n\n"); err != nil {
+				// error occurred because the heartbeat failed to send
+				// we'll assume the browser session has been terminated, clean up and close the server
+				log.Warnf("unable to sent heartbeat to browser, terminating application")
+				webserver.Disconnect()
+				webserver.TerminateApplication()
+			}
+
+			flusher.Flush()
+			// wait time between heartbeats
+			time.Sleep(time.Second * 2)
+		}
 	}
 }
 

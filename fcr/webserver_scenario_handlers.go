@@ -159,8 +159,6 @@ func (webserver *WebServer) putConvertToScenario(w http.ResponseWriter, r *http.
 		log.Warnf("rest-put cannot convert file %s is already a scenario", scenarioId)
 		w.WriteHeader(http.StatusBadRequest)
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func (webserver *WebServer) postPlaybackSeek(w http.ResponseWriter, r *http.Request) {
@@ -183,7 +181,6 @@ func (webserver *WebServer) postPlaybackSeek(w http.ResponseWriter, r *http.Requ
 			log.Infof("rest-post scenario position moved from %v to %v", position.CurrentPosition, detail.Position)
 
 			webserver.sendResponse(w, r, detail)
-			w.WriteHeader(http.StatusOK)
 		} else {
 			log.Infof("rest-post scenario position too far (%v > %v)", position.NewPosition, last)
 			// position not found
