@@ -1,3 +1,10 @@
+export class MemsAPIError extends Error {
+    constructor(message, response) {
+        super(message);
+        this.name = "MemsError";
+        this.response = response;
+    }
+}
 
 export const SendRequest = async function (method, endpoint, body) {
     let init = {
@@ -10,9 +17,22 @@ export const SendRequest = async function (method, endpoint, body) {
     }
 
     const response = await fetch(endpoint, init);
-    if (!response.ok) throw new Error(`${response.status}`);
 
-    return await response.json();
+    if (!response.ok) {
+        let message = `${endpoint} failed with status ${response.status}`;
+        console.error(message);
+        throw new MemsAPIError(message, response);
+    }
+
+    let data = {}
+
+    try {
+        data = await response.json();
+    } catch (e) {
+        throw new MemsAPIError(`SendRequest no data received from ${endpoint} ${response.status}`, response);
+    }
+
+    return data;
 }
 
 export const Endpoints = {
@@ -41,4 +61,6 @@ export const Endpoints = {
     progress: "/scenario/progress",
     convert: "/scenario/convert",
     seek: "/scenario/seek",
+
+    serverHeartbeat: "/heartbeat",
 }

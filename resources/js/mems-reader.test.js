@@ -1,11 +1,10 @@
 import {it, expect} from 'vitest';
-import {MemsReader, Actuator, Adjuster} from "./mems-reader.js"
+import {Mems16Reader, Actuator, Adjuster} from "./mems-mems16reader.js"
 
-var reader = new MemsReader("http://127.0.0.1:8081");
+var reader = new Mems16Reader("http://127.0.0.1:8081");
 
 it('connect to mems reader', async () => {
-    let status = reader.connect("/Users/andrew.jacksonglobalsign.com/ttyecu");
-    status = await reader.status();
+    let status = await reader.connect("/Users/andrew.jacksonglobalsign.com/ttyecu");
     expect(status.Connected).toEqual(true);
 
     let activated = await reader.actuate(Actuator.FuelPump, true);

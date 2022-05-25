@@ -149,6 +149,18 @@ github.com/andrewdjackson/rosco v1.5.78 h1:iLO7sntCvYYCUkb52sXfiw55+8lU9W6u3q3gG
 github.com/andrewdjackson/rosco v1.5.78/go.mod h1:w+sHAEUzEuAMIQ0hq/swK8ZmpXJXd+l/ctThz9gMnvs=
 github.com/andrewdjackson/rosco v1.5.80 h1:KRkR9C7opOEsVj/PvjJ7kHJd3RjS52VVWRRXxXosBcQ=
 github.com/andrewdjackson/rosco v1.5.80/go.mod h1:w+sHAEUzEuAMIQ0hq/swK8ZmpXJXd+l/ctThz9gMnvs=
+github.com/andrewdjackson/rosco v1.5.81 h1:bVcVsLNLhu5aVVlJBMmq9JxiMd7xYfLHSpBIw7Yuv8o=
+github.com/andrewdjackson/rosco v1.5.81/go.mod h1:w+sHAEUzEuAMIQ0hq/swK8ZmpXJXd+l/ctThz9gMnvs=
+github.com/andrewdjackson/rosco v1.5.82 h1:5gk4Ha6Vz/neacw6XbLMCee0f57a97xwLYMp8OCI5GE=
+github.com/andrewdjackson/rosco v1.5.82/go.mod h1:w+sHAEUzEuAMIQ0hq/swK8ZmpXJXd+l/ctThz9gMnvs=
+github.com/andrewdjackson/rosco v1.5.83 h1:quUCJP06dc0yw4jdeIykalPZSzZAESV8cyPMuJv4VCA=
+github.com/andrewdjackson/rosco v1.5.83/go.mod h1:w+sHAEUzEuAMIQ0hq/swK8ZmpXJXd+l/ctThz9gMnvs=
+github.com/andrewdjackson/rosco v1.5.84 h1:TjUp6sggZyoVmV6mJzJt1Z6OsxkmN8y/pe3eGmJRI9Y=
+github.com/andrewdjackson/rosco v1.5.84/go.mod h1:w+sHAEUzEuAMIQ0hq/swK8ZmpXJXd+l/ctThz9gMnvs=
+github.com/andrewdjackson/rosco v1.5.85 h1:e0vKMrdfCnXkCaq/wlqbiIRGfq6NUTHooRu0uKH7uPg=
+github.com/andrewdjackson/rosco v1.5.85/go.mod h1:w+sHAEUzEuAMIQ0hq/swK8ZmpXJXd+l/ctThz9gMnvs=
+github.com/andrewdjackson/rosco v1.5.86 h1:oO+Y1t0OnDNqAlD04G5HdQ6FqK4ktoCNooUOPgUF6wU=
+github.com/andrewdjackson/rosco v1.5.86/go.mod h1:w+sHAEUzEuAMIQ0hq/swK8ZmpXJXd+l/ctThz9gMnvs=
 github.com/boombuler/barcode v1.0.0/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
 github.com/corbym/gocrest v1.0.5/go.mod h1:lF3xBPnOU5DYDpa/vUq63SMxUhd5UAwGgmA8Z2pJ/Tk=
 github.com/creack/goselect v0.1.1 h1:tiSSgKE1eJtxs1h/VgGQWuXUP0YS4CDIFMp6vaI1ls0=
@@ -181,6 +193,8 @@ github.com/gocarina/gocsv v0.0.0-20220310154401-d4df709ca055 h1:UfcDMw41lSx3XM7U
 github.com/gocarina/gocsv v0.0.0-20220310154401-d4df709ca055/go.mod h1:5YoVOkjYAQumqlV356Hj3xeYh4BdZuLE0/nRkf2NKkI=
 github.com/gocarina/gocsv v0.0.0-20220503141554-3986f9cfe36b h1:cHe3BM74ZOjgbFUf4FOzGHxaJ1Ks+OuCWMt2VH3lnCs=
 github.com/gocarina/gocsv v0.0.0-20220503141554-3986f9cfe36b/go.mod h1:5YoVOkjYAQumqlV356Hj3xeYh4BdZuLE0/nRkf2NKkI=
+github.com/gocarina/gocsv v0.0.0-20220520193141-bb9bebb918c3 h1:Cs2c2+FTKl8Ngpp0jQezzTgRnX4Wd2A0YxYgigyoQB8=
+github.com/gocarina/gocsv v0.0.0-20220520193141-bb9bebb918c3/go.mod h1:5YoVOkjYAQumqlV356Hj3xeYh4BdZuLE0/nRkf2NKkI=
 github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0/go.mod h1:E/TSTwGwJL78qG/PmXZO1EjYhfJinVAhrmmHX6Z8B9k=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 h1:EGx4pi6eqNxGaHF6qqu48+N2wcFQ5qg5FXgOdqsJ5d8=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
@@ -291,6 +305,8 @@ golang.org/x/sys v0.0.0-20220412211240-33da011f77ad h1:ntjMns5wyP/fN65tdBD4g8J5w
 golang.org/x/sys v0.0.0-20220412211240-33da011f77ad/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 h1:nonptSpoQ4vQjyraW20DXPAglgQfVnM9ZC6MmNLMR60=
 golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a h1:dGzPydgVsqGcTRVwiLJ1jVbufYwmzD3LfVPLKsKg+0k=
+golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.5/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 golang.org/x/tools v0.0.0-20180525024113-a5b4c53f6e8b/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=

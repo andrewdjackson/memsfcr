@@ -320,6 +320,7 @@ class MemsReader {
             connected: false,
             paused: false,
             heartbeatActive: false,
+            browserSerial: false,
         }
         // connect button
         this.connectButton = document.getElementById('connectECUbtn')
@@ -879,6 +880,11 @@ function loadedScenarios(event) {
     })
 }
 
+function selectScenario(scenario) {
+    console.info("select scenario " + scenario)
+    selectedScenario = scenario
+}
+
 function addScenariosToDialogList(data) {
     var replay = $('#replayList');
 
@@ -898,11 +904,6 @@ function addScenariosToDialogList(data) {
         console.debug("added scenario " + s.name)
         replay.append(scenario);
     });
-}
-
-function selectScenario(scenario) {
-    console.info("select scenario " + scenario)
-    selectedScenario = scenario
 }
 
 function loadScenario() {
@@ -1334,6 +1335,11 @@ function resetAdj() {
 function clearFaultCodes() {
     // clear fault codes
     console.info('reset fault codes')
+}
+
+function activateBrowserComms(event) {
+    memsreader.status.browserSerial = event.checked;
+    console.info('browser serial comms active ' + memsreader.status.browserSerial)
 }
 
 function activateActuator(event) {

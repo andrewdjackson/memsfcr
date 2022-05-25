@@ -1,13 +1,13 @@
 import {it, expect} from 'vitest';
 import {MemsScenario} from "./mems-scenario.js";
-import {MemsReader, Actuator, Adjuster} from "./mems-reader.js";
+import {Mems16Reader, Actuator, Adjuster} from "./mems-mems16reader.js";
 
 const testScenario = 'vacuum-fault.fcr';
 const testScenarioCSV = 'fullrun.csv';
 const serverUrl = "http://127.0.0.1:8081";
 
 var scenario = new MemsScenario(serverUrl);
-var reader = new MemsReader(serverUrl);
+var reader = new Mems16Reader(serverUrl);
 
 it('lists scenario', async() => {
     let response = await scenario.list();
