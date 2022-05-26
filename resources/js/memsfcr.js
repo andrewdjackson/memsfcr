@@ -1337,11 +1337,6 @@ function clearFaultCodes() {
     console.info('reset fault codes')
 }
 
-function activateBrowserComms(event) {
-    memsreader.status.browserSerial = event.checked;
-    console.info('browser serial comms active ' + memsreader.status.browserSerial)
-}
-
 function activateActuator(event) {
     if (memsreader.status.connected) {
         console.info('actuator ' + event.id + ' activate ' + event.checked)
