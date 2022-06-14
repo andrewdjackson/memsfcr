@@ -28,11 +28,13 @@ build_darwin:
 create_darwin_app:
 	# copy the binary to the distribution folder
 	cp -f "$(DARWINDISTPATH)/$(EXECUTABLE)" "$(RESOURCESPATH)/$(EXECUTABLE)"
+
 	# create the MacOS app
 	./macapp -assets "$(RESOURCESPATH)" -bin $(EXECUTABLE) -icon "$(RESOURCESPATH)/icons/icon.png" -identifier "com.github.andrewdjackson.memsfcr" -name "$(APPNAME)" -o "$(DARWINDISTPATH)"
 	# copy the info and entitlement plists into the application structure
 	cp -f "$(DISTPATH)/Info.plist" "$(DARWINDISTPATH)/$(APPNAME).app/Contents/Info.plist"
 	cp -f "$(DISTPATH)/entitlements.plist" "$(DARWINDISTPATH)/$(APPNAME).app/Contents/entitlements.plist"
+	cp -f "$(DISTPATH)/rosco.env" "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/rosco.env"
 
 sign_app_local:
 	# sign with the app

@@ -10,7 +10,7 @@ require (
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/sirupsen/logrus v1.8.1
 	go.bug.st/serial.v1 v0.0.0-20191202182710-24a6610f0541
-	gopkg.in/ini.v1 v1.66.4
+	gopkg.in/ini.v1 v1.66.6
 )
 
 require (
