@@ -1438,3 +1438,7 @@ function clearConnectMessage() {
     // hide the connection block
     for (let el of document.querySelectorAll('.connection')) el.style.display = 'none';
 }
+
+function Help() {
+    $('#settingsModalCenter').modal("show")
+}
