@@ -11,12 +11,12 @@ LOCAL_INSTID="Developer ID Installer: Andrew Jackson (MD9E767XF5)"
 STORE_DISTID="3rd Party Mac Developer Application: Andrew Jackson (MD9E767XF5)"
 STORE_INSTID="3rd Party Mac Developer Installer: Andrew Jackson (MD9E767XF5)"
 
-VERSION=$(shell cat version) 
+VERSION=$(shell cat version)
 BUILD=$(shell date +%FT%T%z)
 
 .PHONY: clean
 
-build: build_darwin create_darwin_app
+build: build_darwin create_darwin_app package_local_app
 local: build_darwin create_darwin_app sign_app_local package_local_app notarize_local_package
 store: build_darwin create_darwin_app sign_app_store upload_app_to_store
 
@@ -56,7 +56,7 @@ sign_app_store:
 package_local_app:
 	rm -f $(DARWINDISTPATH)/$(APPNAME).dmg
 	# create a DMG for local distributions
-	appdmg $(DISTPATH)/dmgspec.json $(DARWINDISTPATH)/$(APPNAME).dmg 
+	appdmg $(DISTPATH)/dmgspec.json $(DARWINDISTPATH)/$(APPNAME).dmg
 
 notarize_local_package:
 	# notarize the DMG

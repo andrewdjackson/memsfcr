@@ -803,6 +803,11 @@ function updateConfigSettings(data) {
     } else {
         hideDebugValues()
     }
+
+    if (data.Port === "" || data.Port.toLowerCase() === "/dev/tty.serial") {
+        $('#settingsModalCenter').modal("show")
+        $("#settings-menu").tab('show');
+    }
 }
 
 // save the configuration settings
@@ -1415,6 +1420,10 @@ function updateConnectMessage() {
     } else {
         document.getElementById(id).textContent = "unable to connect to ECU, check connection and settings"
         $('#' + id).addClass("alert-danger");
+
+        document.getElementById('errorModalLongTitle').textContent = "Unable to Connect to ECU"
+        document.getElementById('errorMessage').innerHTML = "<p>MemsFCR was unable to connect to the ECU using serial port " + port + "</p><ol><li>Check that the correct Serial Port has been selected in Settings.</li><li>Check Diagnostic Cable is connected correctly and ignition is On.</li></ol>"
+        $('#errorModalCenter').modal("show")
     }
 
     // show the connection block
