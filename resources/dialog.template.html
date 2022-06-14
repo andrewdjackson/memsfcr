@@ -2,7 +2,7 @@
      aria-labelledby="scenarioModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="scenarioModalLongTitle">Replay</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -20,4 +20,64 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="modal fade" id="settingsModalCenter" tabindex="-1" role="dialog" aria-labelledby="settingsModalCenterTitle" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header bg-warning text-dark">
+				<h5 class="modal-title" id="settingsModalLongTitle">The Serial Port Requires Setting</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<p>
+					Select your serial port from the dropdown in Settings and click APPLY.
+					<img src="images/serial-port.jpg" width="300">
+				</p>
+				<h5>MacOS / Linux</h5>
+				<p>
+					Mac and Linux use ports that follow the "/dev" convention. Your Diagnostic Cable will create a new /dev/ port typically of the format /dev/cu.usbserial-FTXXXX or similar.<br>
+					There may be 2 ports with a similar name listed, a /dev/tty.usbserial... and /dev/cu.usbserial...<br>
+					Conventionally the /dev/cu. should be used with MemsFCR
+				</p>
+				<h5>Windows</h5>
+				<p>
+					Windows will create a new COM port that is mapped to your Diagnostic cable.<br>
+					Often this is COM3 or COM5, although you may need to read the Installation Guide for more information if this isn't the case on your PC.
+				</p>
+				<p>
+					Windows requires the installation of drivers for the Diagnostic Cable to work correctly.<br>
+					<a href="https://memsfcr.co.uk/wp-content/uploads/apps/pl2303-win10-1.0.1.zip?189db0&189db0">Download Windows Drivers, unzip and run the setup to install.</a>
+				</p>
+				<p>
+					If you have problems installing the driver or identifying the COM port used by the Diagnostic Cable read the Installation Guide<br>
+					<a href="https://ftdichip.com/wp-content/uploads/2022/05/AN_396-FTDI-Drivers-Installation-Guide-for-Windows-10_11.pdf">Download Windows Installation Guide</a>
+				</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="errorModalCenter" tabindex="-1" role="dialog" aria-labelledby="errorModalCenterTitle" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header bg-danger text-white">
+				<h5 class="modal-title" id="errorModalLongTitle">Error</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<p id="errorMessage"></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
 </div>
