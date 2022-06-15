@@ -197,6 +197,7 @@ const ChartLambda = "lambdachart"
 const ChartLoopIndicator = "loopchart"
 const ChartCoolant = "coolantchart"
 const ChartAFR = "afrchart"
+const ChartIAC = "iacchart"
 const ChartIdleBase = "idlebasechart"
 const ChartIdleError = "idleerrorchart"
 const ChartMAP = "mapchart"
@@ -238,7 +239,9 @@ var fuelSpark
 var ltfuelSpark
 var airfuelSpark
 var ignitionSpark
+
 var rpmChart
+var iacChart
 var lambdaChart
 var loopChart
 var afrChart
@@ -445,6 +448,7 @@ function initialiseSparklines() {
 
 function initialiseGraphs() {
     rpmChart = createChart(ChartRPM, "Engine (RPM)");
+    iacChart = createChart(ChartIAC, "IAC Position");
     lambdaChart = createChart(ChartLambda, "Lambda (mV)");
     loopChart = createChart(ChartLoopIndicator, "O2 Loop (0 = Active)");
     afrChart = createChart(ChartAFR, "Air : Fuel Ratio");
@@ -495,6 +499,7 @@ function updateGraphs(data) {
     addData(ignitionSpark, data.Time, data.IgnitionAdvance, memsreader.memsdata.Analytics.CrankshaftSensorFault);
 
     addData(rpmChart, data.Time, data.EngineRPM);
+    addData(iacChart, data.Time, data.IACPosition, memsreader.memsdata.Analytics.IACPosition);
     addData(idleBaseChart, data.Time, data.IdleBasePosition, memsreader.memsdata.Analytics.IdleBaseFault);
     addData(idleErrorChart, data.Time, data.IdleSpeedOffset, memsreader.memsdata.Analytics.IdleSpeedFault || memsreader.memsdata.Analytics.IdleErrorFault || memsreader.memsdata.Analytics.IdleHotFault);
     addData(mapChart, data.Time, data.ManifoldAbsolutePressure, memsreader.memsdata.Analytics.MapFault);
