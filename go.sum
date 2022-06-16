@@ -181,6 +181,8 @@ github.com/andrewdjackson/rosco v1.5.95 h1:ZX4aL5fyXhgl46SqwXdTO2V3dNEsq5aPEfeBg
 github.com/andrewdjackson/rosco v1.5.95/go.mod h1:3i94HzIE4iB69yZNbPHyyOcOMJ+uffYb6iQSxWkNnxs=
 github.com/andrewdjackson/rosco v1.5.96 h1:JOqIWZtpjW4VIzWAr9z4M+7vP44mSsR0ZJJCaWEHNFE=
 github.com/andrewdjackson/rosco v1.5.96/go.mod h1:3i94HzIE4iB69yZNbPHyyOcOMJ+uffYb6iQSxWkNnxs=
+github.com/andrewdjackson/rosco v1.5.97 h1:Ny/NNGRrBssNOhw4p9Hz+ds3SVQCigSoztXakm/GeEk=
+github.com/andrewdjackson/rosco v1.5.97/go.mod h1:3i94HzIE4iB69yZNbPHyyOcOMJ+uffYb6iQSxWkNnxs=
 github.com/boombuler/barcode v1.0.0/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
 github.com/corbym/gocrest v1.0.5/go.mod h1:lF3xBPnOU5DYDpa/vUq63SMxUhd5UAwGgmA8Z2pJ/Tk=
 github.com/creack/goselect v0.1.1 h1:tiSSgKE1eJtxs1h/VgGQWuXUP0YS4CDIFMp6vaI1ls0=
@@ -335,6 +337,8 @@ golang.org/x/sys v0.0.0-20220610221304-9f5ed59c137d h1:Zu/JngovGLVi6t2J3nmAf3AoT
 golang.org/x/sys v0.0.0-20220610221304-9f5ed59c137d/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220614162138-6c1b26c55098 h1:PgOr27OhUx2IRqGJ2RxAWI4dJQ7bi9cSrB82uzFzfUA=
 golang.org/x/sys v0.0.0-20220614162138-6c1b26c55098/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c h1:aFV+BgZ4svzjfabn8ERpuB4JI4N6/rdy1iusx77G3oU=
+golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.5/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 golang.org/x/tools v0.0.0-20180525024113-a5b4c53f6e8b/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
