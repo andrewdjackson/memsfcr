@@ -6,6 +6,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "appdmg": "^0.6.4",
     "vitest": "^0.12.4"
   }
 }
