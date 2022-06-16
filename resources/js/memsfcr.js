@@ -198,6 +198,7 @@ const ChartLoopIndicator = "loopchart"
 const ChartCoolant = "coolantchart"
 const ChartAFR = "afrchart"
 const ChartIAC = "iacchart"
+const ChartIdleHot = "idlehotchart"
 const ChartIdleBase = "idlebasechart"
 const ChartIdleError = "idleerrorchart"
 const ChartMAP = "mapchart"
@@ -248,6 +249,7 @@ var afrChart
 var coolantChart
 var idleBaseChart
 var idleErrorChart
+var idleHotChart
 var mapChart
 var coilTimeChart
 var casChart
@@ -448,14 +450,16 @@ function initialiseSparklines() {
 
 function initialiseGraphs() {
     rpmChart = createChart(ChartRPM, "Engine (RPM)");
-    iacChart = createChart(ChartIAC, "IAC Position");
+    iacChart = createChart(ChartIAC, "IAC Position (Steps)");
     lambdaChart = createChart(ChartLambda, "Lambda (mV)");
     loopChart = createChart(ChartLoopIndicator, "O2 Loop (0 = Active)");
     afrChart = createChart(ChartAFR, "Air : Fuel Ratio");
     coolantChart = createChart(ChartCoolant, "Coolant (°C)");
 
     idleBaseChart = createChart(ChartIdleBase, "Idle Base (Steps)");
-    idleErrorChart = createChart(ChartIdleError, "Idle Error (Steps)");
+    idleHotChart = createChart(ChartIdleHot, "Idle Hot (Steps)");
+    idleErrorChart = createChart(ChartIdleError, "Idle Speed Offset (RPM)");
+
     mapChart = createChart(ChartMAP, "MAP (kPa)");
     coilTimeChart = createChart(ChartCoilTime, "Coil Time (ms)");
     casChart = createChart(ChartCAS, "Crankshaft Position");
@@ -501,6 +505,7 @@ function updateGraphs(data) {
     addData(rpmChart, data.Time, data.EngineRPM);
     addData(iacChart, data.Time, data.IACPosition, memsreader.memsdata.Analytics.IACPosition);
     addData(idleBaseChart, data.Time, data.IdleBasePosition, memsreader.memsdata.Analytics.IdleBaseFault);
+    addData(idleHotChart, data.Time, data.IdleHot, memsreader.memsdata.Analytics.IdleHotFault);
     addData(idleErrorChart, data.Time, data.IdleSpeedOffset, memsreader.memsdata.Analytics.IdleSpeedFault || memsreader.memsdata.Analytics.IdleErrorFault || memsreader.memsdata.Analytics.IdleHotFault);
     addData(mapChart, data.Time, data.ManifoldAbsolutePressure, memsreader.memsdata.Analytics.MapFault);
     addData(lambdaChart, data.Time, data.LambdaVoltage, memsreader.memsdata.Analytics.LambdaRangeFault || memsreader.memsdata.Analytics.LambdaOscillationFault || memsreader.memsdata.Analytics.O2SystemFault);
