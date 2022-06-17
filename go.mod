@@ -3,7 +3,7 @@ module github.com/andrewdjackson/memsfcr
 go 1.17
 
 require (
-	github.com/andrewdjackson/rosco v1.5.97
+	github.com/andrewdjackson/rosco v1.6.2
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/mitchellh/go-homedir v1.1.0
@@ -23,3 +23,5 @@ require (
 	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
 	gonum.org/v1/gonum v0.11.0 // indirect
 )
+
+replace github.com/andrewdjackson/rosco v0.0.0 => ../rosco

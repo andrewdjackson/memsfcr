@@ -193,6 +193,7 @@ const LEDInfo = "info"
 
 // chart labels - must match id's used in the html
 const ChartRPM = "rpmchart"
+const ChartThrottle = "throttlechart"
 const ChartLambda = "lambdachart"
 const ChartLoopIndicator = "loopchart"
 const ChartCoolant = "coolantchart"
@@ -242,6 +243,7 @@ var airfuelSpark
 var ignitionSpark
 
 var rpmChart
+var throttleChart
 var iacChart
 var lambdaChart
 var loopChart
@@ -450,6 +452,7 @@ function initialiseSparklines() {
 
 function initialiseGraphs() {
     rpmChart = createChart(ChartRPM, "Engine (RPM)");
+    throttleChart = createChart(ChartThrottle, "Throttle Sensor");
     iacChart = createChart(ChartIAC, "IAC Position (Steps)");
     lambdaChart = createChart(ChartLambda, "Lambda (mV)");
     loopChart = createChart(ChartLoopIndicator, "O2 Loop (0 = Active)");
@@ -503,6 +506,7 @@ function updateGraphs(data) {
     addData(ignitionSpark, data.Time, data.IgnitionAdvance, memsreader.memsdata.Analytics.CrankshaftSensorFault);
 
     addData(rpmChart, data.Time, data.EngineRPM);
+    addData(throttleChart, data.Time, data.ThrottlePotSensor);
     addData(iacChart, data.Time, data.IACPosition, memsreader.memsdata.Analytics.IACPosition);
     addData(idleBaseChart, data.Time, data.IdleBasePosition, memsreader.memsdata.Analytics.IdleBaseFault);
     addData(idleHotChart, data.Time, data.IdleHot, memsreader.memsdata.Analytics.IdleHotFault);

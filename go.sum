@@ -183,6 +183,16 @@ github.com/andrewdjackson/rosco v1.5.96 h1:JOqIWZtpjW4VIzWAr9z4M+7vP44mSsR0ZJJCa
 github.com/andrewdjackson/rosco v1.5.96/go.mod h1:3i94HzIE4iB69yZNbPHyyOcOMJ+uffYb6iQSxWkNnxs=
 github.com/andrewdjackson/rosco v1.5.97 h1:Ny/NNGRrBssNOhw4p9Hz+ds3SVQCigSoztXakm/GeEk=
 github.com/andrewdjackson/rosco v1.5.97/go.mod h1:3i94HzIE4iB69yZNbPHyyOcOMJ+uffYb6iQSxWkNnxs=
+github.com/andrewdjackson/rosco v1.5.98 h1:Y3pbxkIesGPWj1xQ8pGYinZ4dLgqyBSAHIJNcDkpwLU=
+github.com/andrewdjackson/rosco v1.5.98/go.mod h1:3i94HzIE4iB69yZNbPHyyOcOMJ+uffYb6iQSxWkNnxs=
+github.com/andrewdjackson/rosco v1.5.99 h1:NNK593Ym19D30v8hGrGADaIspyFpBvZ1if5PScFuE2Y=
+github.com/andrewdjackson/rosco v1.5.99/go.mod h1:3i94HzIE4iB69yZNbPHyyOcOMJ+uffYb6iQSxWkNnxs=
+github.com/andrewdjackson/rosco v1.6.0 h1:RThSfhlw6HIc0YxMZfSRvNeE1zuOYt0tt8iXQFjYjhA=
+github.com/andrewdjackson/rosco v1.6.0/go.mod h1:3i94HzIE4iB69yZNbPHyyOcOMJ+uffYb6iQSxWkNnxs=
+github.com/andrewdjackson/rosco v1.6.1 h1:UgtOhS5Am1NAFH5oZM4IFwcusK4F1AUkVX4+/4WyGKc=
+github.com/andrewdjackson/rosco v1.6.1/go.mod h1:3i94HzIE4iB69yZNbPHyyOcOMJ+uffYb6iQSxWkNnxs=
+github.com/andrewdjackson/rosco v1.6.2 h1:u9cGen78NgoK88RjPaUcRfHnM+8On7uFZDa3g4RF/WQ=
+github.com/andrewdjackson/rosco v1.6.2/go.mod h1:3i94HzIE4iB69yZNbPHyyOcOMJ+uffYb6iQSxWkNnxs=
 github.com/boombuler/barcode v1.0.0/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
 github.com/corbym/gocrest v1.0.5/go.mod h1:lF3xBPnOU5DYDpa/vUq63SMxUhd5UAwGgmA8Z2pJ/Tk=
 github.com/creack/goselect v0.1.1 h1:tiSSgKE1eJtxs1h/VgGQWuXUP0YS4CDIFMp6vaI1ls0=
