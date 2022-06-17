@@ -844,7 +844,7 @@ function checkForNewVersion() {
 function displayNewVersionDialog(newVersion) {
     newVersion = newVersion.replace(/\r?\n|\r/g, "");
 
-    if (version !== newVersion) {
+    if (version.trim() != newVersion.trim()) {
         let downloadUrl = ""
 
         if (navigator.platform.indexOf("Mac") != -1)
