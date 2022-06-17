@@ -844,14 +844,13 @@ function checkForNewVersion() {
 function displayNewVersionDialog(newVersion) {
     newVersion = newVersion.replace(/\r?\n|\r/g, "");
 
-    version = "2.7.2"
     if (version !== newVersion) {
         let downloadUrl = ""
 
-        if (navigator.appVersion.indexOf("Mac") != -1)
+        if (navigator.platform.indexOf("Mac") != -1)
             downloadUrl = macVersionUrl
 
-        if (navigator.appVersion.indexOf("Win") != -1)
+        if (navigator.platform.indexOf("Win") != -1)
             downloadUrl = winVersionUrl;
 
         document.getElementById("newVersionMessage").innerHTML = newVersion
