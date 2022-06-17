@@ -2,6 +2,10 @@
 
 var minIAC = false
 var debug = false
+var version = "0.0.0"
+var versionUrl = "https://raw.githubusercontent.com/andrewdjackson/memsfcr/master/version"
+var macVersionUrl = "https://memsfcr.co.uk/wp-content/uploads/apps/MemsFCR.dmg"
+var winVersionUrl = "https://memsfcr.co.uk/wp-content/uploads/apps/Rover%20MEMS%20Fault%20Code%20Reader.exe?189db0&189db0"
 
 // replay data
 let replay = ""
@@ -375,6 +379,9 @@ window.onload = function () {
 
     // hide the playback progress bar
     showProgressValues(false)
+
+    // check for a new version
+    checkForNewVersion();
 };
 
 function initialiseServerEvents() {
@@ -805,6 +812,7 @@ function updateECUQueryIntervalLabel(value) {
 function updateConfigSettings(data) {
     console.info("Version " + data.Version)
     $("#version").text("Version " + data.Version)
+    version = data.Version
 
     setPort(data.Port);
     setSerialPortSelection(data.Ports);
@@ -821,6 +829,35 @@ function updateConfigSettings(data) {
     if (data.Port === "" || data.Port.toLowerCase() === "/dev/tty.serial") {
         $('#settingsModalCenter').modal("show")
         $("#settings-menu").tab('show');
+    }
+}
+
+function checkForNewVersion() {
+    fetch(versionUrl)
+        .then( r => r.text() )
+        .then( t => {
+            displayNewVersionDialog(t)
+        })
+        .catch(err => console.info("unable to check for new version (" + err + ")"));
+}
+
+function displayNewVersionDialog(newVersion) {
+    newVersion = newVersion.replace(/\r?\n|\r/g, "");
+
+    version = "2.7.2"
+    if (version !== newVersion) {
+        let downloadUrl = ""
+
+        if (navigator.appVersion.indexOf("Mac") != -1)
+            downloadUrl = macVersionUrl
+
+        if (navigator.appVersion.indexOf("Win") != -1)
+            downloadUrl = winVersionUrl;
+
+        document.getElementById("newVersionMessage").innerHTML = newVersion
+        document.getElementById("newVersionDownload").href = downloadUrl
+
+        $('#newVersionModalCenter').modal("show")
     }
 }
 
