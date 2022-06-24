@@ -286,9 +286,13 @@ func (webserver *WebServer) postECUReset(w http.ResponseWriter, r *http.Request)
 	value := false
 
 	log.Infof("rest-post reset ecu")
-	if err := webserver.reader.ECU.ResetECU(); err == nil {
-		value = true
+
+	if webserver.isECUConnected(w) {
+		if err := webserver.reader.ECU.ResetECU(); err == nil {
+			value = true
+		}
 	}
+
 	webserver.updateECUState(w, r, value)
 }
 
@@ -298,8 +302,11 @@ func (webserver *WebServer) postECUReset(w http.ResponseWriter, r *http.Request)
 func (webserver *WebServer) postECUClearFaults(w http.ResponseWriter, r *http.Request) {
 	value := false
 	log.Infof("rest-post clear ecu faults")
-	if err := webserver.reader.ECU.ClearFaults(); err == nil {
-		value = true
+
+	if webserver.isECUConnected(w) {
+		if err := webserver.reader.ECU.ClearFaults(); err == nil {
+			value = true
+		}
 	}
 	webserver.updateECUState(w, r, value)
 }
@@ -310,8 +317,11 @@ func (webserver *WebServer) postECUClearFaults(w http.ResponseWriter, r *http.Re
 func (webserver *WebServer) postECUClearAdjustments(w http.ResponseWriter, r *http.Request) {
 	value := false
 	log.Infof("rest-post clear ecu adjustable values")
-	if err := webserver.reader.ECU.ResetAdjustments(); err == nil {
-		value = true
+
+	if webserver.isECUConnected(w) {
+		if err := webserver.reader.ECU.ResetAdjustments(); err == nil {
+			value = true
+		}
 	}
 	webserver.updateECUState(w, r, value)
 }

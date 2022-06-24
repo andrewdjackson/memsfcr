@@ -318,6 +318,7 @@ class MemsReader {
             dataframe: uri + "/rosco/dataframe",
             adjust: uri + "/rosco/adjust/",
             actuator: uri + "/rosco/test/",
+            reset: uri + "/rosco/reset",
             scenario: uri + "/scenario",
             scenario_details: uri + "/scenario/details",
             seek_scenario: uri + "/scenario/seek",
@@ -1380,16 +1381,70 @@ function updateAdjustmentValue(id, value) {
 function resetECU() {
     // reset ECU command
     console.info('reset ecu')
+    sendReset('ecu')
+        .then(data => { displayResetDialog("ECU Reset", data.success) })
+        .catch(err => {
+            console.info(err)
+            displayResetDialog("ECU Reset", false)
+        })
 }
 
 function resetAdj() {
     // reset ECU adjustments
     console.info('reset adjustable values')
+    sendReset('adjustments')
+        .then(data => { displayResetDialog("Adjustments Reset", data.success) })
+        .catch(err => {
+            console.info(err)
+            displayResetDialog("Adjustment Reset", false)
+        })
 }
 
 function clearFaultCodes() {
     // clear fault codes
     console.info('reset fault codes')
+    sendReset('faults')
+        .then(data => { displayResetDialog("Clear Faults", data.success) })
+        .catch(err => {
+            console.info(err)
+            displayResetDialog("Clear Faults", false)
+        })
+}
+
+function displayResetDialog(msg, success) {
+    if (success === false) {
+        msg += " Failed"
+    } else {
+        msg += " Successful"
+    }
+
+    document.getElementById("resetMessage").innerHTML = `${msg}`
+    $('#resetModalCenter').modal("show")
+}
+
+async function sendReset(resetValue) {
+    let url = memsreader.uri.reset + "/" + resetValue
+    let init = {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+    }
+
+    if (!memsreader.status.connected) {
+        throw new Error(`reset ${resetValue} failed (not connected to ecu)`)
+    }
+
+    try {
+        let response = await fetch(url, init);
+        let data = await response.json();
+        console.info(`reset ${resetValue} (${JSON.stringify(data)})`)
+        return data
+    } catch(err) {
+        // catches errors both in fetch and response.json
+        throw new Error(`reset ${resetValue} failed (${JSON.stringify(err)})`)
+    }
 }
 
 function activateActuator(event) {
