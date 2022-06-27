@@ -156,8 +156,8 @@ func (webserver *WebServer) newRouter() *mux.Router {
 	r.HandleFunc("/rosco/test/purgevalve", webserver.postECUTestPurgeValve).Methods(http.MethodPost)
 	r.HandleFunc("/rosco/test/boostvalve", webserver.postECUTestBoostValve).Methods(http.MethodPost)
 	r.HandleFunc("/rosco/test/fan", webserver.postECUTestFan1).Methods(http.MethodPost)
-	r.HandleFunc("/rosco/test/fan/1", webserver.postECUTestFan1).Methods(http.MethodPost)
-	r.HandleFunc("/rosco/test/fan/2", webserver.postECUTestFan2).Methods(http.MethodPost)
+	r.HandleFunc("/rosco/test/fan1", webserver.postECUTestFan1).Methods(http.MethodPost)
+	r.HandleFunc("/rosco/test/fan2", webserver.postECUTestFan2).Methods(http.MethodPost)
 	r.HandleFunc("/rosco/test/injectors", webserver.postECUTestInjectors).Methods(http.MethodPost)
 	r.HandleFunc("/rosco/test/coil", webserver.postECUTestCoil).Methods(http.MethodPost)
 
