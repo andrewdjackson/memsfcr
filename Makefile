@@ -4,6 +4,7 @@ DISTPATH=dist
 RESOURCESPATH=resources
 DARWINDISTPATH=dist/darwin
 EXEPATH=$(DARWINDISTPATH)/$(EXECUTABLE)
+MIN_DEPLOYMENT_TARGET=-mmacosx-version-min=11.6.7
 
 DEVID="Developer ID Application: Andrew Jackson (MD9E767XF5)"
 LOCAL_DISTID="Developer ID Application: Andrew Jackson (MD9E767XF5)"
@@ -23,7 +24,7 @@ store: build_darwin create_darwin_app sign_app_store upload_app_to_store
 build_darwin:
 	# Version: $(VERSION)
 	# Build: $(BUILD)
-	env GOOS=darwin GOARCH=amd64 go build -i -v -o $(EXEPATH) -ldflags="-s -w -X main.Version=$(VERSION) -X main.Build=$(BUILD)"
+	env GOOS=darwin GOARCH=amd64 CGO_CFLAGS="$(MIN_DEPLOYMENT_TARGET)" CGO_LDFLAGS="$(MIN_DEPLOYMENT_TARGET)" go build -i -v -o $(EXEPATH) -ldflags="-s -w -X main.Version=$(VERSION) -X main.Build=$(BUILD)"
 
 create_darwin_app:
 	# copy the binary to the distribution folder
