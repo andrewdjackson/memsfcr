@@ -61,13 +61,16 @@ package_local_app:
 
 notarize_local_package:
 	# notarize the DMG
-	xcrun altool --notarize-app -f $(DARWINDISTPATH)/$(APPNAME).dmg --primary-bundle-id "com.github.andrewdjackson.memsfcr" -u $(APPLEDEVUSR) -p $(APPLEDEVPWD)
+	xcrun notarytool submit $(DARWINDISTPATH)/$(APPNAME).dmg --wait --keychain-profile "APPLEDEV"
+	#xcrun altool --notarize-app -f $(DARWINDISTPATH)/$(APPNAME).dmg --primary-bundle-id "com.github.andrewdjackson.memsfcr" -u $(APPLEDEVUSR) -p $(APPLEDEVPWD)
+
 	# notarize the PKG
-	xcrun altool --notarize-app -f $(DARWINDISTPATH)/$(APPNAME).pkg --primary-bundle-id "com.github.andrewdjackson.memsfcr" -u $(APPLEDEVUSR) -p $(APPLEDEVPWD)
+	xcrun notarytool submit $(DARWINDISTPATH)/$(APPNAME).pkg --wait --keychain-profile "APPLEDEV"
+	#xcrun altool --notarize-app -f $(DARWINDISTPATH)/$(APPNAME).pkg --primary-bundle-id "com.github.andrewdjackson.memsfcr" -u $(APPLEDEVUSR) -p $(APPLEDEVPWD)
 
 	#
 	# if successful staple the app for offline installation
-	#   xcrun stapler staple $(DARWINDISTPATH)/$(APPNAME).app & xcrun stapler staple $(DARWINDISTPATH)/$(APPNAME).pkg & xcrun stapler staple $(DARWINDISTPATH)/$(APPNAME).dmg
+	xcrun stapler staple $(DARWINDISTPATH)/$(APPNAME).app & xcrun stapler staple $(DARWINDISTPATH)/$(APPNAME).pkg & xcrun stapler staple $(DARWINDISTPATH)/$(APPNAME).dmg
 
 upload_app_to_store:
 	xcrun altool --upload-app -f $(DARWINDISTPATH)/$(APPNAME).pkg --primary-bundle-id "com.github.andrewdjackson.memsfcr" -u $(APPLEDEVUSR) -p $(APPLEDEVPWD)
