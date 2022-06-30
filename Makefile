@@ -17,6 +17,7 @@ BUILD=$(shell date +%FT%T%z)
 
 .PHONY: clean
 
+package: package_local_app notarize_local_package
 build: build_darwin create_darwin_app package_local_app
 local: build_darwin create_darwin_app sign_app_local package_local_app notarize_local_package
 store: build_darwin create_darwin_app sign_app_store upload_app_to_store
@@ -24,7 +25,7 @@ store: build_darwin create_darwin_app sign_app_store upload_app_to_store
 build_darwin:
 	# Version: $(VERSION)
 	# Build: $(BUILD)
-	env GOOS=darwin GOARCH=amd64 CGO_CFLAGS="$(MIN_DEPLOYMENT_TARGET)" CGO_LDFLAGS="$(MIN_DEPLOYMENT_TARGET)" go build -i -v -o $(EXEPATH) -ldflags="-s -w -X main.Version=$(VERSION) -X main.Build=$(BUILD)"
+	env GOOS=darwin GOARCH=amd64 CGO_CFLAGS="$(MIN_DEPLOYMENT_TARGET)" CGO_LDFLAGS="$(MIN_DEPLOYMENT_TARGET)" go build -v -o $(EXEPATH) -ldflags="-s -w -X main.Version=$(VERSION) -X main.Build=$(BUILD)"
 
 create_darwin_app:
 	# copy the binary to the distribution folder
@@ -41,7 +42,7 @@ sign_app_local:
 	# sign with the app
 	codesign --force  --deep --verify --verbose=4 -s $(DEVID) --timestamp --options runtime "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/$(EXECUTABLE)" "$(DARWINDISTPATH)/$(APPNAME).app"
 	# build and sign installer PKG
-	productbuild --component $(DARWINDISTPATH)/$(APPNAME).app /Applications --sign $(LOCAL_INSTID) --product $(DARWINDISTPATH)/$(APPNAME).app/Contents/Info.plist $(DARWINDISTPATH)/$(APPNAME).pkg
+	#productbuild --component $(DARWINDISTPATH)/$(APPNAME).app /Applications --sign $(LOCAL_INSTID) --product $(DARWINDISTPATH)/$(APPNAME).app/Contents/Info.plist $(DARWINDISTPATH)/$(APPNAME).pkg
 	# sign the PKG with the entitlements
 	#codesign --force  --deep --verify --verbose=4 -s $(LOCAL_DISTID) --timestamp --entitlements "$(DARWINDISTPATH)/$(APPNAME).app/Contents/entitlements.plist" --options runtime "$(DARWINDISTPATH)/$(APPNAME).app/Contents/MacOS/$(EXECUTABLE)" "$(DARWINDISTPATH)/$(APPNAME).pkg"
 
