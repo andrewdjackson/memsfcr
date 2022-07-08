@@ -321,6 +321,7 @@ class MemsReader {
             reset: uri + "/rosco/reset",
             scenario: uri + "/scenario",
             scenario_details: uri + "/scenario/details",
+            scenario_contents: uri + "/scenario/contents",
             seek_scenario: uri + "/scenario/seek",
         }
         this.ecuid = ""

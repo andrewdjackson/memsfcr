@@ -125,6 +125,7 @@ func (webserver *WebServer) newRouter() *mux.Router {
 	r.HandleFunc("/config", webserver.updateConfigHandler).Methods(http.MethodPut)
 
 	r.HandleFunc("/scenario", webserver.getListofScenarios).Methods(http.MethodGet)
+	r.HandleFunc("/scenario/contents/{scenarioId}", webserver.getScenarioContents).Methods(http.MethodGet)
 	r.HandleFunc("/scenario/details/{scenarioId}", webserver.getScenarioDetails).Methods(http.MethodGet)
 	r.HandleFunc("/scenario/progress/{scenarioId}", webserver.getPlaybackProgress).Methods(http.MethodGet)
 	r.HandleFunc("/scenario/convert", webserver.putConvertToScenario).Methods(http.MethodPut)

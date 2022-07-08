@@ -70,6 +70,37 @@ func (webserver *WebServer) getScenarioDetails(w http.ResponseWriter, r *http.Re
 	}
 }
 
+func (webserver *WebServer) getScenarioContents(w http.ResponseWriter, r *http.Request) {
+	log.Info("rest get scenario contents")
+
+	vars := mux.Vars(r)
+	scenarioID := strings.ToLower(vars["scenarioId"])
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Warnf("rest error closing response body")
+		}
+	}(r.Body)
+
+	if data, err := rosco.GetScenarioContents(scenarioID); err == nil {
+		contents := string(data)
+
+		if strings.HasSuffix(scenarioID, "csv") {
+			w.Header().Set("Content-Type", "text/csv; charset=UTF-8")
+		} else {
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		}
+
+		if err := json.NewEncoder(w).Encode(contents); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	} else {
+		log.Warnf("unable to get scenario contents (%+v)", err)
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
 // REST API : GET Scenarios
 // returns a list of available scenarios
 func (webserver *WebServer) getListofScenarios(w http.ResponseWriter, r *http.Request) {

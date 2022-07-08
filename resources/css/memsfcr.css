@@ -449,6 +449,10 @@ input::-moz-focus-outer {
     overflow-y: auto;
 }
 
+.modal-scenario {
+    height: 50vh;
+}
+
 
 /*
 .toggle.ios, .toggle-on.ios, .toggle-off.ios { border-radius: 10px;}
