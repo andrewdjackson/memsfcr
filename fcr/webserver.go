@@ -1,7 +1,6 @@
 package fcr
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"github.com/andrewdjackson/rosco"
@@ -191,6 +190,7 @@ func (webserver *WebServer) renderIndex(w http.ResponseWriter, r *http.Request) 
 		log.Errorf("template error: ", err)
 	}
 
+	// read the json data file with the template parameters
 	data := map[string]interface{}{}
 	jsondata, err := ioutil.ReadFile(dataFile)
 
@@ -201,20 +201,6 @@ func (webserver *WebServer) renderIndex(w http.ResponseWriter, r *http.Request) 
 	if err := json.Unmarshal(jsondata, &data); err != nil {
 		log.Errorf("template error: ", err)
 	}
-
-	/*
-		// blocks until version has been found and causes an exception if the network is
-		// offline.
-		// currently commented out until I get a chance to fix this
-		//
-		data["Version"] = webserver.reader.Config.Version
-		latestVersion := webserver.newVersionAvailable()
-		if latestVersion != webserver.reader.Config.Version {
-			data["Version"] = "New Version! Click to Download"
-			data["NewVersion"] = true
-			log.Infof("%s", data["Version"])
-		}
-	*/
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Etag", webserver.reader.Config.Build)
@@ -252,26 +238,4 @@ func (webserver *WebServer) RunHTTPServer() {
 	if err != nil {
 		log.Errorf("error starting web interface (%s)", err)
 	}
-}
-
-func (webserver *WebServer) newVersionAvailable() string {
-	versionUrl := "https://raw.githubusercontent.com/andrewdjackson/memsfcr/master/version"
-	latestVersion := webserver.reader.Config.Version
-	response, err := http.Get(versionUrl)
-	defer response.Body.Close()
-
-	if err == nil {
-		var lines []string
-		scanner := bufio.NewScanner(response.Body)
-		for scanner.Scan() {
-			lines = append(lines, scanner.Text())
-		}
-
-		log.Infof("repo version %s", lines[0])
-		latestVersion = lines[0]
-	} else {
-		log.Warnf("version check failed %s", err)
-	}
-
-	return latestVersion
 }
