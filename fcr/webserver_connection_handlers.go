@@ -32,7 +32,7 @@ func (webserver *WebServer) browserHeartbeatHandler(w http.ResponseWriter, r *ht
 			if _, err := fmt.Fprintf(w, "event: heartbeat\ndata: heartbeat\n\n"); err != nil {
 				// error occurred because the heartbeat failed to send
 				// we'll assume the browser session has been terminated, clean up and close the server
-				log.Warnf("unable to sent heartbeat to browser, terminating application")
+				log.Warnf("unable to send heartbeat to browser, terminating application")
 				webserver.Disconnect()
 				webserver.TerminateApplication()
 			}

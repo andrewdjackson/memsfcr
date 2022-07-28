@@ -45,11 +45,12 @@ type WebServer struct {
 }
 
 const (
-	indexTemplate = "index.template.html"
-	indexData     = "index.template.json"
+	indexTemplate    = "index.template.html"
+	indexData        = "index.template.json"
+	templateWildcard = "*.template.html"
 )
 
-// NewWebInterface creates a new web interface
+// NewWebServer creates a new web interface
 func NewWebServer(reader *MemsReader, headless bool) *WebServer {
 	webserver := &WebServer{}
 	webserver.headless = headless
@@ -101,17 +102,14 @@ func (webserver *WebServer) getRelativePaths() RelativePaths {
 
 	paths.Webroot = filepath.ToSlash(paths.Webroot)
 
-	log.Infof("path to the local html files (%s)", paths.Webroot)
+	log.Infof("path to the local html files (%s) on (%s)", paths.Webroot, runtime.GOOS)
 
 	return paths
 }
 
 func (webserver *WebServer) newRouter() *mux.Router {
 	webserver.paths = webserver.getRelativePaths()
-
 	webserver.httpDir = webserver.paths.Webroot
-
-	log.Infof("path to the local html files (%s) on (%s)", webserver.httpDir, runtime.GOOS)
 
 	// set a router and a handler to accept messages over the websocket
 
@@ -174,12 +172,10 @@ func (webserver *WebServer) newRouter() *mux.Router {
 }
 
 func (webserver *WebServer) renderIndex(w http.ResponseWriter, r *http.Request) {
-	log.Infof("rendering html template")
-
 	dataFile := fmt.Sprintf("%s/%s", webserver.paths.Webroot, indexData)
 	dataFile = filepath.ToSlash(dataFile)
 
-	templatePath := fmt.Sprintf("%s/%s", webserver.paths.Webroot, "*.template.html")
+	templatePath := fmt.Sprintf("%s/%s", webserver.paths.Webroot, templateWildcard)
 	templatePath = filepath.ToSlash(templatePath)
 
 	log.Infof("rendering html templates in %s", templatePath)
@@ -187,7 +183,7 @@ func (webserver *WebServer) renderIndex(w http.ResponseWriter, r *http.Request) 
 	page, err := template.ParseGlob(templatePath)
 
 	if err != nil {
-		log.Errorf("template error: ", err)
+		log.Errorf("template error (%s) ", err)
 	}
 
 	// read the json data file with the template parameters
@@ -195,17 +191,17 @@ func (webserver *WebServer) renderIndex(w http.ResponseWriter, r *http.Request) 
 	jsondata, err := ioutil.ReadFile(dataFile)
 
 	if err != nil {
-		log.Errorf("template error: ", err)
+		log.Errorf("template error (%s) ", err)
 	}
 
 	if err := json.Unmarshal(jsondata, &data); err != nil {
-		log.Errorf("template error: ", err)
+		log.Errorf("template error (%s) ", err)
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Etag", webserver.reader.Config.Build)
 
-	err = page.ExecuteTemplate(w, "index.template.html", data)
+	err = page.ExecuteTemplate(w, indexTemplate, data)
 
 	if err != nil {
 		log.Errorf("\nRender Error: %v\n", err)
