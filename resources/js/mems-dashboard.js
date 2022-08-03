@@ -5,6 +5,14 @@ var displayHeight = 200
 var animationSpeed = 400
 var gaugeFontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'
 
+var altgreenzone = 'rgba(26,174,24,0.4)'
+var greenzone = 'rgba(26,174,24,0.8)'
+var amberzone = 'rgba(248,182,69,0.8)'
+var redzone = 'rgba(225, 7, 23, 0.8)'
+var purplezone = 'rgba(135,60,248,0.8)'
+var bluezone = 'rgba(150,184,255,0.8)'
+
+
 var gaugeRPM = new RadialGauge({
     renderTo: 'gauge-rpm',
     title: 'Engine Speed',
@@ -12,7 +20,7 @@ var gaugeRPM = new RadialGauge({
     height: displayHeight,
     units: 'RPM',
     minValue: 0,
-    maxValue: 7000,
+    maxValue: 6000,
     majorTicks: [
         '0',
         '1000',
@@ -20,21 +28,28 @@ var gaugeRPM = new RadialGauge({
         '3000',
         '4000',
         '5000',
-        '6000',
-        '7000'
+        '6000'
     ],
     minorTicks: 10,
     ticksAngle: 250,
     startAngle: 55,
     strokeTicks: true,
     highlights: [{
-        from: 5000,
-        to: 6000,
-        color: 'rgba(78, 78, 76, 0.5)'
+        from: 900,
+        to: 1250,
+        color: altgreenzone
     }, {
-        from: 6000,
-        to: 7000,
-        color: 'rgba(225, 7, 23, 0.75)'
+        from: 800,
+        to: 900,
+        color: greenzone
+    }, {
+        from: 5000,
+        to: 5500,
+        color: amberzone
+    }, {
+        from: 5500,
+        to: 6000,
+        color: redzone
     }],
     valueInt: 1,
     valueDec: 0,
@@ -114,15 +129,15 @@ var gaugeMap = new RadialGauge({
     highlights: [{
         from: 0,
         to: 10,
-        color: 'rgba(225, 7, 23, 0.75)'
+        color: redzone
     }, {
-        from: 10,
-        to: 60,
-        color: 'rgba(10, 225, 6, 0.5)'
+        from: 30,
+        to: 45,
+        color: greenzone
     }, {
         from: 80,
         to: 100,
-        color: 'rgba(225, 7, 23, 0.75)'
+        color: redzone
     }],
     valueInt: 1,
     valueDec: 0,
@@ -200,9 +215,13 @@ var gaugeThrottlePos = new RadialGauge({
     startAngle: 55,
     strokeTicks: true,
     highlights: [{
+        from: 0,
+        to: 15,
+        color: altgreenzone
+    }, {
         from: 80,
         to: 100,
-        color: 'rgba(225, 7, 23, 0.75)'
+        color: redzone
     }],
     valueInt: 1,
     valueDec: 0,
@@ -282,11 +301,11 @@ var gaugeIACPos = new RadialGauge({
     highlights: [{
         from: 0,
         to: 30,
-        color: 'rgba(225, 7, 23, 0.75)'
+        color: redzone
     }, {
         from: 170,
         to: 200,
-        color: 'rgba(225, 7, 23, 0.75)'
+        color: redzone
     }],
     valueInt: 1,
     valueDec: 0,
@@ -359,13 +378,21 @@ var gaugeBattery = new RadialGauge({
     startAngle: 55,
     strokeTicks: true,
     highlights: [{
-        from: 12.5,
-        to: 14.5,
-        color: 'rgba(10, 225, 6, 0.5)'
+        from: 11,
+        to: 12.5,
+        color: redzone
     }, {
-        from: 14.5,
+        from: 12.5,
+        to: 13,
+        color: amberzone
+    }, {
+        from: 13,
+        to: 14.5,
+        color: greenzone
+    }, {
+        from: 15,
         to: 16,
-        color: 'rgba(225, 7, 23, 0.75)'
+        color: redzone
     }],
     valueInt: 0,
     valueDec: 1.0,
@@ -447,11 +474,11 @@ var gaugeCoolant = new RadialGauge({
     highlights: [{
         from: 80,
         to: 95,
-        color: 'rgba(10, 225, 6, 0.5)'
+        color: greenzone
     }, {
         from: 95,
         to: 120,
-        color: 'rgba(225, 7, 23, 0.75)'
+        color: redzone
     }],
     valueInt: 1,
     valueDec: 1.0,
@@ -531,11 +558,11 @@ var gaugeAir = new RadialGauge({
     highlights: [{
         from: 10,
         to: 50,
-        color: 'rgba(10, 225, 6, 0.5)'
+        color: greenzone
     }, {
         from: 50,
         to: 80,
-        color: 'rgba(225, 7, 23, 0.75)'
+        color: redzone
     }],
     valueInt: 1,
     valueDec: 1.0,
@@ -614,19 +641,19 @@ var gaugeLambda = new RadialGauge({
     highlights: [{
         from: 0,
         to: 50,
-        color: 'rgba(225, 7, 23, 0.75)'
+        color: redzone
     }, {
         from: 50,
         to: 450,
-        color: 'rgba(102,153,255,0.75)'
+        color: bluezone
     }, {
         from: 450,
         to: 890,
-        color: 'rgba(102,0,255,0.75)'
+        color: purplezone
     }, {
         from: 850,
         to: 900,
-        color: 'rgba(225, 7, 23, 0.75)'
+        color: redzone
     }],
     valueInt: 1,
     valueDec: 0,
@@ -684,37 +711,51 @@ var gaugeFuelTrim = new RadialGauge({
     width: displayWidth,
     height: displayHeight,
     units: '',
-    minValue: -140,
-    maxValue: 140,
+    minValue: -40,
+    maxValue: 40,
     majorTicks: [
-        '-140',
-        '-120',
-        '-100',
-        '-80',
-        '-60',
         '-40',
+        '-30',
         '-20',
+        '-10',
         '0',
+        '10',
         '20',
+        '30',
         '40',
-        '60',
-        '80',
-        '100',
-        '120',
-        '140'
     ],
     minorTicks: 5,
     ticksAngle: 250,
     startAngle: 55,
     strokeTicks: true,
     highlights: [{
-        from: -128,
-        to: 0,
-        color: 'rgba(102,153,255,0.75)'
+        from: -40,
+        to: -20,
+        color: redzone
     }, {
-        from: 0,
-        to: 128,
-        color: 'rgba(102,0,255,0.75)'
+        from: -20,
+        to: -10,
+        color: amberzone
+    }, {
+        from: -10,
+        to: -2,
+        color: bluezone
+    }, {
+        from: 2,
+        to: 10,
+        color: purplezone
+    }, {
+        from: 10,
+        to: 20,
+        color: amberzone
+    }, {
+        from: 20,
+        to: 40,
+        color: redzone
+    }, {
+        from: -2,
+        to: 2,
+        color: greenzone
     }],
     valueInt: 1,
     valueDec: 0,
@@ -772,37 +813,51 @@ var gaugeLTFuelTrim = new RadialGauge({
     width: displayWidth,
     height: displayHeight,
     units: '',
-    minValue: -140,
-    maxValue: 140,
+    minValue: -40,
+    maxValue: 40,
     majorTicks: [
-        '-140',
-        '-120',
-        '-100',
-        '-80',
-        '-60',
         '-40',
+        '-30',
         '-20',
+        '-10',
         '0',
+        '10',
         '20',
+        '30',
         '40',
-        '60',
-        '80',
-        '100',
-        '120',
-        '140'
     ],
     minorTicks: 5,
     ticksAngle: 250,
     startAngle: 55,
     strokeTicks: true,
     highlights: [{
-        from: -128,
-        to: 0,
-        color: 'rgba(102,153,255,0.75)'
+        from: -40,
+        to: -20,
+        color: redzone
     }, {
-        from: 0,
-        to: 128,
-        color: 'rgba(102,0,255,0.75)'
+        from: -20,
+        to: -10,
+        color: amberzone
+    }, {
+        from: -10,
+        to: -2,
+        color: bluezone
+    }, {
+        from: 2,
+        to: 10,
+        color: purplezone
+    }, {
+        from: 10,
+        to: 20,
+        color: amberzone
+    }, {
+        from: 20,
+        to: 40,
+        color: redzone
+    }, {
+        from: -2,
+        to: 2,
+        color: greenzone
     }],
     valueInt: 1,
     valueDec: 0,
@@ -877,23 +932,23 @@ var gaugeAirFuel = new RadialGauge({
     highlights: [{
         from: 10,
         to: 11,
-        color: 'rgba(225, 7, 23, 0.75)'
+        color: redzone
     }, {
         from: 11,
         to: 12,
-        color: 'rgba(225, 185, 6, 0.75)'
+        color: amberzone
     }, {
         from: 13.5,
         to: 16.5,
-        color: 'rgba(10, 225, 6, 0.5)'
+        color: greenzone
     }, {
         from: 18,
         to: 19,
-        color: 'rgba(225, 185, 6, 0.75)'
+        color: amberzone
     }, {
         from: 19,
         to: 20,
-        color: 'rgba(225, 7, 23, 0.75)'
+        color: redzone
     }],
     valueInt: 1,
     valueDec: 1.0,
@@ -952,17 +1007,13 @@ var gaugeIgnition = new RadialGauge({
     height: displayHeight,
     units: '°',
     minValue: 0,
-    maxValue: 40,
+    maxValue: 20,
     majorTicks: [
         '0',
         '5',
         '10',
         '15',
-        '20',
-        '25',
-        '30',
-        '35',
-        '40'
+        '20'
     ],
     minorTicks: 5,
     ticksAngle: 250,
@@ -970,12 +1021,16 @@ var gaugeIgnition = new RadialGauge({
     strokeTicks: true,
     highlights: [{
         from: 0,
-        to: 20,
-        color: 'rgba(10, 225, 6, 0.5)'
+        to: 5,
+        color: redzone
     }, {
-        from: 20,
-        to: 40,
-        color: 'rgba(225, 7, 23, 0.75)'
+        from: 8,
+        to: 12,
+        color: greenzone
+    }, {
+        from: 15,
+        to: 20,
+        color: redzone
     }],
     valueInt: 1,
     valueDec: 0,

@@ -18,6 +18,7 @@ let replayPosition = 0
 var ECUQueryInterval = 1000
 var ECUHeartbeatInterval = 2000
 var dataframeLoop
+var trimThreshold = 20
 
 var resetDataframe = {
     "Time": "00:00:00.000",
@@ -200,6 +201,8 @@ const ChartRPM = "rpmchart"
 const ChartThrottle = "throttlechart"
 const ChartLambda = "lambdachart"
 const ChartLoopIndicator = "loopchart"
+const ChartSTFTIndicator = "stftchart"
+const ChartLTFTIndicator = "ltftchart"
 const ChartCoolant = "coolantchart"
 const ChartAFR = "afrchart"
 const ChartIAC = "iacchart"
@@ -251,6 +254,8 @@ var throttleChart
 var iacChart
 var lambdaChart
 var loopChart
+var stftChart
+var ltftChart
 var afrChart
 var coolantChart
 var idleBaseChart
@@ -465,6 +470,8 @@ function initialiseGraphs() {
     iacChart = createChart(ChartIAC, "IAC Position (Steps)");
     lambdaChart = createChart(ChartLambda, "Lambda (mV)");
     loopChart = createChart(ChartLoopIndicator, "O2 Loop (0 = Active)");
+    stftChart = createChart(ChartSTFTIndicator, "Short Term Fuel Trim (%)");
+    ltftChart = createChart(ChartLTFTIndicator, "Long Term Fuel Trim (%)");
     afrChart = createChart(ChartAFR, "Air : Fuel Ratio");
     coolantChart = createChart(ChartCoolant, "Coolant (°C)");
 
@@ -509,8 +516,8 @@ function updateGraphs(data) {
     addData(coolantSpark, data.Time, data.CoolantTemp);
     addData(airSpark, data.Time, data.IntakeAirTemp);
     addData(lambdaSpark, data.Time, data.LambdaVoltage, memsreader.memsdata.Analytics.LambdaRangeFault || memsreader.memsdata.Analytics.LambdaOscillationFault || memsreader.memsdata.Analytics.O2SystemFault);
-    addData(fuelSpark, data.Time, data.FuelTrimCorrection);
-    addData(ltfuelSpark, data.Time, data.LongTermFuelTrim);
+    addData(fuelSpark, data.Time, data.FuelTrimCorrection, data.TrimFault);
+    addData(ltfuelSpark, data.Time, data.LongTermFuelTrim, data.TrimFault);
     addData(airfuelSpark, data.Time, data.AirFuelRatio);
     addData(ignitionSpark, data.Time, data.IgnitionAdvance, memsreader.memsdata.Analytics.CrankshaftSensorFault);
 
@@ -523,6 +530,9 @@ function updateGraphs(data) {
     addData(mapChart, data.Time, data.ManifoldAbsolutePressure, memsreader.memsdata.Analytics.MapFault);
     addData(lambdaChart, data.Time, data.LambdaVoltage, memsreader.memsdata.Analytics.LambdaRangeFault || memsreader.memsdata.Analytics.LambdaOscillationFault || memsreader.memsdata.Analytics.O2SystemFault);
     addData(loopChart, data.Time, data.ClosedLoop, memsreader.memsdata.Analytics.ClosedLoopFault);
+    addData(stftChart, data.Time, data.ShortTermFuelTrim, data.TrimFault);
+    addData(ltftChart, data.Time, data.LongTermFuelTrim, data.TrimFault);
+
     addData(afrChart, data.Time, data.AirFuelRatio);
     addData(coolantChart, data.Time, data.CoolantTemp, memsreader.memsdata.Analytics.CoolantTempSensorFault || memsreader.memsdata.Analytics.ThermostatFault);
     addData(coilTimeChart, data.Time, data.CoilTime, memsreader.memsdata.Analytics.CoilFault);
@@ -1251,6 +1261,8 @@ function dataframeReceived(event) {
 function updateECUDataframe(data) {
     memsreader.memsdata = data
     console.info("memsdata " + JSON.stringify(memsreader.memsdata))
+
+    data.TrimFault = (data.ShortTermFuelTrim + data.LongTermFuelTrim > trimThreshold)
 
     updateGauges(data);
     updateLEDs(data);

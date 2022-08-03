@@ -117,7 +117,7 @@
 
                 <div class="col">
                     <div class="dashboard-container">
-                        <div class="gauge-label-container">Short Term Fuel Trim</div>
+                        <div class="gauge-label-container">Short Term Fuel Trim (%)</div>
                         <div class="gauge-container" data-toggle="tooltip" data-placement="top"
                              title="Assuming that MAP, ATS and CTS are working correctly, short-term fuel trim values should generally be between positive 10%, and negative 10% when the engine is running at a steady speed.">
                             <canvas id="gauge-fueltrim"></canvas>
@@ -129,9 +129,9 @@
                 </div>
                 <div class="col">
                     <div class="dashboard-container">
-                        <div class="gauge-label-container">Long Term Fuel Trim</div>
+                        <div class="gauge-label-container">Long Term Fuel Trim (%)</div>
                         <div class="gauge-container" data-toggle="tooltip" data-placement="top"
-                             title="LTFT should be at, or close to 0%, when the engine is running at a steady speed, such as when it is idling. However, in some cases, the displayed value for long term fuel trims can be as high as 6 to 8% due to age and engine wear.">
+                             title="LTFT should be at, or close to 0%, when the engine is running at a steady speed, such as when it is idling. However, in some cases, the displayed value for long term fuel trims can be as high as 6 to 8% due to age and engine wear. The ECU will enter open loop / limp home mode if this exceeds +-20%.A value higher than 10% is an indication of a vacuum leak at the manifold.">
                             <canvas id="gauge-ltfueltrim"></canvas>
                         </div>
                         <div class="spark-container">
