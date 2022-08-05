@@ -4,6 +4,6 @@ set DISTPATH=dist
 set RESOURCESPATH=resources
 set WINDOWSDISTPATH=dist/windows
 set WINDOWS=%WINDOWSDISTPATH%/%EXECUTABLE%.exe
-set VERSION=2.7.5
+set VERSION=2.7.6
 
 go build -o %WINDOWS% -ldflags="-H windowsgui -s -w -X main.version=%VERSION%"
