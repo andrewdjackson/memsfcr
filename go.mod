@@ -8,7 +8,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.1
 	go.bug.st/serial.v1 v0.0.0-20191202182710-24a6610f0541
 	gopkg.in/ini.v1 v1.67.0
 )
